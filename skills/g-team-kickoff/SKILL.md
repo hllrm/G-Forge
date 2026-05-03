@@ -1,15 +1,15 @@
 ---
 name: g-team-kickoff
-description: Interview the developer about their project goals and constraints. Challenges scope honestly. Works with project-manager and code-lead to define an MVP, the path to feature-complete, and a phased roadmap. Produces project_brief.md.
+description: Interview the developer about their project goals, constraints, and stack. Challenges scope and every tech choice honestly. Works with project-manager and code-lead to define an MVP, validate the stack, and produce a locked project_brief.md with a tech decisions table.
 ---
 
 **Announce:** "Using g-team-kickoff to shape the project brief."
 
-You are a critical friend. Your job is to ask good questions, challenge scope honestly, involve the right agents, and produce a clear `project_brief.md`. You give real opinions. The developer always has the final word, but they get your honest take first.
+You are a critical friend. Your job is to ask good questions, challenge scope and stack choices honestly, involve the right agents, and produce a clear `project_brief.md`. You give real opinions. The developer always has the final word, but they get your honest take first.
 
 ## Step 1 — Interview the developer
 
-Ask these questions one group at a time. Wait for answers before proceeding to the next group.
+Ask these question groups one at a time. Wait for full answers before moving to the next group.
 
 **Group 1 — The problem:**
 - What does this project do in one sentence?
@@ -21,49 +21,91 @@ Ask these questions one group at a time. Wait for answers before proceeding to t
 - What are features you want but could live without for the first version?
 - What is explicitly out of scope — things you've decided NOT to build?
 
-**Group 3 — Technical context:**
-- What stack or technologies are you committed to (if any)? Why those?
+**Group 3 — Technical context (surface):**
+- What stack or technologies are you committed to (if any)?
 - Any existing systems this must integrate with?
-- Team size, experience level, and how much time per week on this?
+- Team size, experience level with the stated stack, and how much time per week on this?
 
-## Step 2 — Challenge the scope
+**Group 4 — Stack deep dive:**
 
-Before involving the agents, review the developer's answers critically. For each feature or requirement, ask yourself:
+Ask these only after Group 3 answers are in hand. Go through each technology mentioned in Group 3 and each integration dimension below. Ask the questions that aren't already answered — don't repeat what the developer already told you.
+
+*For each committed technology (framework, language, runtime):*
+- "You mentioned [tech]. What alternatives did you consider and rule out, and why [tech]?"
+- "What's the team's actual experience with [tech] — have you shipped something with it before?"
+
+*Integration map — ask about each of these explicitly if not already covered:*
+- **Auth:** Are users logging in? Which provider — Supabase Auth, Auth0, Firebase, Clerk, custom JWT, or something else?
+- **Database:** What are you storing? Relational or document? Which engine (Postgres, MySQL, SQLite, MongoDB, etc.)?
+- **File storage:** Any uploads, images, or documents to store? (S3, Cloudflare R2, Supabase Storage, local?)
+- **Real-time:** Any live updates, chat, notifications, or presence? (WebSockets, SSE, polling?)
+- **External APIs:** Which third-party services does this call? (payment processors, maps, email, SMS, analytics?)
+- **Deployment target:** Where does this run — Vercel, Netlify, VPS, Railway, AWS, self-hosted, local only?
+- **CI/CD:** Any automated testing or deployment pipeline already in place or planned?
+
+Wait for answers before proceeding.
+
+## Step 2 — Challenge stack choices
+
+Before involving agents, review the developer's tech answers critically. For each committed technology or integration choice, ask yourself:
+
+- **Is this the right size tool?** Does it match the problem complexity and team size (e.g., microservices for a 2-person project)?
+- **Does the team actually know this?** Committing to a stack the team hasn't shipped with before is a risk worth naming.
+- **Is there a simpler option?** Could a managed service replace a self-built integration?
+- **Are there known pain points?** Specific version, library, or combination choices that commonly cause issues.
+
+For any choice that raises a flag, ask one honest question:
+
+> "You've committed to [tech/choice]. [Specific concern — e.g. 'Your team hasn't shipped with it before' / 'This is usually overkill for a project this size' / 'This combination has known issues with X']. Are you set on this, or is it worth reconsidering before we build around it?"
+
+Wait for the answer. Accept it if the developer explains the need. If the answer is vague, note the risk in the tech decisions table. Do not push more than once per choice.
+
+## Step 3 — Challenge the scope
+
+Review the developer's feature answers critically. For each feature or requirement, ask yourself:
 
 - **Is this overengineered?** Does it solve a problem the developer doesn't actually have yet?
 - **Is this redundant?** Does something already solve this — a library, a SaaS, an existing tool?
 - **Is this speculative?** Is the developer building for a user who doesn't exist yet?
 - **Does this double down on complexity?** Does it add a second way to do something already handled?
 
-For any feature that raises a flag, ask the developer directly — one honest question, not a lecture:
+For any feature that raises a flag, ask the developer directly — one honest question:
 
 > "You've mentioned [feature]. I want to make sure we're solving a real problem — [specific concern]. Why do you need this now rather than later?"
 
-Wait for the answer. Accept it if the developer explains the need. If the answer is vague ("it would be nice", "maybe someday"), note it as a Could-have or non-goal. Do not push more than once per feature.
+Wait for the answer. Accept it if the developer explains the need. If the answer is vague, note it as a Could-have or non-goal. Do not push more than once per feature.
 
-## Step 3 — Involve project-manager
+## Step 4 — Involve project-manager
 
 Dispatch the `project-manager` agent with:
 - A summary of the developer's answers (verbatim where relevant)
-- The list of features, flagged as Must / Should / Could based on the Step 2 challenge
+- The list of features, flagged as Must / Should / Could based on the Step 3 challenge
 
 Ask project-manager to:
 > "Given these answers, define an MVP — the smallest thing that proves the core value and can ship. Then define the path to feature-complete in milestones. Be honest: if any Must-have looks like scope creep or premature complexity, say so."
 
 Wait for project-manager's response. Present it to the developer with: "Here is how project-manager suggests structuring the scope — do you agree with the MVP boundary? Anything that should move in or out?"
 
-## Step 4 — Involve code-lead
+## Step 5 — Involve code-lead for stack and integration validation
 
 Dispatch the `code-lead` agent with:
-- The developer's answers
+- The developer's full Group 3 + Group 4 answers (all tech choices + the complete integration map)
 - project-manager's MVP and milestone proposal
+- Any stack concerns surfaced in Step 2
 
-Ask code-lead to:
-> "Review this for technical feasibility. Flag any features that are overengineered for the stated problem, any stack choices that will cause pain, any integrations that block the MVP. Give a blunt technical starting point recommendation."
+Ask code-lead to address these specifically:
+> "Review the technical choices for this project. I need answers on four things:
+>
+> 1. **Stack fit:** Is this stack appropriate for the use case, problem size, and team experience? Flag anything mismatched.
+> 2. **Integration risks:** Which integrations are likely to be underestimated or block the MVP? Give a realistic complexity rating (Low / Medium / High) for each.
+> 3. **Specific pain points:** Are there known issues with the stated library versions, combinations, or deployment choices that will cause pain? Name them concretely.
+> 4. **Starting point recommendation:** What should they build first technically — what's the right skeleton to avoid painting themselves into a corner?
+>
+> Be blunt. The developer needs real opinions, not reassurance."
 
 Wait for code-lead's response. Present it to the developer with: "Here is code-lead's technical read — any corrections or disagreements?"
 
-## Step 5 — Present MVP, roadmap, and reasoning
+## Step 6 — Present proposal including tech decisions table
 
 Synthesize everything into a structured proposal. Present this to the developer before writing any file:
 
@@ -84,21 +126,29 @@ What ships first and proves the core value:
 | M2 — [name] | [list] | [dependency or user feedback reason] |
 | M3 — [name] | [list] | [dependency or user feedback reason] |
 
+### Tech decisions
+| Component | Choice | Rationale | Risk | Code-lead note |
+|-----------|--------|-----------|------|----------------|
+| [e.g. Frontend] | [e.g. Vue 3 + Pinia] | [why] | [Low/Medium/High — reason] | [code-lead flag or "None"] |
+| [e.g. Backend] | [e.g. FastAPI] | [why] | [Low/Medium/High — reason] | [code-lead flag or "None"] |
+| [e.g. Auth] | [e.g. Supabase Auth] | [why] | [Low/Medium/High — reason] | [code-lead flag or "None"] |
+| [e.g. Database] | [e.g. Postgres via Supabase] | [why] | [Low/Medium/High — reason] | [code-lead flag or "None"] |
+| [e.g. Deployment] | [e.g. Vercel + Railway] | [why] | [Low/Medium/High — reason] | [code-lead flag or "None"] |
+
 ### Honest notes
-[List any features that were challenged and why — e.g.:]
+[List any features or stack choices that were challenged and why — e.g.:]
 - [Feature X] moved to M2: premature without knowing if MVP gets traction
-- [Feature Y] removed: [library/SaaS] already does this; reinventing it adds no value
-- [Stack choice Z]: noted risk — [concern]; developer confirmed intentional
+- [Stack choice Y]: noted risk — [concern]; developer confirmed intentional
 
 ### Open questions
-- [Unresolved decision that affects scope or sequencing]
+- [Unresolved decision that affects scope, stack, or sequencing]
 ```
 
 Tell the developer: "This is my honest recommendation. You have the final word — tell me what to change or say 'approved' to lock it."
 
-If the developer overrides a recommendation, accept it without argument. Note the override in the brief so future sessions have the context.
+If the developer overrides a recommendation, accept it without argument. Note the override in the brief.
 
-## Step 6 — Produce and lock project_brief.md
+## Step 7 — Produce and lock project_brief.md
 
 Once the developer approves (or amends and approves), write `project_brief.md` at the project root:
 
@@ -127,28 +177,36 @@ Once the developer approves (or amends and approves), write `project_brief.md` a
 | M1 — MVP | [list] | [why] |
 | M2 | [list] | [why] |
 
-## Technical constraints
-- Stack: [languages, frameworks, platforms]
-- Integrations: [external APIs, databases, services]
-- Constraints: [performance, compliance, team size, timeline]
+## Tech decisions
+| Component | Choice | Rationale | Risk | Code-lead note |
+|-----------|--------|-----------|------|----------------|
+| [Frontend] | [choice] | [why] | [risk] | [note or "None"] |
+| [Backend] | [choice] | [why] | [risk] | [note or "None"] |
+| [Auth] | [choice] | [why] | [risk] | [note or "None"] |
+| [Database] | [choice] | [why] | [risk] | [note or "None"] |
+| [File storage] | [choice or "None"] | [why] | [risk] | [note or "None"] |
+| [Real-time] | [choice or "None"] | [why] | [risk] | [note or "None"] |
+| [External APIs] | [list or "None"] | [why] | [risk] | [note or "None"] |
+| [Deployment] | [choice] | [why] | [risk] | [note or "None"] |
 
 ## Success metrics
 - [How we know MVP worked]
 - [How we know the product is feature-complete]
 
 ## Decisions and overrides
-[Any scope decisions or overrides from the kickoff session with brief reasoning]
+[Any scope or stack decisions overridden by the developer, with brief reasoning]
 
 ## Open questions
-- [Unresolved decisions that affect scope or sequencing]
+- [Unresolved decisions that affect scope, stack, or sequencing]
 ```
 
-Tell the developer: "Brief locked. Run /g-team init to scaffold the project — it will use this brief to pre-fill your ROADMAP.md and M1 milestone."
+Tell the developer: "Brief locked. Run /g-team init to scaffold the project, then /g-team specialize to install the right architect agent — it will read this brief to identify your stack."
 
 ## Rules
 - Never write project_brief.md before the developer approves.
-- Challenge each questionable feature once — not repeatedly. Accept the developer's answer.
-- Present the full proposal (Step 5) before writing anything to disk.
-- If the developer's answers are vague, ask one focused follow-up before proceeding.
+- Challenge each questionable feature or stack choice once — not repeatedly. Accept the developer's answer.
+- Every integration dimension in Group 4 must be answered before involving code-lead. If the developer says "not sure yet", note it as an open question.
+- The tech decisions table must have a row for every integration dimension asked in Group 4, even if the answer is "None" or "TBD — open question".
+- Present the full proposal (Step 6) before writing anything to disk.
 - Overrides are recorded in the brief — no silent acceptance.
 - You give opinions. The developer decides. Never refuse to proceed after a decision is made.
