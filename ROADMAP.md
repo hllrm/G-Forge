@@ -4,11 +4,9 @@
 
 ---
 
-## Current: M5 — Publish  ⬜ Planned
+## Status: Complete ✅
 
-README, docs/agents.md, marketplace listing.
-
-→ [milestones/M5-publish.md](milestones/M5-publish.md)
+All milestones shipped. See [README.md](README.md) for install and usage.
 
 ---
 
@@ -20,7 +18,7 @@ README, docs/agents.md, marketplace listing.
 | M2 | Agent Roster | Full system prompts for all 15 agents — mandates, output contracts, scope discipline | ✅ Done |
 | M3 | Skills & Orchestration | /g-team kickoff, init, plan, review — end-to-end with commit enforcement | ✅ Done |
 | M4 | Stack Profiles | /g-team specialize + vue-pinia, node-ts, fastapi profiles | ✅ Done |
-| M5 | Publish | README (by doc-writer), docs/agents.md, marketplace listing | ⬜ Goal defined |
+| M5 | Publish | README, docs/agents.md, docs/orchestration-patterns.md, marketplace listing | ✅ Done |
 
 ---
 
