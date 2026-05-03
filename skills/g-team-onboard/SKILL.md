@@ -1,3 +1,4 @@
+---
 name: g-team-onboard
 description: Onboard G-Team onto an existing codebase. Reads the repo first, presents findings, interviews about what's next, optionally audits current architecture with code-lead, and produces project_brief.md. Run before /g-team init and /g-team specialize on existing projects.
 argument-hint: (none)
