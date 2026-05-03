@@ -36,7 +36,24 @@ Warning signs: error message changes but bug class persists · you're explaining
 
 ---
 
-## B · Agent Discipline
+## B · G-Team Workflow (mandatory)
+
+**Every non-trivial task starts with `project-manager`.** Non-trivial = ≥3 files, new feature, layer-boundary change, bug fix with unclear root cause, or anything with multiple dependent steps. Single-file edits with a known location may proceed inline.
+
+**Mandatory sequence:**
+1. `project-manager` — clarifies scope, drives task-decomposer → wave-planner → spec-writer, presents plan, waits for approval
+2. HQ executes approved waves — agents implement, test, commit per spec
+3. `code-lead` — reviews all agent commits: verifies done conditions + dispatches review-orchestrator. Issues MERGE READY or HOLD
+4. HQ merges only after `code-lead` issues MERGE READY — never before
+
+**Hard stops:**
+- Never commit agent work without `code-lead` sign-off
+- Never skip `project-manager` for non-trivial tasks — "it's quick" is not an exception
+- `code-lead` HOLD = fix everything listed, then re-review. No partial merges.
+
+---
+
+## C · Agent Discipline
 
 **HQ = command centre only.** Decomposes, directs, integrates, commits. Never does grunt work an agent could do.
 
@@ -46,6 +63,8 @@ Warning signs: error message changes but bug class persists · you're explaining
 
 | Situation | Action |
 |-----------|--------|
+| Non-trivial feature or multi-step task | `project-manager` first |
+| All agent commits ready to merge | `code-lead` gate before merge |
 | Open-ended search, unknown locations, >3 files | Spawn **Explore** agent |
 | Self-contained implementation, inputs fully known | Spawn **general-purpose** agent |
 | Long task that would bloat main context | Spawn agent |
@@ -64,7 +83,7 @@ Warning signs: error message changes but bug class persists · you're explaining
 
 ---
 
-## C · Code Quality
+## D · Code Quality
 
 **Style**
 - `const` everywhere; `let` only when reassignment is unavoidable; never `var`
@@ -125,7 +144,7 @@ Sub-components with their own state or >30 lines → own file. Constants used by
 
 ---
 
-## D · Architecture Gate
+## E · Architecture Gate
 
 Architecture map: `.claude/rules/architecture-<stack>.md`
 Architecture reviewer: `.claude/agents/architecture-review.md`
