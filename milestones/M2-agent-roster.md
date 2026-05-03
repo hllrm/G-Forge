@@ -12,26 +12,26 @@ Every agent in agents/ has a non-empty body. Every agent's system prompt include
 ## Agents
 
 ### Planning (Sonnet)
-- [ ] task-decomposer
-- [ ] wave-planner
-- [ ] spec-writer
+- [x] task-decomposer
+- [x] wave-planner
+- [x] spec-writer
 
 ### Quality (Opus)
-- [ ] code-reviewer
-- [ ] architecture-enforcer
-- [ ] security-auditor
+- [x] code-reviewer
+- [x] architecture-enforcer
+- [x] security-auditor
 
 ### Reasoning (Sonnet)
-- [ ] performance-auditor
-- [ ] debugger
-- [ ] error-detective
+- [x] performance-auditor
+- [x] debugger
+- [x] error-detective
 
 ### Execution (Haiku)
-- [ ] test-writer
-- [ ] pr-writer
-- [ ] doc-writer
-- [ ] refactor-executor
+- [x] test-writer
+- [x] pr-writer
+- [x] doc-writer
+- [x] refactor-executor
 
 ### Orchestration (Sonnet)
-- [ ] dev-orchestrator
-- [ ] review-orchestrator
+- [x] dev-orchestrator
+- [x] review-orchestrator

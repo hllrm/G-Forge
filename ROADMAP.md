@@ -4,11 +4,11 @@
 
 ---
 
-## Current: M2 — Agent Roster  🟡 In Progress
+## Current: M3 — Skills & Orchestration  🟡 In Progress
 
-Full system prompts for all 15 agents — mandates, output contracts, scope discipline.
+The four /g-team skills implemented and working end-to-end.
 
-→ [milestones/M2-agent-roster.md](milestones/M2-agent-roster.md)
+→ [milestones/M3-orchestration.md](milestones/M3-orchestration.md)
 
 ---
 
@@ -17,8 +17,8 @@ Full system prompts for all 15 agents — mandates, output contracts, scope disc
 | # | Milestone | Goal | Status |
 |---|---|---|---|
 | M1 | Foundation | Repo, plugin.json, 15 agent stubs, 4 skill dirs, hooks, profiles, milestone files | ✅ Done |
-| M2 | Agent Roster | Full system prompts for all 15 agents — mandates, output contracts, scope discipline | 🟡 In Progress |
-| M3 | Skills & Orchestration | /g-team plan, review, init wired and working end-to-end | ⬜ Goal defined |
+| M2 | Agent Roster | Full system prompts for all 15 agents — mandates, output contracts, scope discipline | ✅ Done |
+| M3 | Skills & Orchestration | /g-team plan, review, init wired and working end-to-end | 🟡 In Progress |
 | M4 | Stack Profiles | /g-team specialize + vue-pinia, node-ts, fastapi profiles complete | ⬜ Goal defined |
 | M5 | Publish | README (by doc-writer), docs/agents.md, marketplace listing | ⬜ Goal defined |
 
