@@ -41,6 +41,12 @@ Dispatches `code-lead` with the branch diff and done conditions. code-lead verif
 - **MERGE READY** — writes `.claude/g-team-approved`, unlocking the commit gate
 - **HOLD — FIX REQUIRED** — blocks commit until all items are resolved
 
+### `/g-team specialize [stack]` — Apply a stack profile
+
+Detects your project stack from dependency files (or accepts an explicit stack arg) and installs a stack-specific architect agent into `.claude/agents/` and appends architecture rules to `CLAUDE.md`. After this runs, the agent is project-native — no plugin required to use it.
+
+Supported stacks: `vue-pinia`, `node-ts`, `fastapi`
+
 ## Commit enforcement
 
 Once `/g-team init` is run, `git commit` is blocked unless `.claude/g-team-approved` exists. That sentinel is written only by `/g-team review` on a MERGE READY verdict, and automatically cleared after the commit.
@@ -68,15 +74,28 @@ Once `/g-team init` is run, `git commit` is blocked unless `.claude/g-team-appro
 | `doc-writer` | Documentation |
 | `pr-writer` | PR descriptions |
 
+## Stack Profiles
+
+Each profile installs a specialized architect agent and appends architecture rules to `CLAUDE.md`. Once installed, the agent is project-native.
+
+| Profile | Agent | Stack |
+|---------|-------|-------|
+| `vue-pinia` | `vue-architect` | Vue 3, Pinia, Vite, TypeScript |
+| `node-ts` | `node-architect` | Node.js, TypeScript, Express/Fastify |
+| `fastapi` | `fastapi-architect` | FastAPI, Pydantic, SQLAlchemy, async Python |
+
+Planned (M5+): `react`, `tauri`
+
 ## Workflow
 
 ```
-/g-team kickoff   →   project_brief.md
-/g-team init      →   scaffolded project + commit gate
-/g-team plan      →   approved wave schedule
-execute waves     →   parallel agent implementation
-/g-team review    →   MERGE READY or HOLD
-git commit        →   gate clears, sentinel removed
+/g-team kickoff     →   project_brief.md
+/g-team init        →   scaffolded project + commit gate
+/g-team specialize  →   stack architect agent + architecture rules
+/g-team plan        →   approved wave schedule
+execute waves       →   parallel agent implementation
+/g-team review      →   MERGE READY or HOLD
+git commit          →   gate clears, sentinel removed
 ```
 
 ## Roadmap
@@ -86,5 +105,5 @@ git commit        →   gate clears, sentinel removed
 | M1 — Foundation | ✅ Done |
 | M2 — Agent Roster | ✅ Done |
 | M3 — Skills & Orchestration | ✅ Done |
-| M4 — Stack Profiles (`/g-team specialize`) | ⬜ Next |
-| M5 — Publish | ⬜ Planned |
+| M4 — Stack Profiles | ✅ Done |
+| M5 — Publish | ⬜ Next |
