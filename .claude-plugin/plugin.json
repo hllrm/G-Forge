@@ -1,0 +1,10 @@
+{
+  "name": "g-team",
+  "version": "0.1.0",
+  "description": "Specialized multi-agent system for code quality, production architecture, and planned execution",
+  "repository": "https://github.com/hllrm/g-team",
+  "license": "MIT",
+  "agents": "./agents/",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
+}
