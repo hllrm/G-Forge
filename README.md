@@ -27,39 +27,29 @@ G-Team installs a structured development workflow into any Claude Code project: 
 
 All 15 G-Team agents and 6 skills become available globally across all your projects.
 
-#### Manual install (desktop app, VS Code, JetBrains, or no CLI)
+#### Desktop app, VS Code, JetBrains
 
-If you're not using the CLI, install directly into Claude's plugin cache:
+`/plugin` is not available in these interfaces. Use the CLI to install — the plugin is registered globally and will be available in all Claude Code interfaces once installed:
 
 ```bash
-# 1. Clone the repo into Claude's plugin cache
-#    Mac/Linux:
-git clone https://github.com/hllrm/g-team.git \
-  ~/.claude/plugins/cache/hllrm/g-team/0.1.0
-
-#    Windows (PowerShell):
-git clone https://github.com/hllrm/g-team.git `
-  "$env:USERPROFILE\.claude\plugins\cache\hllrm\g-team\0.1.0"
+# In a terminal:
+claude
+/plugin marketplace add hllrm/g-team
+/plugin install g-team
 ```
 
-Then register it by adding this entry to `~/.claude/plugins/installed_plugins.json` (Windows: `%USERPROFILE%\.claude\plugins\installed_plugins.json`) inside the `"plugins"` object:
+Then open the desktop app or IDE extension as normal — the agents and skills will be available.
 
-```json
-"g-team@hllrm": [
-  {
-    "scope": "user",
-    "installPath": "/home/<you>/.claude/plugins/cache/hllrm/g-team/0.1.0",
-    "version": "0.1.0",
-    "installedAt": "<current ISO timestamp>",
-    "lastUpdated": "<current ISO timestamp>",
-    "gitCommitSha": ""
-  }
-]
+#### Load per-session (without installing)
+
+For development or one-off use, load directly via the `--plugin-dir` flag:
+
+```bash
+git clone https://github.com/hllrm/g-team.git
+claude --plugin-dir ./g-team
 ```
 
-Replace `installPath` with the absolute path where you cloned the repo (use backslashes on Windows). Restart Claude Code after editing the file.
-
-To update manually: `git pull` inside the cloned directory.
+This loads G-Team for that session only. Re-run with `--plugin-dir` each time, or use the CLI install above for permanent access.
 
 ### Verify
 
