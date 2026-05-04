@@ -1,7 +1,6 @@
 ---
 name: g-team-execute
 description: Execute an approved wave plan by dispatching parallel subagents per wave. Use after /g-team plan is approved, or to resume a plan that was interrupted. Argument: optional wave number to start from (default: Wave 1).
-argument-hint: [wave-number]
 ---
 
 **Announce:** "Using g-team-execute to run the wave schedule."

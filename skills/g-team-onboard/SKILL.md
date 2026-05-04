@@ -1,7 +1,6 @@
 ---
 name: g-team-onboard
 description: Onboard G-Team onto an existing codebase. Reads deeply before asking anything — treats existing CLAUDE.md, rules, agents, and task ledgers as first-class inputs. Only interviews for what it genuinely doesn't know yet. Produces or updates project_brief.md.
-argument-hint: (none)
 ---
 
 **Announce:** "Using g-team-onboard to onboard this codebase."
