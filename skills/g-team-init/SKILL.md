@@ -38,6 +38,8 @@ All three steps are mandatory. Skipping any requires explicit developer override
 
 **Architecture gate**: ≥3 files, layer-boundary change, new component, or public API change → plan first (no writes), validate import directions, verify state ownership, get sign-off.
 
+**Commit rule**: `git commit` is HQ-only, after MERGE READY. Never instruct subagents to commit — they implement and return results only. HQ commits once after review clears.
+
 **Hard stops**: No merge without MERGE READY · No plan skip for non-trivial tasks · HOLD = fix all blocking items, re-review · Same bug class × 3 attempts = stop, escalate, try a different mechanism.
 <!-- End G-Team Rules -->
 ```

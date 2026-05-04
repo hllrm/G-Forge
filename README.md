@@ -349,3 +349,4 @@ Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orch
 | M5 — Publish | ✅ Done |
 | M6 — Auto-trigger & Project Hygiene | ✅ Done |
 | M7 — Correctness, Validation & Polish | ✅ Done |
+| M8 — Deploy & Use (gaps, debug, improve) | 🚧 In progress |
