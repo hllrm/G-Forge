@@ -54,6 +54,7 @@ Warning signs: error message changes but bug class persists · you're explaining
 - Never commit agent work without `code-lead` sign-off
 - Never skip `project-manager` for non-trivial tasks — "it's quick" is not an exception
 - `code-lead` HOLD = fix everything listed, then re-review. No partial merges.
+- `git commit` is HQ-only, after MERGE READY. Never instruct subagents to commit — they implement and return results only.
 
 ---
 

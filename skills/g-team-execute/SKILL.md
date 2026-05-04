@@ -92,7 +92,7 @@ After all tasks in the wave complete without blockers:
 
 ## Step 4 — All waves complete
 
-When the final wave finishes:
+When the final wave finishes, announce:
 
 ```
 ✓ All [N] waves complete.
@@ -101,9 +101,11 @@ Tasks done:
   ✓ [task 1]
   ✓ [task 2]
   ...
-
-Run /g-team review before merging.
 ```
+
+Then **immediately invoke `/g-team review`** — do not wait for the developer to ask. Use Glob to find `skills/g-team-review/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
+
+Do not output a "run /g-team review" suggestion and stop. The review is part of the wave execution sequence and must run automatically.
 
 ## Rules
 
@@ -113,3 +115,4 @@ Run /g-team review before merging.
 - If the plan has no wave structure (flat task list), treat all tasks as Wave 1.
 - Never implement anything yourself — your job is coordination only.
 - If a task has no done condition in the plan, flag it to the developer before dispatching.
+- **Never instruct subagents to run `git commit`.** Committing is HQ's responsibility after `/g-team review` issues MERGE READY. Agent prompts must not include commit instructions — only implement, test, and return results.
