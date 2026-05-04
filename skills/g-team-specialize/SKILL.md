@@ -1,6 +1,6 @@
 ---
 name: g-team-specialize
-description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: vue-pinia, node-ts, fastapi.
+description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp.
 argument-hint: [stack]
 ---
 
@@ -28,13 +28,64 @@ Read `ROADMAP.md` if it exists. Look for tech mentions in milestone descriptions
 **Source 3 — Dependency files**
 
 Read whichever of these exist in the current working directory:
-- `package.json` — check `dependencies` and `devDependencies`
-  - Contains `vue` + `pinia` → vue-pinia candidate
-  - Contains `typescript` or `ts-node` + (`express` or `fastify` or `koa` or `hono`) → node-ts candidate
-  - Contains `typescript` or `ts-node` without a web framework → node-ts candidate (flag: no web framework detected)
-- `requirements.txt` or `pyproject.toml` — read full contents
-  - Contains `fastapi` → fastapi candidate
-  - Contains `flask` or `django` → note as unsupported stack
+
+- `package.json` — check `dependencies` and `devDependencies`:
+  - `vue` + `pinia` → **vue-pinia**
+  - `next` → **next-js**
+  - `nuxt` → **nuxt**
+  - `@sveltejs/kit` → **sveltekit**
+  - `@angular/core` → **angular**
+  - `astro` → **astro**
+  - `@remix-run/react` → **remix**
+  - `react-native` or `expo` → **react-native**
+  - `react` (no next/remix/native) → **react**
+  - `express` → **express**
+  - `@nestjs/core` → **nest-js**
+  - `hono` → **hono**
+  - `elysia` → **bun**
+  - `electron` → **electron**
+  - `@tauri-apps/api` → **tauri**
+  - `@capacitor/core` → **capacitor**
+  - `typescript` + (`express` or `fastify` or `koa`) without above → **node-ts**
+
+- `requirements.txt` or `pyproject.toml` — read full contents:
+  - `fastapi` → **fastapi**
+  - `django` or `djangorestframework` → **django**
+  - `flask` → note: flask has no G-Team profile yet
+  - `textual` → **python-textual**
+  - `click` or `typer` → **python-cli**
+  - `torch` or `tensorflow` or `scikit-learn` → **python-ml**
+  - `pandas` or `polars` or `sqlalchemy` (no web framework) → **python-data**
+
+- `Cargo.toml` — read full contents:
+  - `axum` → **rust-axum**
+  - `clap` or `indicatif` or `dialoguer` (no axum) → **rust-cli**
+  - `tauri` → **tauri** (Rust side of Tauri project)
+
+- `build.gradle` or `pom.xml` or `build.gradle.kts`:
+  - `spring-boot` / `org.springframework.boot` → **spring-boot**
+  - `ktor` → **kotlin-ktor**
+  - `androidx.compose` → **kotlin-android**
+
+- `*.csproj` or `*.sln`:
+  - `Microsoft.AspNetCore` → **asp-net-core**
+  - `PresentationFramework` → **wpf-csharp**
+  - `Microsoft.Maui` → **maui**
+
+- `pubspec.yaml`:
+  - `flutter:` SDK entry → **flutter**
+
+- `CMakeLists.txt` — presence suggests **cpp-cmake**
+
+- `*.gd` files or `project.godot`:
+  - GDScript files → **godot-gdscript**
+  - C# files in Godot project → **godot-csharp**
+
+- `*.unity` or `Assets/` with `*.cs` files → **unity**
+
+- `*.uproject` → **unreal**
+
+- `Package.swift` with iOS targets → **swift-ios**
 
 **Synthesise:**
 
@@ -50,15 +101,15 @@ Profiles to apply:  [list of supported stacks to install]
 ## Step 2 — Handle edge cases before confirming
 
 **If an explicit stack argument was provided** (e.g. `/g-team specialize vue-pinia`):
-- Validate it is one of: `vue-pinia`, `node-ts`, `fastapi`. If not, say: "Unknown stack '[arg]'. Supported: vue-pinia, node-ts, fastapi." and stop.
+- Validate it is one of the 44 supported stacks listed in the description frontmatter. If not, say: "Unknown stack '[arg]'. Run `/g-team specialize` with no argument to auto-detect, or pick from the supported list." and stop.
 - Use this as the confirmed profile list, skipping further detection.
 
 **If no brief and no dependency files exist:**
-- Ask the developer: "I couldn't find a project_brief.md or any dependency files. Which profile(s) should I apply? Options: vue-pinia, node-ts, fastapi"
+- Ask the developer: "I couldn't find a project_brief.md or any dependency files. Which profile(s) should I apply? Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp."
 - Wait for answer. Use it as the confirmed profile list.
 
-**If unsupported stacks were detected (flask, django, etc.):**
-- Note them in the confirmation: "I detected [stack] which doesn't have a G-Team profile yet. I'll skip that one. Supported: vue-pinia, node-ts, fastapi."
+**If unsupported stacks were detected (flask, etc.):**
+- Note them in the confirmation: "I detected [stack] which doesn't have a G-Team profile yet. I'll skip that one."
 
 **If the picture is ambiguous or there are conflicts:**
 
@@ -70,7 +121,7 @@ Before asking the user, dispatch `code-lead` with:
 - The dependency file contents
 
 Ask code-lead:
-> "Based on this project's brief and dependencies, which G-Team stack profiles should be applied? The options are: vue-pinia, node-ts, fastapi. If the project is multi-stack, list all that apply. Flag anything that looks like a mismatch or a risky stack choice."
+> "Based on this project's brief and dependencies, which G-Team stack profiles should be applied? The supported profiles are: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp. If the project is multi-stack, list all that apply. Flag anything that looks like a mismatch or a risky stack choice."
 
 Present code-lead's response to the developer: "Here is code-lead's stack read — does this match what you're building?"
 
@@ -107,10 +158,51 @@ Navigate from that path: go up two directory levels to reach the plugin root, th
 
 For example, if the base directory is `/home/user/.claude/plugins/cache/hllrm-g-team/skills/g-team-specialize`, the plugin root is `/home/user/.claude/plugins/cache/hllrm-g-team/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/hllrm-g-team/profiles/vue-pinia/`.
 
-Stack → file mapping:
-- `vue-pinia`  →  `profiles/vue-pinia/agents/vue-architect.md`  +  `profiles/vue-pinia/rules/architecture.md`
-- `node-ts`    →  `profiles/node-ts/agents/node-architect.md`   +  `profiles/node-ts/rules/architecture.md`
-- `fastapi`    →  `profiles/fastapi/agents/fastapi-architect.md` + `profiles/fastapi/rules/architecture.md`
+Stack → file mapping (agent file + rules file):
+- `angular`         → `profiles/angular/agents/angular-architect.md`               + `profiles/angular/rules/architecture.md`
+- `asp-net-core`    → `profiles/asp-net-core/agents/asp-net-core-architect.md`     + `profiles/asp-net-core/rules/architecture.md`
+- `astro`           → `profiles/astro/agents/astro-architect.md`                   + `profiles/astro/rules/architecture.md`
+- `bun`             → `profiles/bun/agents/bun-architect.md`                       + `profiles/bun/rules/architecture.md`
+- `c-embedded`      → `profiles/c-embedded/agents/c-embedded-architect.md`         + `profiles/c-embedded/rules/architecture.md`
+- `capacitor`       → `profiles/capacitor/agents/capacitor-architect.md`           + `profiles/capacitor/rules/architecture.md`
+- `cpp-cmake`       → `profiles/cpp-cmake/agents/cpp-cmake-architect.md`           + `profiles/cpp-cmake/rules/architecture.md`
+- `django`          → `profiles/django/agents/django-architect.md`                 + `profiles/django/rules/architecture.md`
+- `electron`        → `profiles/electron/agents/electron-architect.md`             + `profiles/electron/rules/architecture.md`
+- `express`         → `profiles/express/agents/express-architect.md`               + `profiles/express/rules/architecture.md`
+- `fastapi`         → `profiles/fastapi/agents/fastapi-architect.md`               + `profiles/fastapi/rules/architecture.md`
+- `flutter`         → `profiles/flutter/agents/flutter-architect.md`               + `profiles/flutter/rules/architecture.md`
+- `go-fiber`        → `profiles/go-fiber/agents/go-fiber-architect.md`             + `profiles/go-fiber/rules/architecture.md`
+- `go-gin`          → `profiles/go-gin/agents/go-gin-architect.md`                 + `profiles/go-gin/rules/architecture.md`
+- `godot-csharp`    → `profiles/godot-csharp/agents/godot-csharp-architect.md`     + `profiles/godot-csharp/rules/architecture.md`
+- `godot-gdscript`  → `profiles/godot-gdscript/agents/godot-gdscript-architect.md` + `profiles/godot-gdscript/rules/architecture.md`
+- `hono`            → `profiles/hono/agents/hono-architect.md`                     + `profiles/hono/rules/architecture.md`
+- `kotlin-android`  → `profiles/kotlin-android/agents/kotlin-android-architect.md` + `profiles/kotlin-android/rules/architecture.md`
+- `kotlin-ktor`     → `profiles/kotlin-ktor/agents/kotlin-ktor-architect.md`       + `profiles/kotlin-ktor/rules/architecture.md`
+- `laravel`         → `profiles/laravel/agents/laravel-architect.md`               + `profiles/laravel/rules/architecture.md`
+- `maui`            → `profiles/maui/agents/maui-architect.md`                     + `profiles/maui/rules/architecture.md`
+- `nest-js`         → `profiles/nest-js/agents/nest-architect.md`                  + `profiles/nest-js/rules/architecture.md`
+- `next-js`         → `profiles/next-js/agents/next-architect.md`                  + `profiles/next-js/rules/architecture.md`
+- `node-ts`         → `profiles/node-ts/agents/node-architect.md`                  + `profiles/node-ts/rules/architecture.md`
+- `nuxt`            → `profiles/nuxt/agents/nuxt-architect.md`                     + `profiles/nuxt/rules/architecture.md`
+- `phoenix-liveview`→ `profiles/phoenix-liveview/agents/phoenix-architect.md`      + `profiles/phoenix-liveview/rules/architecture.md`
+- `python-cli`      → `profiles/python-cli/agents/python-cli-architect.md`         + `profiles/python-cli/rules/architecture.md`
+- `python-data`     → `profiles/python-data/agents/python-data-architect.md`       + `profiles/python-data/rules/architecture.md`
+- `python-ml`       → `profiles/python-ml/agents/python-ml-architect.md`           + `profiles/python-ml/rules/architecture.md`
+- `python-textual`  → `profiles/python-textual/agents/python-textual-architect.md` + `profiles/python-textual/rules/architecture.md`
+- `rails`           → `profiles/rails/agents/rails-architect.md`                   + `profiles/rails/rules/architecture.md`
+- `react`           → `profiles/react/agents/react-architect.md`                   + `profiles/react/rules/architecture.md`
+- `react-native`    → `profiles/react-native/agents/react-native-architect.md`     + `profiles/react-native/rules/architecture.md`
+- `remix`           → `profiles/remix/agents/remix-architect.md`                   + `profiles/remix/rules/architecture.md`
+- `rust-axum`       → `profiles/rust-axum/agents/rust-architect.md`                + `profiles/rust-axum/rules/architecture.md`
+- `rust-cli`        → `profiles/rust-cli/agents/rust-cli-architect.md`             + `profiles/rust-cli/rules/architecture.md`
+- `spring-boot`     → `profiles/spring-boot/agents/spring-architect.md`            + `profiles/spring-boot/rules/architecture.md`
+- `sveltekit`       → `profiles/sveltekit/agents/sveltekit-architect.md`           + `profiles/sveltekit/rules/architecture.md`
+- `swift-ios`       → `profiles/swift-ios/agents/swift-ios-architect.md`           + `profiles/swift-ios/rules/architecture.md`
+- `tauri`           → `profiles/tauri/agents/tauri-architect.md`                   + `profiles/tauri/rules/architecture.md`
+- `unity`           → `profiles/unity/agents/unity-architect.md`                   + `profiles/unity/rules/architecture.md`
+- `unreal`          → `profiles/unreal/agents/unreal-architect.md`                 + `profiles/unreal/rules/architecture.md`
+- `vue-pinia`       → `profiles/vue-pinia/agents/vue-architect.md`                 + `profiles/vue-pinia/rules/architecture.md`
+- `wpf-csharp`      → `profiles/wpf-csharp/agents/wpf-architect.md`               + `profiles/wpf-csharp/rules/architecture.md`
 
 Read both files for each profile before writing anything.
 
@@ -122,10 +214,7 @@ For each profile:
 
 Write the agent file content to `.claude/agents/[agent-name].md`.
 
-Agent filename mapping:
-- `vue-pinia` → `.claude/agents/vue-architect.md`
-- `node-ts`   → `.claude/agents/node-architect.md`
-- `fastapi`   → `.claude/agents/fastapi-architect.md`
+Agent filename: use the filename of the agent file from the stack → file mapping above (e.g. `vue-architect.md`, `fastapi-architect.md`, `react-architect.md`). Write it to `.claude/agents/<filename>`.
 
 If the file already exists, read it first. If the `name:` field in frontmatter matches, tell the developer: "[agent-name] is already installed. Overwrite? (y/n)" and wait for confirmation before proceeding.
 
