@@ -19,3 +19,7 @@
 **ScriptableObject rule:** All shared configuration lives in `Scripts/Data/` as ScriptableObjects with `[CreateAssetMenu]`. Event channels (`VoidEventChannel`, `IntEventChannel`, etc.) replace singleton event buses.
 
 **Update discipline:** Physics goes in `FixedUpdate()`. Input goes through an `InputReader` ScriptableObject. `GetComponent<T>()` must be cached in `Awake()`, never called per-frame.
+
+**Object pooling rule:** Use `UnityEngine.Pool.ObjectPool<T>` (Unity 2021+) for any object spawned or destroyed frequently (bullets, particles, enemies, VFX). Pre-warm at scene load. Return to pool instead of `Destroy()`. Never call `Instantiate`/`Destroy` on the hot path (per-frame or per-physics-step).
+
+**State machine rule:** Model distinct gameplay states (grounded/airborne/attacking/dead, locked/unlocked, dialogue/gameplay) as an explicit state machine in `Scripts/Core/`. Define an `IState` interface with `Enter()`, `Tick(float deltaTime)`, and `Exit()`. `MonoBehaviour` calls `_stateMachine.Tick(Time.deltaTime)` in `Update()` — no `if/else` or `switch` state chains in MonoBehaviour. Transitions are owned by the state machine, not scattered across callers.

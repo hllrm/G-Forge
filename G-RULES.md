@@ -183,6 +183,8 @@ Update the map when the stack or data layer changes.
 - **Explicit over implicit** — visible dependencies, clear data flow, no magic registration or auto-wiring. If you can't trace where something comes from by reading the call site, it's too implicit.
 - **YAGNI** — no abstractions, generics, base classes, or extensibility hooks until there is a second concrete use case. The first use case defines the shape; the second reveals the pattern.
 - **Fail fast at boundaries** — validate and throw at system entry points (user input, external API, IPC). Never let invalid state propagate inward; never swallow it silently.
+- **Observer / event-driven** — decouple producers from consumers via events, signals, or channels. Components that react to state changes subscribe; they do not poll, reach up the hierarchy, or hold a direct reference to the emitter. The emitter knows nothing about its subscribers.
+- **State machine for discrete modes** — when a unit has ≥3 mutually exclusive modes (loading/idle/error, grounded/jumping/falling, locked/unlocked/expired), model them as an explicit state machine — not nested booleans, not string comparisons, not flag fields. Each state owns its enter, update, and exit behaviour.
 
 **Anti-patterns — refuse unless there is an explicit documented reason**
 - **God object / god component** — one class or component responsible for more than one coherent concern. Split by responsibility, not by line count.
