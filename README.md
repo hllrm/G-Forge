@@ -16,25 +16,20 @@ G-Team installs a structured development workflow into any Claude Code project: 
 
 ### Install the plugin
 
-#### Via Claude Code (any interface)
+#### Via CLI
 
-The `/plugin` commands work in every Claude Code interface — CLI, desktop app, VS Code, and JetBrains. Open a Claude Code session and run:
+`/plugin` is only available in the Claude Code CLI. Open a terminal and run `claude`, then:
 
 ```bash
 /plugin marketplace add hllrm/g-team
 /plugin install g-team
 ```
 
-- **CLI:** open a terminal and run `claude`, then type the commands
-- **Desktop app (Mac/Windows):** open Claude Code → start a conversation → type the commands
-- **VS Code:** open the Command Palette → `Claude: Open Chat` → type the commands
-- **JetBrains:** open the Claude tool window → type the commands
-
 All 15 G-Team agents and 6 skills become available globally across all your projects.
 
-#### Manual install (no plugin system)
+#### Manual install (desktop app, VS Code, JetBrains, or no CLI)
 
-If you prefer to install directly without the `/plugin` commands:
+If you're not using the CLI, install directly into Claude's plugin cache:
 
 ```bash
 # 1. Clone the repo into Claude's plugin cache
