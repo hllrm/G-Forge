@@ -12,6 +12,8 @@ Route to the correct G-Team skill based on the subcommand in $ARGUMENTS.
 - If $ARGUMENTS starts with `execute` → invoke skill `g-team:g-team-execute` (pass any remaining args)
 - If $ARGUMENTS starts with `review` → invoke skill `g-team:g-team-review`
 - If $ARGUMENTS starts with `specialize` → invoke skill `g-team:g-team-specialize` (pass any remaining args)
+
+If any skill does not load (you only see "Launching skill" with no further instructions), use Glob to find `skills/g-team-<subcommand>/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it directly, then follow its instructions exactly.
 - If $ARGUMENTS is empty or unrecognized → list available subcommands:
   - `init` — scaffold CLAUDE.md, ROADMAP.md, milestones/, todo.md, and commit hooks
   - `kickoff` — interview about goals and stack; produce project_brief.md
