@@ -26,5 +26,6 @@ All milestones shipped. See [README.md](README.md) for install and usage.
 
 - [ ] tauri profile (M4+)
 - [ ] react profile (M4+)
+- [ ] python-textual profile — async TUI apps (Textual framework, not REST/web)
 - [ ] dependency-auditor agent
 - [ ] /g-team health — project-level audit snapshot
