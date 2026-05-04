@@ -1,0 +1,171 @@
+---
+name: g-team-update
+description: Realign all g-team-managed files in this project to the current plugin version. Updates the G-Team Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and commit hooks. Safe — only touches content between g-team markers.
+---
+
+**Announce:** "Using g-team-update to realign project files to the current plugin version."
+
+You are syncing g-team-managed content in this project against the installed plugin. You only touch content that g-team originally injected — never user-written content.
+
+---
+
+## Step 1 — Locate the plugin root
+
+Use Glob to find the plugin's skill files:
+```
+~/.claude/plugins/cache/g-team/g-team/*/skills/g-team-init/SKILL.md
+```
+
+The parent of the `skills/` directory is the plugin root. Store this path — you will need it throughout.
+
+If not found, tell the developer: "Could not find the g-team plugin in ~/.claude/plugins/cache/. Run `/plugin update g-team` first." and stop.
+
+---
+
+## Step 2 — Inventory what's installed in this project
+
+Read and record:
+
+**CLAUDE.md:**
+- Does `<!-- G-Team Rules` marker exist? Note current content between markers.
+- How many `<!-- G-Team [stack] Architecture Rules` blocks exist? List each stack name found.
+
+**.claude/agents/:**
+- List all `.md` files. For each, read the `name:` field from frontmatter.
+- Flag any whose name matches a known g-team architect pattern: `*-architect` or `node-architect`.
+
+**.claude/rules/:**
+- List all `.md` files if directory exists.
+
+**.claude/hooks/check-commit.sh:**
+- Note if present.
+
+Present a summary:
+```
+Installed g-team content:
+
+  CLAUDE.md:
+    G-Team Rules block:   [present / not found]
+    Architecture stacks:  [vue-pinia, fastapi, ... / none]
+
+  .claude/agents/:         [vue-architect.md, fastapi-architect.md, ... / none]
+  .claude/rules/:          [architecture-vue-pinia.md, ... / none]
+  .claude/hooks/:          [check-commit.sh present / not found]
+```
+
+Ask: **"Ready to update all of the above to the current plugin version? (y/n)"**
+
+Wait for confirmation.
+
+---
+
+## Step 3 — Update G-Team Rules block in CLAUDE.md
+
+Read `[plugin-root]/skills/g-team-init/SKILL.md`.
+
+Extract the content between:
+```
+<!-- G-Team Rules — injected by /g-team init. Do not edit manually. -->
+```
+and:
+```
+<!-- End G-Team Rules -->
+```
+(inclusive of both marker lines).
+
+Read `CLAUDE.md`. Find the same marker block. Replace it entirely with the extracted content from the plugin.
+
+If the marker is not present in CLAUDE.md, append the block at the end of the file.
+
+Report: `✓ CLAUDE.md — G-Team Rules updated`
+
+---
+
+## Step 4 — Update architecture rules in CLAUDE.md
+
+For each `<!-- G-Team [stack] Architecture Rules` block found in Step 2:
+
+1. Extract the stack name from the marker (e.g. `vue-pinia`, `fastapi`)
+2. Read the current rules from `[plugin-root]/profiles/[stack]/rules/architecture.md`
+3. In CLAUDE.md, replace everything between:
+   ```
+   <!-- G-Team [stack] Architecture Rules — injected by /g-team specialize. Do not edit manually. -->
+   ```
+   and:
+   ```
+   <!-- End G-Team [stack] Architecture Rules -->
+   ```
+   with the fresh content from the plugin (keeping both marker lines).
+
+If a stack's profile no longer exists in the plugin (removed), tell the developer and skip it — do not delete the block.
+
+Report: `✓ CLAUDE.md — [stack] architecture rules updated` for each stack.
+
+---
+
+## Step 5 — Update architect agents in .claude/agents/
+
+For each g-team architect agent file found in Step 2:
+
+1. Determine which profile it came from by matching the `name:` frontmatter field against the plugin's profile agent filenames:
+   - Read each file in `[plugin-root]/profiles/*/agents/*.md`
+   - Match by `name:` field
+2. Replace the file content with the current version from the plugin.
+
+If a match cannot be found (agent name doesn't match any current profile), tell the developer: "Could not find a current profile for `[name]` — skipping. It may have been renamed or removed." Do not delete the file.
+
+Report: `✓ .claude/agents/[filename] — updated` for each agent.
+
+---
+
+## Step 6 — Update .claude/rules/ files
+
+For each file in `.claude/rules/`:
+
+1. Try to match it to a profile rules file in `[plugin-root]/profiles/*/rules/architecture.md` by reading the file content and comparing stack signatures (first heading or content keywords).
+2. If matched, replace with the current plugin version.
+3. If not matched (user-created rule file), skip it and report: "Skipping `.claude/rules/[filename]` — does not appear to be g-team managed."
+
+Report: `✓ .claude/rules/[filename] — updated` for each updated file.
+
+---
+
+## Step 7 — Update commit hooks
+
+If `.claude/hooks/check-commit.sh` exists:
+
+Read `[plugin-root]/skills/g-team-init/SKILL.md`. Extract the check-commit.sh content (the block between the two shell script markers in the init skill).
+
+Replace `.claude/hooks/check-commit.sh` with the extracted content.
+
+Report: `✓ .claude/hooks/check-commit.sh — updated`
+
+If the file doesn't exist, skip silently.
+
+---
+
+## Step 8 — Report
+
+```
+g-team update complete ✓
+
+  ✓ CLAUDE.md — G-Team Rules realigned
+  ✓ CLAUDE.md — vue-pinia architecture rules realigned
+  ✓ .claude/agents/vue-architect.md — realigned
+  ✓ .claude/hooks/check-commit.sh — realigned
+  [skipped] .claude/rules/my-custom-rules.md — not g-team managed
+
+All g-team-managed content is now at plugin version [read version from plugin-root/.claude-plugin/plugin.json].
+```
+
+If nothing needed updating (all content already matched): "All g-team-managed content is already up to date."
+
+---
+
+## Rules
+
+- Never modify content outside g-team markers in CLAUDE.md.
+- Never delete or overwrite files not identified as g-team-managed.
+- Never run without developer confirmation from Step 2.
+- If the plugin root cannot be found, stop and tell the developer.
+- Read the plugin files fresh each time — never use cached or assumed content.

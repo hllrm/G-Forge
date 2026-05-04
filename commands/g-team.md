@@ -1,6 +1,6 @@
 ---
-description: G-Team workflow commands. Subcommands: init, kickoff, onboard, plan, execute, review, specialize.
-argument-hint: <init|kickoff|onboard|plan|execute|review|specialize> [args]
+description: G-Team workflow commands. Subcommands: init, kickoff, onboard, plan, execute, review, specialize, update.
+argument-hint: <init|kickoff|onboard|plan|execute|review|specialize|update> [args]
 ---
 
 Route to the correct G-Team skill based on the subcommand in $ARGUMENTS.
@@ -12,6 +12,7 @@ Route to the correct G-Team skill based on the subcommand in $ARGUMENTS.
 - If $ARGUMENTS starts with `execute` → invoke skill `g-team:g-team-execute` (pass any remaining args)
 - If $ARGUMENTS starts with `review` → invoke skill `g-team:g-team-review`
 - If $ARGUMENTS starts with `specialize` → invoke skill `g-team:g-team-specialize` (pass any remaining args)
+- If $ARGUMENTS starts with `update` → invoke skill `g-team:g-team-update`
 
 If any skill does not load (you only see "Launching skill" with no further instructions), use Glob to find `skills/g-team-<subcommand>/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it directly, then follow its instructions exactly.
 - If $ARGUMENTS is empty or unrecognized → list available subcommands:
@@ -22,3 +23,4 @@ If any skill does not load (you only see "Launching skill" with no further instr
   - `execute [wave]` — dispatch parallel agents per wave; optionally resume from a specific wave number
   - `review` — run full review pipeline; issues MERGE READY or HOLD
   - `specialize [stack]` — auto-detect or apply a named stack profile
+  - `update` — realign all g-team-managed files to the current plugin version
