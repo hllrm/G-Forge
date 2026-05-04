@@ -3,9 +3,13 @@ name: g-team-brief
 description: Refresh project_brief.md as the project evolves — reads current state, asks targeted questions, and updates the brief without a full re-onboard.
 ---
 
+**Announce:** "Using g-team-brief to refresh the project brief."
+
 Incrementally update `project_brief.md`. This skill is lighter than `/g-team onboard` — it assumes an existing brief and a project already in progress.
 
 ## Step 1 — Read current state
+
+If `project_brief.md` does not exist, tell the developer: "No project_brief.md found. Run /g-team kickoff or /g-team onboard first to create one." and stop.
 
 Read the following (skip gracefully if missing):
 - `project_brief.md` — current brief (capture the tech decisions table and goals)
@@ -21,8 +25,6 @@ Milestone:     [current milestone + status]
 Open tasks:    [count from todo.md]
 Recent commits: [count] — last: "[most recent commit message]"
 ```
-
-If `project_brief.md` does not exist, tell the developer: "No project_brief.md found. Run /g-team kickoff or /g-team onboard first to create one." and stop.
 
 ## Step 2 — Targeted interview
 
