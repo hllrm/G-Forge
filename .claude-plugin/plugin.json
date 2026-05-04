@@ -1,10 +1,9 @@
 {
   "name": "g-team",
   "version": "0.1.0",
-  "description": "Specialized multi-agent system for code quality, production architecture, and planned execution",
-  "repository": "https://github.com/hllrm/g-team",
-  "license": "GPL-3.0",
-  "agents": "./agents/",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json"
+  "description": "Multi-agent Claude Code plugin — planned execution, production architecture, enforced review.",
+  "author": {
+    "name": "hllrm"
+  },
+  "license": "GPL-3.0"
 }
