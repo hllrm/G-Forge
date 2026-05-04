@@ -130,7 +130,12 @@ Quick reference for the most common workflows.
 ```
 /g-team plan         Dispatches task-decomposer → wave-planner
                      Presents wave schedule for approval
-                     On approval: execute Wave 1 tasks in parallel, then Wave 2, etc.
+                     On approval: hands off to /g-team execute
+
+/g-team execute      Dispatches all Wave 1 tasks in parallel, waits for completion
+                     Then Wave 2, Wave 3, etc. — holds boundary between waves
+                     Stops immediately on any BLOCKED signal
+                     Resume a partial run: /g-team execute 2
 
 /g-team review       Run after all waves complete, before committing
                      Dispatches code-lead → review-orchestrator → parallel reviewers
@@ -189,7 +194,8 @@ git push
 | `/g-team onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
 | `/g-team init` | Scaffold CLAUDE.md, ROADMAP.md, milestones/, commit enforcement hooks |
 | `/g-team specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
-| `/g-team plan` | task-decomposer → wave-planner → approval gate → wave execution |
+| `/g-team plan` | task-decomposer → wave-planner → approval gate |
+| `/g-team execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-team review` | code-lead → full review pipeline → MERGE READY or HOLD |
 
 ---
@@ -275,7 +281,7 @@ Then for both:
 /g-team init        →   scaffolded project + commit gate
 /g-team specialize  →   stack architect agent + architecture rules
 /g-team plan        →   approved wave schedule
-execute waves       →   parallel agent implementation
+/g-team execute     →   parallel agent swarming, wave by wave
 /g-team review      →   MERGE READY or HOLD
 git commit          →   gate clears, sentinel removed
 ```
