@@ -286,15 +286,13 @@ Installed per-project by `/g-team specialize`. Each profile adds a stack-specifi
 **Game Dev + Systems**
 `unity` · `unreal` · `godot-gdscript` · `godot-csharp` · `cpp-cmake` · `rust-cli` · `c-embedded`
 
-Each profile installs a stack-specific architect agent and appends architecture rules to `CLAUDE.md`. Once installed, the agent is project-native — no plugin required.
-
 ---
 
 ## Commit Enforcement
 
 Once `/g-team init` is run in a project, two hooks are installed:
 
-**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports whether an active plan exists and whether `.claude/g-team-approved` is set. Claude reads this and auto-triggers `/g-team plan`, `/g-team execute`, or `/g-team review` based on the current state.
+**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports active plan file, current wave and total waves (parsed from the plan's Progress table), and whether `.claude/g-team-approved` is set. Claude reads this and auto-triggers `/g-team plan`, `/g-team execute`, or `/g-team review` based on the current state.
 
 **`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-team-approved` exists.
 
