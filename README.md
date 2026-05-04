@@ -197,6 +197,7 @@ git push
 | `/g-team plan` | task-decomposer → wave-planner → approval gate |
 | `/g-team execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-team review` | code-lead → full review pipeline → MERGE READY or HOLD |
+| `/g-team update` | Realign all g-team-managed files (CLAUDE.md rules, agents, architecture rules, hooks) to the current plugin version |
 
 ---
 
