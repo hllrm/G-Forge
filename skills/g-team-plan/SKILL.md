@@ -49,13 +49,14 @@ Ready to execute? Reply 'approved' to begin, or describe changes.
 
 ## Step 5 — On approval
 
-Once the developer approves:
-1. Confirm the execution model: "Executing Wave 1 now — [list Wave 1 tasks]. Will wait for all to complete before releasing Wave 2."
-2. Hand control back to HQ for wave execution. HQ launches all Wave 1 tasks in parallel in a single message. After Wave 1 completes, HQ launches Wave 2, and so on.
-3. After all waves complete, remind: "All waves done. Run /g-team review before merging."
+Once the developer approves, invoke the `g-team:g-team-execute` skill to run the waves.
+
+Do NOT invoke `superpowers:dispatching-parallel-agents` — wave execution in a g-team project is handled exclusively by `g-team-execute`.
+
+If the skill content does not load, use Glob to find `skills/g-team-execute/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it directly, then follow its instructions.
 
 ## Rules
 - Never skip the approval gate.
 - Never suggest implementation approaches — that is the executor's job.
-- Each wave's tasks launch in one message (parallel). Never split a wave across messages.
+- Wave execution always goes through g-team-execute — never inline, never via superpowers.
 - If any agent returns BLOCKED during execution, stop and report to the developer before continuing.
