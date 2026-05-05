@@ -154,11 +154,14 @@ Wait for confirmation before writing anything.
 
 For each profile to apply:
 
-The profile files live in the g-team plugin directory. The base directory of this skill is shown at the top of your context as "Base directory for this skill: [path]".
+Use Glob to find the plugin root:
+```
+~/.claude/plugins/cache/g-team/g-team/*/skills/g-team-init/SKILL.md
+```
 
-Navigate from that path: go up two directory levels to reach the plugin root, then look in `profiles/[stack]/`.
+The parent of the `skills/` directory is the plugin root. For example, if Glob returns `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/skills/g-team-init/SKILL.md`, the plugin root is `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/profiles/vue-pinia/`.
 
-For example, if the base directory is `/home/user/.claude/plugins/cache/hllrm-g-team/skills/g-team-specialize`, the plugin root is `/home/user/.claude/plugins/cache/hllrm-g-team/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/hllrm-g-team/profiles/vue-pinia/`.
+If the Glob returns no results, tell the developer: "Could not find the g-team plugin in ~/.claude/plugins/cache/. Run `/plugin update g-team` first." and stop.
 
 Stack → file mapping (agent file + rules file):
 - `angular`         → `profiles/angular/agents/angular-architect.md`               + `profiles/angular/rules/architecture.md`
