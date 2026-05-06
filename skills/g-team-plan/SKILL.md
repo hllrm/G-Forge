@@ -7,6 +7,19 @@ description: Decompose the current request into atomic tasks and produce a paral
 
 You are driving the planning phase. Execute these steps in order.
 
+## Step 0 — QA Panel prerequisite
+
+Check for `docs/qa-panel.md`.
+
+**If it exists:** read it. Confirm with the developer that it reflects the current milestone goals. If it is stale or the milestone has changed, ask what has changed and update the file before proceeding.
+
+**If it does not exist:** ask the developer the following questions, wait for answers, then compile and write `docs/qa-panel.md` using the schema in the **QA Panel Format** section below:
+1. What is this milestone trying to deliver? (one or two sentences)
+2. What are the 3–5 things that must work correctly for this milestone to be considered done?
+3. Are there any always-true criteria — core flows that must never break regardless of milestone?
+
+Do not proceed to Step 1 until `docs/qa-panel.md` exists and is confirmed current.
+
 ## Step 1 — Challenge the request (feature requests only)
 
 **Skip this step entirely if the request is a bug fix or a refactor of existing behaviour (not a new capability) — go straight to Step 2.**
@@ -96,7 +109,30 @@ All plans produced by this skill are saved to `docs/plans/<feature-slug>.md` imm
 | 2 | pending | |
 ````
 
+## QA Panel Format
+
+Written to `docs/qa-panel.md`. Updated at the start of every milestone.
+
+````markdown
+# QA Panel
+
+> Milestone: [milestone name]
+> Updated: [date]
+
+## Milestone Goals
+[one or two sentences describing what this milestone delivers]
+
+## Milestone DoD
+Must pass before this milestone is done:
+- [ ] [criterion]
+
+## Always-True Criteria
+Core flows that must never break regardless of milestone:
+- [ ] [criterion]
+````
+
 ## Rules
+- Never skip Step 0. No QA panel = milestone not started.
 - Never skip the approval gate.
 - Never suggest implementation approaches — that is the executor's job.
 - Wave execution always goes through g-team-execute — never inline, never via superpowers.

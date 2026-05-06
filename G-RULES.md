@@ -242,6 +242,12 @@ Rule: no QA panel update = milestone not started. The panel is the spec; without
 
 **Hard stops during listen mode:** No file edits. No mid-round fixes. No "quick suggestions." Collect and triage only — never act on a single report in isolation.
 
+**Listen mode state file — `.claude/tier3-active`**
+- When entering listen mode: write `0` to `.claude/tier3-active`
+- After each bug is acknowledged: increment the count in `.claude/tier3-active`
+- After triage and fix wave completes: delete `.claude/tier3-active`
+- The workflow-checkpoint hook reads this file and surfaces listen mode status on every prompt
+
 ---
 
 ## Project Tracking
