@@ -7,18 +7,15 @@ description: Decompose the current request into atomic tasks and produce a paral
 
 You are driving the planning phase. Execute these steps in order.
 
-## Step 0 — QA Panel prerequisite
+## Step 0 — Tier 3 DoD prerequisite
 
-Check for `docs/qa-panel.md`.
+Ask the developer: "Does this project have a QA panel or structured manual test UI?"
 
-**If it exists:** read it. Confirm with the developer that it reflects the current milestone goals. If it is stale or the milestone has changed, ask what has changed and update the file before proceeding.
+**If yes:** Ask which groups or areas are impacted by this milestone's changes. Then ask what passing looks like for each in-scope group. Compile a QA scope document at `docs/qa-scope/<milestone-slug>.md` using the schema in the **QA Scope Format** section below. This becomes the Tier 3 DoD for the milestone.
 
-**If it does not exist:** ask the developer the following questions, wait for answers, then compile and write `docs/qa-panel.md` using the schema in the **QA Panel Format** section below:
-1. What is this milestone trying to deliver? (one or two sentences)
-2. What are the 3–5 things that must work correctly for this milestone to be considered done?
-3. Are there any always-true criteria — core flows that must never break regardless of milestone?
+**If no:** Ask the developer to state the Tier 3 DoD for this milestone in one or two sentences. Record it in the plan header under `> Tier 3 DoD:`.
 
-Do not proceed to Step 1 until `docs/qa-panel.md` exists and is confirmed current.
+Do not proceed to Step 1 until a Tier 3 DoD is defined and written down.
 
 ## Step 1 — Challenge the request (feature requests only)
 
@@ -109,30 +106,32 @@ All plans produced by this skill are saved to `docs/plans/<feature-slug>.md` imm
 | 2 | pending | |
 ````
 
-## QA Panel Format
+## QA Scope Format
 
-Written to `docs/qa-panel.md`. Updated at the start of every milestone.
+Written to `docs/qa-scope/<milestone-slug>.md`. One file per milestone, compiled through conversation with the developer.
 
 ````markdown
-# QA Panel
+# QA Scope: [Milestone Name]
 
-> Milestone: [milestone name]
 > Updated: [date]
+> Tier 3 DoD: all in-scope groups reach ✓ pass or ~ partial with no blocking fails
 
-## Milestone Goals
-[one or two sentences describing what this milestone delivers]
+## In-Scope Groups
 
-## Milestone DoD
-Must pass before this milestone is done:
-- [ ] [criterion]
+### [Group Name]
+- What changed: [brief description of what this milestone touches in this group]
+- Must pass: [specific behaviours that must reach ✓]
+- Acceptable partial: [behaviours where ~ is OK for this milestone]
 
-## Always-True Criteria
-Core flows that must never break regardless of milestone:
-- [ ] [criterion]
+### [Group Name]
+...
+
+## Always-True (never regress regardless of milestone)
+- [core flow that must always pass]
 ````
 
 ## Rules
-- Never skip Step 0. No QA panel = milestone not started.
+- Never skip Step 0. No Tier 3 DoD defined = milestone not started.
 - Never skip the approval gate.
 - Never suggest implementation approaches — that is the executor's job.
 - Wave execution always goes through g-team-execute — never inline, never via superpowers.

@@ -217,11 +217,16 @@ Smoke tests · acceptance · design review · business logic correctness. User e
 
 ---
 
-**QA Panel — milestone-scoped definition of done**
+**QA Panel integration**
 
-At the start of every milestone: update the QA panel to reflect what must pass for this milestone and the final product goal. The QA panel is the DoD for all Tier 3 rounds in that milestone.
+If the project has a structured manual testing UI (a QA panel), G-Team integrates it into the Tier 3 protocol from the start — not as an afterthought.
 
-Rule: no QA panel update = milestone not started. The panel is the spec; without it there is no valid exit condition.
+- **At project kickoff:** establish that a QA panel exists and understand its test groups / structure.
+- **At milestone planning:** identify which test groups are impacted by this milestone's changes. Compile a `docs/qa-scope/<milestone-slug>.md` mapping each in-scope group to what must pass. This is the Tier 3 DoD for the milestone.
+- **When approaching a testable build:** prompt the developer: "Before smoke testing, open the QA panel and focus on: [groups from qa-scope doc]."
+- **During Tier 3:** the QA panel is the primary instrument. Listen mode applies — Claude logs each finding as reported.
+
+Rule: no qa-scope doc = milestone not started. Without a defined scope there is no valid exit condition.
 
 ---
 
