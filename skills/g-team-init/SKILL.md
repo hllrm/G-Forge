@@ -233,7 +233,7 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/workflow-checkpoint.sh",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/workflow-checkpoint.sh\"'",
             "timeout": 5000
           }
         ]
@@ -245,7 +245,7 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/check-commit.sh",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/check-commit.sh\"'",
             "timeout": 5000
           }
         ]
@@ -257,7 +257,7 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/post-commit-cleanup.sh",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/post-commit-cleanup.sh\"'",
             "timeout": 5000
           }
         ]
