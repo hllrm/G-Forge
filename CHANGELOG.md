@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.5a] — 2026-05-08
+
+### Fixed
+
+- `g-team-init` Step 7: hook commands now use `bash -c 'bash "$(git rev-parse --git-common-dir)/../.claude/hooks/X.sh"'` instead of bare relative paths — resolves hook lookup failures when Claude Code runs inside a git worktree (worktree CWD ≠ main repo root where `.claude/hooks/` lives)
+
 ## [0.3.4] — 2026-05-06
 
 ### Added
