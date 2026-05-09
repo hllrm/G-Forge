@@ -25,7 +25,7 @@ G-Team installs a structured development workflow into any Claude Code project: 
 /plugin install g-team
 ```
 
-All 16 G-Team agents, 14 skills, and 45 stack profiles become available globally across all your projects.
+All 16 G-Team agents, 15 skills, and 45 stack profiles become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -40,6 +40,23 @@ claude
 
 Then open the desktop app or IDE extension as normal — the agents and skills will be available.
 
+### Update the plugin
+
+`/plugin update g-team` compares the installed cache against its local snapshot — it may report "already at latest" even when a newer version exists on GitHub. To force a fresh install:
+
+```bash
+/plugin marketplace add hllrm/g-team
+/plugin install g-team
+```
+
+Then run `/g-update` inside any project that uses G-Team to sync the project-level files (hooks, CLAUDE.md rules, G-RULES.md) to the new version.
+
+G-Team also checks for updates automatically. The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
+
+```
+⚡ g-team update available: 0.4.0 → 0.4.1 — say 'update g-team' to update, then run /g-update
+```
+
 #### Load per-session (without installing)
 
 For development or one-off use, load directly via the `--plugin-dir` flag:
@@ -53,35 +70,35 @@ This loads G-Team for that session only. Re-run with `--plugin-dir` each time, o
 
 ### Verify
 
-Type `/g-team` in any Claude Code session. You should see: `help`, `status`, `doctor`, `kickoff`, `onboard`, `init`, `brief`, `plan`, `execute`, `review`, `specialize`, `update`, `skill-design`, `skill-validate`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`.
 
 ### Set up a new project
 
 Run these three commands in order inside your project directory:
 
 ```bash
-/g-team kickoff     # interview → scope challenge → brief → project_brief.md
-/g-team init        # scaffold CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md, milestones/, commit gate
-/g-team specialize  # detect stack → install architect agent + architecture rules
+/g-kickoff     # interview → scope challenge → brief → project_brief.md
+/g-init        # scaffold CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md, milestones/, commit gate
+/g-specialize  # detect stack → install architect agent + architecture rules
 ```
 
-After `/g-team init`, `git commit` is gated — it will block until `/g-team review` issues MERGE READY.
+After `/g-init`, `git commit` is gated — it will block until `/g-review` issues MERGE READY.
 
 ### Add to an existing project
 
 Run onboard first to read the repo and capture current state:
 
 ```bash
-/g-team onboard     # read repo → present findings → interview → project_brief.md
-/g-team init        # safe on existing projects — appends G-rules if CLAUDE.md exists, creates missing files
-/g-team specialize  # reads project_brief.md and detects stack automatically
+/g-onboard     # read repo → present findings → interview → project_brief.md
+/g-init        # safe on existing projects — appends G-rules if CLAUDE.md exists, creates missing files
+/g-specialize  # reads project_brief.md and detects stack automatically
 ```
 
 Or skip onboard if you already know your scope and don't need a project_brief.md:
 
 ```bash
-/g-team init
-/g-team specialize
+/g-init
+/g-specialize
 ```
 
 ### Uninstall
@@ -96,7 +113,7 @@ Removes the plugin globally. Per-project commit hooks (installed in `.claude/hoo
 
 ## G-RULES.md
 
-`/g-team init` installs `G-RULES.md` at the project root and references it from `CLAUDE.md` via `@G-RULES.md`. This gives Claude full session discipline without bloating `CLAUDE.md`.
+`/g-init` installs `G-RULES.md` at the project root and references it from `CLAUDE.md` via `@G-RULES.md`. This gives Claude full session discipline without bloating `CLAUDE.md`.
 
 G-RULES.md has seven sections:
 
@@ -114,7 +131,7 @@ G-RULES.md has seven sections:
 
 Section F encodes six universal principles: **composition over inheritance**, **explicit over implicit**, **YAGNI**, **fail-fast at boundaries**, **observer/event-driven**, and **state machine for discrete modes**. It also lists eight anti-patterns to refuse by default (god object, prop drilling, business logic in UI, mutable module-level state, premature abstraction, magic values, circular dependencies, catch-and-continue).
 
-Stack-specific patterns — including object pooling rules for game-dev profiles and framework-specific idioms for web, mobile, and systems targets — live in `.claude/rules/architecture-<stack>.md`, installed by `/g-team specialize`.
+Stack-specific patterns — including object pooling rules for game-dev profiles and framework-specific idioms for web, mobile, and systems targets — live in `.claude/rules/architecture-<stack>.md`, installed by `/g-specialize`.
 
 ---
 
@@ -122,27 +139,27 @@ Stack-specific patterns — including object pooling rules for game-dev profiles
 
 ```
 New project:
-/g-team kickoff     →   project_brief.md  (goals, scope, tech decisions)
+/g-kickoff     →   project_brief.md  (goals, scope, tech decisions)
 
 Existing project:
-/g-team onboard     →   project_brief.md  (current state + planned work)
+/g-onboard     →   project_brief.md  (current state + planned work)
 
 Then for both:
-/g-team init        →   scaffolded project + commit gate + workflow hooks
-/g-team specialize  →   stack architect agent + architecture rules
+/g-init        →   scaffolded project + commit gate + workflow hooks
+/g-specialize  →   stack architect agent + architecture rules
 
 Day-to-day (auto-triggered — no command needed):
-/g-team plan        →   approved wave schedule  →  saved to docs/plans/
-/g-team execute     →   parallel agent swarming, wave by wave
-/g-team review      →   MERGE READY or HOLD  →  milestone tasks auto-closed
+/g-plan        →   approved wave schedule  →  saved to docs/plans/
+/g-execute     →   parallel agent swarming, wave by wave
+/g-review      →   MERGE READY or HOLD  →  milestone tasks auto-closed
 git commit          →   gate clears, sentinel removed
 
 Project hygiene:
-/g-team brief       →   refresh project_brief.md as project evolves
-/g-team help        →   where am I + what to do next
-/g-team status      →   fast state snapshot
-/g-team doctor      →   verify hooks, settings, rules block, milestone alignment
-/g-team update      →   pull latest G-Team rules into this project
+/g-brief       →   refresh project_brief.md as project evolves
+/g-help        →   where am I + what to do next
+/g-status      →   fast state snapshot
+/g-doctor      →   verify hooks, settings, rules block, milestone alignment
+/g-update      →   pull latest G-Team rules into this project
 ```
 
 Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orchestration-patterns.md)
@@ -151,15 +168,15 @@ Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orch
 
 ## Commit Enforcement
 
-Once `/g-team init` is run in a project, three hooks are installed:
+Once `/g-init` is run in a project, three hooks are installed:
 
-**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), the active plan file, current wave and total waves, whether `.claude/g-team-approved` is set, and whether Tier 3 listen mode is active (bug count from `.claude/tier3-active`). Claude reads this and auto-triggers `/g-team plan`, `/g-team execute`, or `/g-team review` based on current state.
+**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count (from `.claude/tier3-active`), and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
 
 **`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-team-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
 
 **`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-team-approved` after a successful commit.
 
-The sentinel is written by `/g-team review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
+The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
 To bypass in an emergency (not recommended):
 
@@ -173,20 +190,21 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 | Skill | What it does |
 |-------|-------------|
-| `/g-team help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
-| `/g-team status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
-| `/g-team doctor` | 9-point health check: all 3 hooks installed, all hooks registered in settings.json, G-Team Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
-| `/g-team kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
-| `/g-team onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
-| `/g-team brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
-| `/g-team init` | Scaffold CLAUDE.md, G-RULES.md, ROADMAP.md, milestones/, commit enforcement hooks |
-| `/g-team specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
-| `/g-team plan` | QA scope prerequisite (compile docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to docs/plans/ |
-| `/g-team execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
-| `/g-team review` | test suite → code-lead → full review pipeline → MERGE READY or HOLD → auto-closes milestone tasks |
-| `/g-team update` | Realign all g-team-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the current plugin version |
-| `/g-team skill-design` | Design a new g-team skill from scratch — requirements gathering, step drafting, SKILL.md + command file + router wiring |
-| `/g-team skill-validate [name]` | Validate a skill or agent against structural rules — ✓/✗ checklist, VALID or NEEDS FIXES verdict |
+| `/g-help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
+| `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
+| `/g-doctor` | 9-point health check: all 3 hooks installed, all hooks registered in settings.json, G-Team Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
+| `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
+| `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
+| `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
+| `/g-init` | Scaffold CLAUDE.md, G-RULES.md, ROADMAP.md, milestones/, commit enforcement hooks |
+| `/g-specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
+| `/g-plan` | QA scope prerequisite (compile docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to docs/plans/ |
+| `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
+| `/g-review` | test suite → code-lead → full review pipeline → MERGE READY or HOLD → auto-closes milestone tasks |
+| `/g-update` | Realign all g-team-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the current plugin version |
+| `/g-listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
+| `/g-skill-design` | Design a new g-team skill from scratch — requirements gathering, step drafting, SKILL.md + command file + router wiring |
+| `/g-skill-validate [name]` | Validate a skill or agent against structural rules — ✓/✗ checklist, VALID or NEEDS FIXES verdict |
 
 ---
 
@@ -217,9 +235,9 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ## Stack Profiles
 
-Installed per-project by `/g-team specialize`. Each profile adds a stack-specific architect agent and appends architecture rules to `CLAUDE.md`. Once installed, the agent is project-native — no plugin required at runtime.
+Installed per-project by `/g-specialize`. Each profile adds a stack-specific architect agent and appends architecture rules to `CLAUDE.md`. Once installed, the agent is project-native — no plugin required at runtime.
 
-45 profiles ship with the plugin. Auto-detected from your project's dependency files when you run `/g-team specialize`.
+45 profiles ship with the plugin. Auto-detected from your project's dependency files when you run `/g-specialize`.
 
 **Web Frontend**
 `react` · `next-js` · `nuxt` · `vue-pinia` · `sveltekit` · `angular` · `astro` · `remix`
@@ -253,44 +271,44 @@ Quick reference for the most common workflows.
 ### Starting a new project
 
 ```
-/g-team kickoff      Groups 1–4: problem → scope → stack surface → stack deep dive + integration map
+/g-kickoff      Groups 1–4: problem → scope → stack surface → stack deep dive + integration map
                      Challenges each feature and tech choice honestly
                      Dispatches project-manager (scope) + code-lead (stack validation)
                      Produces project_brief.md with tech decisions table
 
-/g-team init         Creates CLAUDE.md with G-rules, G-RULES.md, ROADMAP.md, milestones/M1.md, todo.md
+/g-init         Creates CLAUDE.md with G-rules, G-RULES.md, ROADMAP.md, milestones/M1.md, todo.md
                      Installs .claude/hooks/workflow-checkpoint.sh (UserPromptSubmit)
                                .claude/hooks/check-commit.sh (PreToolUse — commit gate)
                                .claude/hooks/post-commit-cleanup.sh (PostToolUse — sentinel cleanup)
                      Registers all three in .claude/settings.json
 
-/g-team specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
+/g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
 ```
 
 ### Onboarding an existing project
 
 ```
-/g-team onboard      Reads the repo first: stack, structure, tests, entry points
+/g-onboard      Reads the repo first: stack, structure, tests, entry points
                      Presents findings and asks you to confirm before continuing
                      Interviews: what's next, constraints, known fragile areas
                      Optional: dispatches code-lead for architecture audit
                      Produces project_brief.md with current state + planned work
 
-/g-team init         Installs commit enforcement, injects G-rules into CLAUDE.md, installs G-RULES.md
-/g-team specialize   Reads project_brief.md → installs architect agent + rules
+/g-init         Installs commit enforcement, injects G-rules into CLAUDE.md, installs G-RULES.md
+/g-specialize   Reads project_brief.md → installs architect agent + rules
 ```
 
 ### Where am I?
 
 ```
-/g-team help         Reads project state (todo.md, ROADMAP.md, plan files, hooks)
+/g-help         Reads project state (todo.md, ROADMAP.md, plan files, hooks)
                      Detects current phase and outputs one clear next action
                      + full command reference
 
-/g-team status       Fast structured snapshot — no narrative, just facts:
+/g-status       Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-team doctor       9-point health check — all 3 hooks installed, all hooks wired in
+/g-doctor       9-point health check — all 3 hooks installed, all hooks wired in
                      settings.json, G-Team Rules block in CLAUDE.md, G-RULES.md
                      present and referenced, no stale sentinel
                      Reports ✓/✗ per check with a one-line fix instruction
@@ -298,26 +316,26 @@ Quick reference for the most common workflows.
 
 ### Planning a feature
 
-`/g-team plan`, `/g-team execute`, and `/g-team review` are **auto-triggered** — Claude detects task complexity and initiates them without you typing the commands. The `workflow-checkpoint.sh` hook fires on every message and reports current state (including active wave progress); G-RULES.md tells Claude what to do with it.
+`/g-plan`, `/g-execute`, and `/g-review` are **auto-triggered** — Claude detects task complexity and initiates them without you typing the commands. The `workflow-checkpoint.sh` hook fires on every message and reports current state (including active wave progress); G-RULES.md tells Claude what to do with it.
 
 You can still invoke them manually if needed:
 
 ```
-/g-team plan         Step 0: QA scope prerequisite — confirm or compile
+/g-plan         Step 0: QA scope prerequisite — confirm or compile
                        docs/qa-scope/<milestone>.md (Tier 3 DoD for the milestone)
                      Step 1: project-manager challenges the feature request (3 questions,
                        one verdict — bug fixes and refactors skip this gate)
                      Dispatches task-decomposer → wave-planner
                      Presents wave schedule for approval
                      Saves approved plan to docs/plans/<feature-slug>.md
-                     On approval: hands off to /g-team execute
+                     On approval: hands off to /g-execute
 
-/g-team execute      Dispatches all Wave 1 tasks in parallel, waits for completion
+/g-execute      Dispatches all Wave 1 tasks in parallel, waits for completion
                      Then Wave 2, Wave 3, etc. — holds boundary between waves
                      Stops immediately on any BLOCKED signal
-                     Resume a partial run: /g-team execute 2
+                     Resume a partial run: /g-execute 2
 
-/g-team review       Step 1: runs the test suite — failures block with HOLD immediately
+/g-review       Step 1: runs the test suite — failures block with HOLD immediately
                        No test suite? Must dispatch test-writer or explicitly override
                      Dispatches code-lead → review-orchestrator → parallel reviewers
                      Issues MERGE READY or HOLD with fix list
@@ -327,7 +345,7 @@ You can still invoke them manually if needed:
 ### Keeping the brief current
 
 ```
-/g-team brief        Refresh project_brief.md as the project evolves
+/g-brief        Refresh project_brief.md as the project evolves
                      Reads current ROADMAP.md, todo.md, recent git log
                      Asks at most 4 targeted questions — no full re-onboard
 ```
@@ -337,7 +355,7 @@ You can still invoke them manually if needed:
 ```
 git checkout -b feat/<slug>   # branch before non-trivial work
 [implement feature or fix]
-/g-team review       → runs tests, then full pipeline → MERGE READY unlocks the gate
+/g-review       → runs tests, then full pipeline → MERGE READY unlocks the gate
 git commit -m "..."  → gate clears, sentinel auto-removed
 git merge main       → or open a PR
 git push
@@ -350,7 +368,7 @@ git push
 2. Dispatch debugger with error-detective's findings + relevant source files
 3. Dispatch test-writer with debugger's fix strategy
 4. Implement the fix
-5. /g-team review → commit
+5. /g-review → commit
 ```
 
 ### Refactoring safely
@@ -360,7 +378,7 @@ git push
 2. Dispatch architecture-enforcer with the spec + layer map
 3. Dispatch refactor-executor with the approved spec
 4. Dispatch code-reviewer with the resulting diff
-5. /g-team review → commit
+5. /g-review → commit
 ```
 
 ### Common single-agent dispatches
