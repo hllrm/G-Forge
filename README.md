@@ -42,19 +42,23 @@ Then open the desktop app or IDE extension as normal — the agents and skills w
 
 ### Update the plugin
 
-`/plugin update g-team` compares the installed cache against its local snapshot — it may report "already at latest" even when a newer version exists on GitHub. To force a fresh install:
+Run `/g-update` inside any project that uses G-Team. It does everything in one pass:
 
-```bash
-/plugin marketplace add hllrm/g-team
-/plugin install g-team
-```
-
-Then run `/g-update` inside any project that uses G-Team to sync the project-level files (hooks, CLAUDE.md rules, G-RULES.md) to the new version.
+1. Compares the installed cache version against GitHub
+2. `git pull`s the plugin cache if behind
+3. Syncs all project-level files (hooks, CLAUDE.md rules, G-RULES.md, architect agents, architecture rules) to the new version
 
 G-Team also checks for updates automatically. The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
 
 ```
-⚡ g-team update available: 0.4.0 → 0.4.1 — say 'update g-team' to update, then run /g-update
+⚡ g-team update available: 0.4.1 → 0.4.2 — run /g-update to pull and sync
+```
+
+If `/g-update`'s git pull fails (cache is not a git clone), it will tell you to reinstall manually:
+
+```bash
+/plugin marketplace add hllrm/g-team
+/plugin install g-team
 ```
 
 #### Load per-session (without installing)
@@ -201,7 +205,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-plan` | QA scope prerequisite (compile docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-review` | test suite → code-lead → full review pipeline → MERGE READY or HOLD → auto-closes milestone tasks |
-| `/g-update` | Realign all g-team-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the current plugin version |
+| `/g-update` | Pull latest plugin from GitHub, then realign all g-team-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
 | `/g-listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
 | `/g-skill-design` | Design a new g-team skill from scratch — requirements gathering, step drafting, SKILL.md + command file + router wiring |
 | `/g-skill-validate [name]` | Validate a skill or agent against structural rules — ✓/✗ checklist, VALID or NEEDS FIXES verdict |
