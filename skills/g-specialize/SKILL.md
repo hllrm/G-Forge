@@ -1,9 +1,9 @@
 ---
-name: g-team-specialize
+name: g-specialize
 description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, claude-plugin.
 ---
 
-**Announce:** "Using g-team-specialize to apply the stack profile."
+**Announce:** "Using g-specialize to apply the stack profile."
 
 You are wiring stack-specific architect agents into this project. The agent files and rules will be project-native after this runs — no plugin dependency required.
 
@@ -102,8 +102,8 @@ Profiles to apply:  [list of supported stacks to install]
 
 ## Step 2 — Handle edge cases before confirming
 
-**If an explicit stack argument was provided** (e.g. `/g-team specialize vue-pinia`):
-- Validate it is one of the 44 supported stacks listed in the description frontmatter. If not, say: "Unknown stack '[arg]'. Run `/g-team specialize` with no argument to auto-detect, or pick from the supported list." and stop.
+**If an explicit stack argument was provided** (e.g. `/g-specialize vue-pinia`):
+- Validate it is one of the 44 supported stacks listed in the description frontmatter. If not, say: "Unknown stack '[arg]'. Run `/g-specialize` with no argument to auto-detect, or pick from the supported list." and stop.
 - Use this as the confirmed profile list, skipping further detection.
 
 **If no brief and no dependency files exist:**
@@ -163,10 +163,10 @@ If found, use these local files — this is the correct path when working inside
 
 **If not found locally**, use Glob to find the plugin root in the cache:
 ```
-~/.claude/plugins/cache/g-team/g-team/*/skills/g-team-init/SKILL.md
+~/.claude/plugins/cache/g-team/g-team/*/skills/g-init/SKILL.md
 ```
 
-The parent of the `skills/` directory is the plugin root. For example, if Glob returns `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/skills/g-team-init/SKILL.md`, the plugin root is `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/profiles/vue-pinia/`.
+The parent of the `skills/` directory is the plugin root. For example, if Glob returns `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/skills/g-init/SKILL.md`, the plugin root is `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/profiles/vue-pinia/`.
 
 If neither the local directory nor the plugin cache contain the profile, tell the developer: "Could not find the profile files for '[stack]'. If this is a new profile, ensure it exists under profiles/<stack>/. Otherwise run `/plugin update g-team` to refresh the cache." and stop.
 
@@ -240,7 +240,7 @@ For each profile, check whether rules are already present by searching for `<!--
 For each profile whose rules are not yet present, append:
 
 ```
-<!-- G-Team [stack] Architecture Rules — injected by /g-team specialize. Do not edit manually. -->
+<!-- G-Team [stack] Architecture Rules — injected by /g-specialize. Do not edit manually. -->
 [full content of profiles/[stack]/rules/architecture.md]
 <!-- End G-Team [stack] Architecture Rules -->
 ```

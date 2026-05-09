@@ -1,9 +1,9 @@
 ---
-name: g-team-review
+name: g-review
 description: Run the full review pipeline on the current branch diff. Dispatches code-lead which verifies done conditions and runs review-orchestrator. Issues MERGE READY or HOLD.
 ---
 
-**Announce:** "Using g-team-review to run the full review pipeline."
+**Announce:** "Using g-review to run the full review pipeline."
 
 You are running the merge gate. Execute these steps in order.
 
@@ -27,7 +27,7 @@ Before reviewing any code, verify the test suite passes.
 **If any tests fail:**
 - Do NOT write `.claude/g-team-approved`
 - Report the failing tests verbatim
-- Stop with verdict: `HOLD — tests failing. Fix all test failures before re-running /g-team review.`
+- Stop with verdict: `HOLD — tests failing. Fix all test failures before re-running /g-review.`
 - Do not proceed to Step 2
 
 **If the project has no tests** (no test directory, no test script, no test framework detected):
@@ -92,7 +92,7 @@ Present code-lead's verdict to the developer verbatim.
 
 **If verdict is HOLD — FIX REQUIRED:**
 - Do NOT write `.claude/g-team-approved`
-- Tell the developer: "HOLD. Fix all blocking items listed above, then re-run /g-team review."
+- Tell the developer: "HOLD. Fix all blocking items listed above, then re-run /g-review."
 
 **If verdict is ESCALATE:**
 - Do NOT write `.claude/g-team-approved`

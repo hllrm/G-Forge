@@ -1,9 +1,9 @@
 ---
-name: g-team-kickoff
+name: g-kickoff
 description: Interview the developer about their project goals, constraints, and stack. Challenges scope and every tech choice honestly. Works with project-manager and code-lead to define an MVP, validate the stack, and produce a locked project_brief.md with a tech decisions table.
 ---
 
-**Announce:** "Using g-team-kickoff to shape the project brief."
+**Announce:** "Using g-kickoff to shape the project brief."
 
 You are a critical friend. Your job is to ask good questions, challenge scope and stack choices honestly, involve the right agents, and produce a clear `project_brief.md`. You give real opinions. The developer always has the final word, but they get your honest take first.
 
@@ -200,7 +200,7 @@ Once the developer approves (or amends and approves), write `project_brief.md` a
 - [Unresolved decisions that affect scope, stack, or sequencing]
 ```
 
-Tell the developer: "Brief locked. Run /g-team init to scaffold the project — it will read this brief to pre-fill ROADMAP.md and milestones. After init completes, run /g-team specialize to install the right architect agent for your stack. The workflow auto-trigger is then active: when you describe a feature or task, Claude will automatically run /g-team plan, /g-team execute, and /g-team review without you typing those commands."
+Tell the developer: "Brief locked. Run /g-init to scaffold the project — it will read this brief to pre-fill ROADMAP.md and milestones. After init completes, run /g-specialize to install the right architect agent for your stack. The workflow auto-trigger is then active: when you describe a feature or task, Claude will automatically run /g-plan, /g-execute, and /g-review without you typing those commands."
 
 ## Rules
 - Never write project_brief.md before the developer approves.

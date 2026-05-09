@@ -41,14 +41,14 @@ Warning signs: error message changes but bug class persists · you're explaining
 **Every non-trivial task starts with `project-manager`.** Non-trivial = ≥3 files, new feature, layer-boundary change, bug fix with unclear root cause, or anything with multiple dependent steps. Single-file edits with a known location may proceed inline.
 
 **Auto-triggered sequence — Claude initiates without being asked:**
-1. `/g-team plan` — non-trivial task detected → immediately run before any file changes. Drives task-decomposer → wave-planner → spec-writer, presents plan, waits for approval.
-2. `/g-team execute` — plan approved → immediately dispatch waves. Runs agents in parallel per wave, holds boundary between waves.
-3. `/g-team review` — implementation complete / user wants to merge → immediately run. `code-lead` verifies done conditions + dispatches review-orchestrator. Issues MERGE READY or HOLD.
+1. `/g-plan` — non-trivial task detected → immediately run before any file changes. Drives task-decomposer → wave-planner → spec-writer, presents plan, waits for approval.
+2. `/g-execute` — plan approved → immediately dispatch waves. Runs agents in parallel per wave, holds boundary between waves.
+3. `/g-review` — implementation complete / user wants to merge → immediately run. `code-lead` verifies done conditions + dispatches review-orchestrator. Issues MERGE READY or HOLD.
 4. HQ merges only after MERGE READY — never before.
 
-**Auto-trigger rule:** Do not wait for the user to type `/g-team plan`, `/g-team execute`, or `/g-team review`. Detect the condition and trigger automatically.
+**Auto-trigger rule:** Do not wait for the user to type `/g-plan`, `/g-execute`, or `/g-review`. Detect the condition and trigger automatically.
 
-**Wave execution rule:** always use `/g-team execute` for wave-based parallel dispatch. Never use `superpowers:dispatching-parallel-agents` in a g-team project — that skill is superseded by g-team-execute.
+**Wave execution rule:** always use `/g-execute` for wave-based parallel dispatch. Never use `superpowers:dispatching-parallel-agents` in a g-team project — that skill is superseded by g-execute.
 
 **Hard stops:**
 - Never commit agent work without `code-lead` sign-off
@@ -198,7 +198,7 @@ Update the map when the stack or data layer changes.
 - **Circular dependencies** — always indicates a layer boundary violation or a missing intermediate abstraction. Resolve by extracting the shared dependency or inverting the dependency direction.
 - **Catch-and-continue** — `catch (e) {}` or `catch (e) { return null }` without logging, re-throwing, or surfacing to the caller. Every caught error must be handled explicitly or re-thrown.
 
-**Stack-specific patterns** live in `.claude/rules/architecture-<stack>.md`, installed by `/g-team specialize`. The rules above apply universally; stack rules add or refine them for the specific architecture.
+**Stack-specific patterns** live in `.claude/rules/architecture-<stack>.md`, installed by `/g-specialize`. The rules above apply universally; stack rules add or refine them for the specific architecture.
 
 ---
 

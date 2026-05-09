@@ -29,6 +29,35 @@ else
 fi
 
 if [ -f ".claude/tier3-active" ]; then
-    BUG_COUNT=$(cat ".claude/tier3-active" 2>/dev/null || echo 0)
-    echo "  Tier 3 listen mode ACTIVE — ${BUG_COUNT} bug(s) logged this round — no fixes until developer declares round complete"
+    ITEM_COUNT=$(cat ".claude/tier3-active" 2>/dev/null || echo 0)
+    echo "  Listen mode ACTIVE — ${ITEM_COUNT} item(s) logged — no action until user says done"
+fi
+
+# Self-update check — background curl once per day, zero blocking latency
+CLAUDE_DIR="$HOME/.claude"
+INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-team/g-team/.claude-plugin/plugin.json"
+VERSION_CACHE="$CLAUDE_DIR/g-team-latest-version"
+CHECK_STAMP="$CLAUDE_DIR/g-team-check-stamp"
+
+if [ -f "$INSTALLED_MANIFEST" ]; then
+    INSTALLED_VER=$(grep '"version"' "$INSTALLED_MANIFEST" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?[a-zA-Z0-9]*' | head -1)
+
+    NEEDS_CHECK=true
+    if [ -f "$CHECK_STAMP" ] && find "$CHECK_STAMP" -mmin -1440 2>/dev/null | grep -q .; then
+        NEEDS_CHECK=false
+    fi
+
+    if [ "$NEEDS_CHECK" = true ]; then
+        (curl -sf --max-time 5 \
+          "https://raw.githubusercontent.com/hllrm/g-team/main/.claude-plugin/plugin.json" \
+          | grep '"version"' | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?[a-zA-Z0-9]*' | head -1 \
+          > "$VERSION_CACHE" && touch "$CHECK_STAMP") >/dev/null 2>&1 &
+    fi
+
+    if [ -f "$VERSION_CACHE" ]; then
+        LATEST_VER=$(cat "$VERSION_CACHE")
+        if [ -n "$LATEST_VER" ] && [ "$LATEST_VER" != "$INSTALLED_VER" ]; then
+            echo "  ⚡ g-team update available: $INSTALLED_VER → $LATEST_VER — say 'update g-team' to update, then run /g-update"
+        fi
+    fi
 fi

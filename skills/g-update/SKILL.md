@@ -1,9 +1,9 @@
 ---
-name: g-team-update
+name: g-update
 description: Realign all g-team-managed files in this project to the current plugin version. Updates the G-Team Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and commit hooks. Safe — only touches content between g-team markers.
 ---
 
-**Announce:** "Using g-team-update to realign project files to the current plugin version."
+**Announce:** "Using g-update to realign project files to the current plugin version."
 
 You are syncing g-team-managed content in this project against the installed plugin. You only touch content that g-team originally injected — never user-written content.
 
@@ -13,7 +13,7 @@ You are syncing g-team-managed content in this project against the installed plu
 
 Use Glob to find the plugin's skill files:
 ```
-~/.claude/plugins/cache/g-team/g-team/*/skills/g-team-init/SKILL.md
+~/.claude/plugins/cache/g-team/g-team/*/skills/g-init/SKILL.md
 ```
 
 The parent of the `skills/` directory is the plugin root. Store this path — you will need it throughout.
@@ -68,11 +68,11 @@ Wait for confirmation.
 
 ## Step 3 — Update G-Team Rules block in CLAUDE.md
 
-Read `[plugin-root]/skills/g-team-init/SKILL.md`.
+Read `[plugin-root]/skills/g-init/SKILL.md`.
 
 Extract the content between:
 ```
-<!-- G-Team Rules — injected by /g-team init. Do not edit manually. -->
+<!-- G-Team Rules — injected by /g-init. Do not edit manually. -->
 ```
 and:
 ```
@@ -107,7 +107,7 @@ For each `<!-- G-Team [stack] Architecture Rules` block found in Step 2:
 2. Read the current rules from `[plugin-root]/profiles/[stack]/rules/architecture.md`
 3. In CLAUDE.md, replace everything between:
    ```
-   <!-- G-Team [stack] Architecture Rules — injected by /g-team specialize. Do not edit manually. -->
+   <!-- G-Team [stack] Architecture Rules — injected by /g-specialize. Do not edit manually. -->
    ```
    and:
    ```
@@ -150,7 +150,7 @@ Report: `✓ .claude/rules/[filename] — updated` for each updated file.
 
 ## Step 7 — Update hook scripts
 
-Read `[plugin-root]/skills/g-team-init/SKILL.md` once. Extract each hook script's content from the code blocks in the init skill.
+Read `[plugin-root]/skills/g-init/SKILL.md` once. Extract each hook script's content from the code blocks in the init skill.
 
 **check-commit.sh:** If `.claude/hooks/check-commit.sh` exists, replace with the extracted content. Report: `✓ .claude/hooks/check-commit.sh — updated`. If not present, skip silently.
 

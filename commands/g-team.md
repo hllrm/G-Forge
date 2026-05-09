@@ -7,20 +7,20 @@ Route to the correct skill file based on the subcommand in $ARGUMENTS.
 
 For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
 
-- `help`       → `skills/g-team-help/SKILL.md`
-- `status`     → `skills/g-team-status/SKILL.md`
-- `doctor`     → `skills/g-team-doctor/SKILL.md`
-- `init`       → `skills/g-team-init/SKILL.md`
-- `kickoff`    → `skills/g-team-kickoff/SKILL.md`
-- `onboard`    → `skills/g-team-onboard/SKILL.md`
-- `brief`      → `skills/g-team-brief/SKILL.md`
-- `plan`       → `skills/g-team-plan/SKILL.md`
-- `execute`    → `skills/g-team-execute/SKILL.md`  (remaining args: $ARGUMENTS)
-- `review`     → `skills/g-team-review/SKILL.md`
-- `specialize` → `skills/g-team-specialize/SKILL.md`  (remaining args: $ARGUMENTS)
-- `update`     → `skills/g-team-update/SKILL.md`
-- `skill-design` → `skills/g-team-skill-design/SKILL.md`
-- `skill-validate` → `skills/g-team-skill-validate/SKILL.md`  (remaining args: $ARGUMENTS)
+- `help`       → `skills/g-help/SKILL.md`
+- `status`     → `skills/g-status/SKILL.md`
+- `doctor`     → `skills/g-doctor/SKILL.md`
+- `init`       → `skills/g-init/SKILL.md`
+- `kickoff`    → `skills/g-kickoff/SKILL.md`
+- `onboard`    → `skills/g-onboard/SKILL.md`
+- `brief`      → `skills/g-brief/SKILL.md`
+- `plan`       → `skills/g-plan/SKILL.md`
+- `execute`    → `skills/g-execute/SKILL.md`  (remaining args: $ARGUMENTS)
+- `review`     → `skills/g-review/SKILL.md`
+- `specialize` → `skills/g-specialize/SKILL.md`  (remaining args: $ARGUMENTS)
+- `update`     → `skills/g-update/SKILL.md`
+- `skill-design` → `skills/g-skill-design/SKILL.md`
+- `skill-validate` → `skills/g-skill-validate/SKILL.md`  (remaining args: $ARGUMENTS)
 
 If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `help` — show current project state and next recommended action

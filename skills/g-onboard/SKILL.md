@@ -1,9 +1,9 @@
 ---
-name: g-team-onboard
+name: g-onboard
 description: Onboard G-Team onto an existing codebase. Reads deeply before asking anything — treats existing CLAUDE.md, rules, agents, and task ledgers as first-class inputs. Only interviews for what it genuinely doesn't know yet. Produces or updates project_brief.md.
 ---
 
-**Announce:** "Using g-team-onboard to onboard this codebase."
+**Announce:** "Using g-onboard to onboard this codebase."
 
 You read before you ask. Questions are grounded in what you observed, targeted to what you don't yet know. Never ask for information already visible in the project.
 
@@ -110,17 +110,17 @@ Wait for confirmation before continuing.
 Before interviewing, resolve any existing G-Team infrastructure so specialize doesn't clobber it.
 
 **If `.claude/rules/` has files:**
-> "I found existing rules in `.claude/rules/`: [list files]. When we run `/g-team specialize`, it will install architect rules. Should it overlay (append to existing), replace, or skip rules installation entirely?"
+> "I found existing rules in `.claude/rules/`: [list files]. When we run `/g-specialize`, it will install architect rules. Should it overlay (append to existing), replace, or skip rules installation entirely?"
 
 Wait for answer. Record preference.
 
 **If `.claude/agents/` has files:**
-> "I found existing agents in `.claude/agents/`: [list files]. When we run `/g-team specialize`, it will install a stack-specific architect agent. Should it overlay, replace, or skip agent installation?"
+> "I found existing agents in `.claude/agents/`: [list files]. When we run `/g-specialize`, it will install a stack-specific architect agent. Should it overlay, replace, or skip agent installation?"
 
 Wait for answer. Record preference.
 
 **If `CLAUDE.md` is >100 lines and G-Team rules are already embedded:**
-> "Your CLAUDE.md already has G-Team rules embedded. `/g-team init` would normally inject them — should I skip that injection and treat your current CLAUDE.md as authoritative?"
+> "Your CLAUDE.md already has G-Team rules embedded. `/g-init` would normally inject them — should I skip that injection and treat your current CLAUDE.md as authoritative?"
 
 Wait for answer.
 
@@ -235,11 +235,11 @@ Suggested next steps:
 
 Build the next-steps list based on what's actually missing — don't suggest steps that are already done:
 
-- Include `/g-team init` only if: commit gate not registered OR CLAUDE.md is missing OR ROADMAP.md is missing
-- Include `/g-team specialize` only if: no stack-specific architect agent is installed yet (or developer chose overlay/replace in Step 4)
-- Always include `/g-team plan` when ready to start the work described in the brief
+- Include `/g-init` only if: commit gate not registered OR CLAUDE.md is missing OR ROADMAP.md is missing
+- Include `/g-specialize` only if: no stack-specific architect agent is installed yet (or developer chose overlay/replace in Step 4)
+- Always include `/g-plan` when ready to start the work described in the brief
 
-If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-team plan`, consider addressing the architecture issues code-lead flagged."
+If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-plan`, consider addressing the architecture issues code-lead flagged."
 
 ---
 
@@ -247,7 +247,7 @@ If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-team plan`
 
 - Never write `project_brief.md` before Steps 4 and 5 are complete.
 - Never ask for information already visible in the project files.
-- Never suggest `/g-team init` or `/g-team specialize` steps that are already done.
+- Never suggest `/g-init` or `/g-specialize` steps that are already done.
 - Never overwrite existing `.claude/agents/` or `.claude/rules/` files without explicit developer permission from Step 4.
 - Mature project interview is targeted — not a script. Only ask what you genuinely don't know.
 - If the developer corrects your Step 3 reading, update before continuing.
