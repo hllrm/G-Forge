@@ -4,16 +4,16 @@
 
 Multi-agent Claude Code plugin — planned execution, production architecture, enforced review.
 
-<!-- G-Team Rules — injected by /g-team init. Do not edit manually. -->
+<!-- G-Team Rules — injected by /g-init. Do not edit manually. -->
 ## G-Team Workflow
 
 **Models**: Haiku for reads/search · Sonnet for implementation · Opus only after 2 failed attempts on the same task.
 
 **Workflow — auto-triggered, no command needed**:
 Claude detects task complexity and initiates the workflow automatically — never wait for the user to type a command:
-- Non-trivial task? (≥3 files, new feature, layer-boundary change, unclear bug, public API change) → run `/g-team plan` before any file changes
-- Plan approved → run `/g-team execute` to dispatch waves
-- Implementation complete / user wants to merge → run `/g-team review`
+- Non-trivial task? (≥3 files, new feature, layer-boundary change, unclear bug, public API change) → run `/g-plan` before any file changes
+- Plan approved → run `/g-execute` to dispatch waves
+- Implementation complete / user wants to merge → run `/g-review`
 All three steps are mandatory. Skipping any requires explicit developer override.
 
 **Agent discipline**: HQ orchestrates only — dispatches agents, collects results, integrates. Never does grunt work an agent can do. Hard limit: 7 agents per task.
@@ -25,14 +25,14 @@ All three steps are mandatory. Skipping any requires explicit developer override
 **Hard stops**: No merge without MERGE READY · No plan skip for non-trivial tasks · HOLD = fix all blocking items, re-review · Same bug class × 3 attempts = stop, escalate, try a different mechanism.
 <!-- End G-Team Rules -->
 
-<!-- G-Team claude-plugin Architecture Rules — injected by /g-team specialize. Do not edit manually. -->
+<!-- G-Team claude-plugin Architecture Rules — injected by /g-specialize. Do not edit manually. -->
 ## Claude Code Plugin Architecture Rules
 
 **Layer map:**
 - `commands/` — thin routing .md files; Glob+Read to SKILL.md; no hardcoded logic; no Skill() calls
 - `skills/<name>/SKILL.md` — multi-step workflow instructions; no Skill() invocations; must have Announce line and Rules section; no argument-hint in frontmatter
 - `agents/` — specialist .md agents; Read, Glob, Grep tools only; output findings, never fixes; must include name, description, model, tools frontmatter
-- `profiles/<stack>/` — stack architect agent + architecture rules; installed per-project by /g-team specialize; architect agent must be read-only
+- `profiles/<stack>/` — stack architect agent + architecture rules; installed per-project by /g-specialize; architect agent must be read-only
 - `hooks/` — standalone bash scripts; read stdin JSON; exit 1 to block; no Claude runtime dependency; must have #!/bin/bash shebang
 - `.claude-plugin/` — plugin.json + marketplace.json; schema-valid; version numbers must match across both files
 

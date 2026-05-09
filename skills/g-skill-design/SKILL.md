@@ -1,9 +1,9 @@
 ---
-name: g-team-skill-design
+name: g-skill-design
 description: Design a new g-team skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, creates the companion command file, and adds it to the g-team router.
 ---
 
-**Announce:** "Using g-team-skill-design to design the new skill."
+**Announce:** "Using g-skill-design to design the new skill."
 
 You are designing a new G-Team skill. Follow these steps in order.
 
@@ -107,7 +107,7 @@ Skill created ✓
   ✓ commands/g-team-[name].md    — command routing file written
   ✓ commands/g-team.md           — router updated
 
-Run /g-team skill-validate [name] to validate the new skill's structure.
+Run /g-skill-validate [name] to validate the new skill's structure.
 ```
 
 ## Rules

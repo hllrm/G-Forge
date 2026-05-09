@@ -1,14 +1,14 @@
 ---
-name: g-team-help
+name: g-help
 description: Context-aware help. Reads current project state and tells you exactly where you are in the workflow and what to do next.
 ---
 
-You are running the g-team-help skill. Follow every step below precisely.
+You are running the g-help skill. Follow every step below precisely.
 
 ## Step 1 — Announce
 
 Output exactly:
-> Using g-team-help to assess project state.
+> Using g-help to assess project state.
 
 ## Step 2 — Read project files
 
@@ -45,13 +45,13 @@ Default to "Initialized" if none of the above conditions clearly match and the p
 
 **Next step mapping:**
 
-- Not initialized (no project_brief.md) → suggest `/g-team kickoff` (new project) or `/g-team onboard` (existing repo)
-- Not initialized (project_brief.md exists, no G-Team Rules block) → suggest `/g-team init`
-- Initialized (no plan file) → suggest `/g-team plan`
-- Active plan → suggest `/g-team execute` to dispatch waves
-- Execution in progress → summarize remaining tasks from `todo.md` and suggest continuing or running `/g-team review` if all tasks are done
-- Review pending → suggest `/g-team review`
-- Ready to merge → suggest merging the branch or running `/g-team review` if not yet reviewed
+- Not initialized (no project_brief.md) → suggest `/g-kickoff` (new project) or `/g-onboard` (existing repo)
+- Not initialized (project_brief.md exists, no G-Team Rules block) → suggest `/g-init`
+- Initialized (no plan file) → suggest `/g-plan`
+- Active plan → suggest `/g-execute` to dispatch waves
+- Execution in progress → summarize remaining tasks from `todo.md` and suggest continuing or running `/g-review` if all tasks are done
+- Review pending → suggest `/g-review`
+- Ready to merge → suggest merging the branch or running `/g-review` if not yet reviewed
 
 ## Step 5 — Output structured status
 
@@ -78,23 +78,23 @@ Next step:
   [one clear action the developer should take right now, including the exact command to run]
 
 All commands:
-  /g-team kickoff     — new project: interview → project_brief.md
-  /g-team onboard     — existing project: read repo → project_brief.md
-  /g-team init        — scaffold CLAUDE.md, commit gate, workflow hooks
-  /g-team specialize  — install stack architect agent + architecture rules
-  /g-team plan        — decompose task → wave schedule → approval
-  /g-team execute     — dispatch waves (auto-triggered after plan approval)
-  /g-team review      — full review pipeline → MERGE READY or HOLD
-  /g-team brief       — refresh project_brief.md as project evolves
-  /g-team status      — quick one-line state snapshot
-  /g-team update      — realign all g-team files to current plugin version
-  /g-team help        — context-aware help: assess project state and next step
+  /g-kickoff     — new project: interview → project_brief.md
+  /g-onboard     — existing project: read repo → project_brief.md
+  /g-init        — scaffold CLAUDE.md, commit gate, workflow hooks
+  /g-specialize  — install stack architect agent + architecture rules
+  /g-plan        — decompose task → wave schedule → approval
+  /g-execute     — dispatch waves (auto-triggered after plan approval)
+  /g-review      — full review pipeline → MERGE READY or HOLD
+  /g-brief       — refresh project_brief.md as project evolves
+  /g-status      — quick one-line state snapshot
+  /g-update      — realign all g-team files to current plugin version
+  /g-help        — context-aware help: assess project state and next step
 ```
 
 ## Rules
 
 - Never error out. If any file is missing, treat it as "not set up yet" and note it gracefully in "What's active".
 - Be concise. "What's active" bullets should be short facts, not prose.
-- The "Next step" must be a single, actionable sentence ending with the exact command to run (e.g. "Run `/g-team plan` to decompose your task into a wave schedule.").
+- The "Next step" must be a single, actionable sentence ending with the exact command to run (e.g. "Run `/g-plan` to decompose your task into a wave schedule.").
 - Do not invent state. Only report what you actually found in the files.
 - Do not include `argument-hint` in any output or metadata.

@@ -1,9 +1,9 @@
 ---
-name: g-team-plan
+name: g-plan
 description: Decompose the current request into atomic tasks and produce a parallel wave schedule. Runs task-decomposer then wave-planner. Use at the start of any multi-step implementation.
 ---
 
-**Announce:** "Using g-team-plan to decompose and schedule the task."
+**Announce:** "Using g-plan to decompose and schedule the task."
 
 You are driving the planning phase. Execute these steps in order.
 
@@ -66,11 +66,11 @@ Ready to execute? Reply 'approved' to begin, or describe changes.
 
 ## Step 4a — Save approved plan to disk
 
-Once the developer approves, immediately write the plan to `docs/plans/<feature-slug>.md` using the schema defined in the **Plan File Format** section below. Slugify the feature name for the filename (e.g. `user-auth-flow.md`). Create the `docs/plans/` directory if it does not exist. Do this before handing off to g-team-execute.
+Once the developer approves, immediately write the plan to `docs/plans/<feature-slug>.md` using the schema defined in the **Plan File Format** section below. Slugify the feature name for the filename (e.g. `user-auth-flow.md`). Create the `docs/plans/` directory if it does not exist. Do this before handing off to g-execute.
 
 ## Step 5 — On approval
 
-Once the developer approves, use Glob to find `skills/g-team-execute/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions to run the waves.
+Once the developer approves, use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions to run the waves.
 
 ## Plan File Format
 
@@ -135,5 +135,5 @@ Written to `docs/qa-scope/<milestone-slug>.md`. One file per milestone, compiled
 - Never skip Step 0. No Tier 3 DoD defined = milestone not started.
 - Never skip the approval gate.
 - Never suggest implementation approaches — that is the executor's job.
-- Wave execution always goes through g-team-execute — never inline, never via superpowers.
+- Wave execution always goes through g-execute — never inline, never via superpowers.
 - If any agent returns BLOCKED during execution, stop and report to the developer before continuing.

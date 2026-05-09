@@ -1,11 +1,11 @@
 ---
-name: g-team-status
+name: g-status
 description: Quick one-shot snapshot of current workflow state: active plan, wave progress, review gate, current milestone.
 ---
 
 Produce a single structured status block. Fast — no interviews, no back-and-forth.
 
-**Step 1.** Announce: "Using g-team-status to snapshot project state."
+**Step 1.** Announce: "Using g-status to snapshot project state."
 
 **Step 2.** Read the following files from the project root (skip gracefully if any are missing):
 

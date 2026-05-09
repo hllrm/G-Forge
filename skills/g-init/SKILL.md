@@ -1,9 +1,9 @@
 ---
-name: g-team-init
+name: g-init
 description: Scaffold a new project with CLAUDE.md (compact G-rules injected), ROADMAP.md, milestones/, todo.md, and commit enforcement hooks. Run once in a new project after installing g-team.
 ---
 
-**Announce:** "Using g-team-init to scaffold the project."
+**Announce:** "Using g-init to scaffold the project."
 
 You are initializing a G-Team project. Execute these steps in order. Do not skip any step.
 
@@ -22,16 +22,16 @@ Check if `CLAUDE.md` exists at the project root.
 
 [Brief description of what this project does.]
 
-<!-- G-Team Rules — injected by /g-team init. Do not edit manually. -->
+<!-- G-Team Rules — injected by /g-init. Do not edit manually. -->
 ## G-Team Workflow
 
 **Models**: Haiku for reads/search · Sonnet for implementation · Opus only after 2 failed attempts on the same task.
 
 **Workflow — auto-triggered, no command needed**:
 Claude detects task complexity and initiates the workflow automatically — never wait for the user to type a command:
-- Non-trivial task? (≥3 files, new feature, layer-boundary change, unclear bug, public API change) → run `/g-team plan` before any file changes
-- Plan approved → run `/g-team execute` to dispatch waves
-- Implementation complete / user wants to merge → run `/g-team review`
+- Non-trivial task? (≥3 files, new feature, layer-boundary change, unclear bug, public API change) → run `/g-plan` before any file changes
+- Plan approved → run `/g-execute` to dispatch waves
+- Implementation complete / user wants to merge → run `/g-review`
 All three steps are mandatory. Skipping any requires explicit developer override.
 
 **Agent discipline**: HQ orchestrates only — dispatches agents, collects results, integrates. Never does grunt work an agent can do. Hard limit: 7 agents per task.
@@ -148,7 +148,7 @@ except Exception:
 
 if echo "$CMD" | grep -q "git commit"; then
     if [ ! -f ".claude/g-team-approved" ]; then
-        echo "G-Team: No code-lead sign-off. Run /g-team review and wait for MERGE READY before committing." >&2
+        echo "G-Team: No code-lead sign-off. Run /g-review and wait for MERGE READY before committing." >&2
         exit 1
     fi
     # Advisory: warn when committing directly to main with approval
@@ -210,7 +210,7 @@ fi
 if [ "$REVIEW_APPROVED" = true ]; then
     echo "  Review: approved (commit gate open)"
 else
-    echo "  Review: not yet approved — run /g-team review before merging"
+    echo "  Review: not yet approved — run /g-review before merging"
 fi
 
 if [ -f ".claude/tier3-active" ]; then
@@ -284,7 +284,7 @@ G-Team initialized ✓
   ✓ .claude/hooks/ — check-commit.sh and workflow-checkpoint.sh installed
   ✓ .claude/settings.json — hooks registered
 
-Next: run /g-team plan with your first feature request, or edit milestones/M1.md to define your scope.
+Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
 ```
 
 ## Rules
