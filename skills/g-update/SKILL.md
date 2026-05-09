@@ -3,9 +3,34 @@ name: g-update
 description: Realign all g-team-managed files in this project to the current plugin version. Updates the G-Team Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and commit hooks. Safe — only touches content between g-team markers.
 ---
 
-**Announce:** "Using g-update to realign project files to the current plugin version."
+**Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
 
-You are syncing g-team-managed content in this project against the installed plugin. You only touch content that g-team originally injected — never user-written content.
+You are first updating the plugin cache from GitHub, then syncing g-team-managed content in this project against it. You only touch content that g-team originally injected — never user-written content.
+
+---
+
+## Step 0 — Pull latest plugin from GitHub
+
+1. Read the installed version:
+   ```bash
+   grep '"version"' ~/.claude/plugins/cache/g-team/g-team/.claude-plugin/plugin.json
+   ```
+   If the file does not exist, skip to Step 1 (the plugin root check will handle the error).
+
+2. Fetch the latest version from GitHub:
+   ```bash
+   curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/g-team/main/.claude-plugin/plugin.json | grep '"version"'
+   ```
+   If the curl fails (no network, timeout), report: "⚠ Could not reach GitHub — skipping plugin update, syncing from installed cache." and continue to Step 1.
+
+3. If the versions match, report: "Plugin already at latest ([version]) — skipping pull." and continue to Step 1.
+
+4. If they differ, pull:
+   ```bash
+   git -C ~/.claude/plugins/cache/g-team/g-team pull --ff-only
+   ```
+   - If the pull succeeds, report: `✓ Plugin updated [old] → [new]`
+   - If git exits non-zero (cache is not a git repo, or diverged), report: "⚠ git pull failed — cache may not be a git clone. To force a full reinstall: `/plugin marketplace add hllrm/g-team` then `/plugin install g-team`." and continue to Step 1 using whatever is in the cache.
 
 ---
 

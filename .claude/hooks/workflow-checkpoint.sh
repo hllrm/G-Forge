@@ -57,7 +57,7 @@ if [ -f "$INSTALLED_MANIFEST" ]; then
     if [ -f "$VERSION_CACHE" ]; then
         LATEST_VER=$(cat "$VERSION_CACHE")
         if [ -n "$LATEST_VER" ] && [ "$LATEST_VER" != "$INSTALLED_VER" ]; then
-            echo "  ⚡ g-team update available: $INSTALLED_VER → $LATEST_VER — say 'update g-team' to update, then run /g-update"
+            echo "  ⚡ g-team update available: $INSTALLED_VER → $LATEST_VER — run /g-update to pull and sync"
         fi
     fi
 fi
