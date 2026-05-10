@@ -1,6 +1,6 @@
 ---
 name: g-specialize
-description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, claude-plugin.
+description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, claude-plugin.
 ---
 
 **Announce:** "Using g-specialize to apply the stack profile."
@@ -98,7 +98,21 @@ Source confidence:  [brief / deps / roadmap / inferred]
 Unsupported stacks: [list — e.g. django]
 Conflicts:          [e.g. "brief says Vue 3, no package.json found yet"]
 Profiles to apply:  [list of supported stacks to install]
+Combos detected:    [list of combo keys, or "none"]
 ```
+
+**Combo detection:**
+
+After building the `Profiles to apply` list, sort the detected stack names alphabetically and check for known combos:
+
+| Combo key            | Required stacks             | Emergent patterns covered                                                         |
+|----------------------|-----------------------------|-----------------------------------------------------------------------------------|
+| `electron-react`     | electron + react            | contextBridge API layer, IPC channel constants, cross-window state                |
+| `electron-vue-pinia` | electron + vue-pinia        | contextBridge + Pinia IPC integration, cross-window state                         |
+| `react-tauri`        | react + tauri               | `invoke()` typed API layer, Tauri event hooks in React, capability scoping        |
+| `tauri-vue-pinia`    | tauri + vue-pinia           | `invoke()` typed API layer, Pinia + Tauri event subscriptions, capability scoping |
+
+If any detected stacks fully cover a combo's required stacks, add that combo key to `Combos detected`. Combo profiles install rules only — no architect agent.
 
 ## Step 2 — Handle edge cases before confirming
 
@@ -141,9 +155,13 @@ Based on [brief / deps / your input], I'll apply these profiles:
   • vue-pinia  →  vue-architect agent + Vue 3 + Pinia architecture rules
   • fastapi    →  fastapi-architect agent + FastAPI architecture rules
 
+And combo rules (if combos were detected):
+  ↳ [combo-key]  →  [combo-key] combo architecture rules (no agent)
+
 This will:
   ✦ Write [N] agent file(s) to .claude/agents/
   ✦ Append architecture rules for each stack to CLAUDE.md
+  ✦ Append combo rules section(s) to CLAUDE.md (if combos apply)
 
 Continue? (y/n)
 ```
@@ -219,6 +237,18 @@ Stack → file mapping (agent file + rules file):
 
 Read both files for each profile before writing anything.
 
+**Combo files** — rules only, no agent.
+
+For each combo key in `Combos detected`, locate `profiles/<combo-key>/rules/architecture.md` using the same local-first / plugin-cache fallback as individual profiles.
+
+Combo → file mapping:
+- `electron-react`     → `profiles/electron-react/rules/architecture.md`
+- `electron-vue-pinia` → `profiles/electron-vue-pinia/rules/architecture.md`
+- `react-tauri`        → `profiles/react-tauri/rules/architecture.md`
+- `tauri-vue-pinia`    → `profiles/tauri-vue-pinia/rules/architecture.md`
+
+Read the combo rules file before writing anything.
+
 ## Step 5 — Write agents to .claude/agents/
 
 Create `.claude/agents/` directory if it does not exist.
@@ -230,6 +260,8 @@ Write the agent file content to `.claude/agents/[agent-name].md`.
 Agent filename: use the filename of the agent file from the stack → file mapping above (e.g. `vue-architect.md`, `fastapi-architect.md`, `react-architect.md`). Write it to `.claude/agents/<filename>`.
 
 If the file already exists, read it first. If the `name:` field in frontmatter matches, tell the developer: "[agent-name] is already installed. Overwrite? (y/n)" and wait for confirmation before proceeding.
+
+Combo profiles have no agent file — skip agent installation for any combo key in the install list.
 
 ## Step 6 — Append architecture rules to CLAUDE.md
 
@@ -245,15 +277,18 @@ For each profile whose rules are not yet present, append:
 <!-- End G-Team [stack] Architecture Rules -->
 ```
 
+Repeat this same loop for each combo key in `Combos detected` — same marker format, same duplication check, same append pattern. Use `profiles/<combo-key>/rules/architecture.md` as the content source.
+
 ## Step 7 — Report
 
 ```
 Stack profiles applied ✓
 
   ✓ .claude/agents/vue-architect.md    — vue-pinia architect installed
-  ✓ .claude/agents/fastapi-architect.md — fastapi architect installed
+  ✓ .claude/agents/tauri-architect.md  — tauri architect installed
   ✓ CLAUDE.md — Vue 3 + Pinia architecture rules appended
-  ✓ CLAUDE.md — FastAPI architecture rules appended
+  ✓ CLAUDE.md — Tauri architecture rules appended
+  ↳ CLAUDE.md — tauri-vue-pinia combo rules appended
 
 These agents are now project-native. They will appear in Claude Code's agent list.
 Dispatch them during any review or planning task that touches their stack.
