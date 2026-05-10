@@ -24,6 +24,8 @@ Note the current state:
 
 Read `project_brief.md` if it exists — extract the goal, constraints, and tech decisions.
 
+**Read the current version.** Check (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`. Record it as `current_version`. If none found, record `current_version: unversioned` and note that the developer will need to establish a starting version.
+
 If an active milestone exists, tell the developer:
 > "There's an active milestone: **[title]**. Are you adding new ideas to the plan, or is this a full re-plan from scratch?"
 
@@ -63,30 +65,42 @@ After presenting all clusters, surface your key assumptions:
 
 Wait for the developer to accept or push back. Revise clusters if needed. Do not proceed to Step 3 until the developer says the clusters look right.
 
-## Step 3 — Sequence with dependency justification
+## Step 3 — Sequence with dependency and version justification
 
-Take the approved clusters and arrange them into a milestone sequence.
+Take the approved clusters and arrange them into a milestone sequence. Version planning is part of sequencing — every milestone gets a target version and a reason for that version increment.
 
-For each ordering decision, narrate:
-> **Why [Cluster A] before [Cluster B]:** [reason — blocked dependency, risk reduction, user value unlock, or MVP gate]
+**Semver rules for milestone versioning:**
+- New user-facing capability, new public API, new skill/command → **minor** bump (x.Y.0)
+- Bug fixes, internal refactors, polish, dependency updates → **patch** bump (x.y.Z)
+- Breaking change to public API, incompatible behaviour change → **major** bump (X.0.0)
+- First release of a new project → start at v0.1.0 (or ask the developer for their preferred baseline)
+
+For each ordering decision, narrate both the dependency reason and the version logic:
+> **Why [Cluster A] before [Cluster B]:** [dependency / risk / value reason]
+> **Version logic:** [Cluster A] is a [minor/patch/major] bump because [what it adds or fixes]. [Cluster B] follows as a [minor/patch] because [reason].
 
 Flag blocking dependencies explicitly:
-> "⚠ [Milestone B] cannot start until [Milestone A] ships [specific thing]. If [Milestone A] takes longer than expected, [Milestone B] is blocked."
+> "⚠ [Milestone B] cannot start until [Milestone A] ships [specific thing]."
 
 Identify the MVP cut: the minimum set of milestones that delivers usable value. State which milestones are MVP and which are post-MVP, and why.
 
-Present the full proposed sequence. For each milestone, include a suggested target version based on what it delivers — features increment the minor version, bug-fix/polish milestones increment the patch, breaking changes increment the major. State the current version (read from `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, or `Cargo.toml` — whichever exists) as the baseline for M1's suggestion:
+Present the full proposed sequence:
 
 ```
 M1 — [Title]  [MVP / post-MVP]
      Goal: ...
      Scope: ...
-     Depends on: — / M1 / M2 / ...
-     Version: v[suggested]  (minor bump — new capability)
+     Depends on: —
+     Version: v[x.y.z]  ([minor/patch/major] — [one-line reason])
      Risk: ...
 
-M2 — [Title]  ...
-     Version: v[suggested]  (patch — bug fixes and polish)
+M2 — [Title]  [MVP / post-MVP]
+     Goal: ...
+     Scope: ...
+     Depends on: M1
+     Version: v[x.y.z]  ([minor/patch/major] — [one-line reason])
+     Risk: ...
+
 ...
 
 Backlog (no milestone assigned yet):
@@ -107,27 +121,28 @@ Present the complete roadmap in its final form:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PROPOSED ROADMAP — [Project Name]
+Current version: v[x.y.z]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-M1 — [Title]  [MVP]
+M1 — [Title]  [MVP]  → v[x.y.z]
   Goal: [one line]
   Scope:
     · [item]
     · [item]
   Depends on: —
-  Version: v[x.y.z]
 
-M2 — [Title]  [post-MVP]
+M2 — [Title]  [post-MVP]  → v[x.y.z]
   Goal: [one line]
   Scope:
     · [item]
   Depends on: M1
-  Version: v[x.y.z]
 
 ...
 
 Backlog:
   · [item]
+
+Version plan:  v[current] → v[M1] → v[M2] → ...
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -187,6 +202,7 @@ After writing, confirm:
 - Existing completed milestones (✅) are never modified — only append.
 - Backlog items that don't clearly fit a milestone stay in the backlog section.
 - This skill owns roadmap structure. `/g-plan` owns task breakdown within a single milestone.
+- Every milestone must have a target version. Version planning is part of sequencing, not an afterthought — reason about it the same way you reason about dependencies.
 - Auto-trigger conditions (Claude detects and initiates without being asked):
   - No `ROADMAP.md` exists in the project
   - `ROADMAP.md` exists but contains no active (🔄) or unstarted (⬜) milestones
