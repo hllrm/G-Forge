@@ -69,7 +69,26 @@ If settings cannot be written, **stop AFK entirely**:
 
 ---
 
-## Step 1 — AFK briefing
+## Step 1 — Model check
+
+Identify the model currently running this session. If it is not Opus, surface this before proceeding:
+
+```
+⚠ AFK mode is designed for Opus orchestration — current model is [model name].
+
+Opus gives significantly better judgment on multi-wave autonomous runs.
+To switch:  type /model  and select an Opus model, then re-run /g-afk.
+
+Options:
+  (a) Switch to Opus now — type /model, then re-run /g-afk
+  (b) Proceed with [current model] — will work but orchestration quality is lower
+```
+
+Wait for the developer's choice. On (a) — stop, let them switch. On (b) — continue to Step 2.
+
+If already on Opus: continue to Step 2 immediately, no message needed.
+
+## Step 2 — AFK briefing
 
 Print this summary and ask for one final confirmation before going heads-down:
 
@@ -95,7 +114,7 @@ Wait for confirmation. On `n` — stop cleanly. On `y` — proceed immediately, 
 
 ---
 
-## Step 2 — Execute all pending waves
+## Step 3 — Execute all pending waves
 
 Use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it.
 
@@ -109,18 +128,18 @@ Update the Progress table after each wave: `pending` → `in progress` → `comp
 
 ---
 
-## Step 3 — Auto-review
+## Step 4 — Auto-review
 
 Once all waves are `complete`, immediately run `/g-review` without asking.
 
 Use Glob to find `skills/g-review/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and follow its instructions.
 
-- **MERGE READY** → continue to Step 4.
+- **MERGE READY** → continue to Step 5.
 - **HOLD** → surface the fix list in the handoff (do not attempt fixes autonomously — the developer reviews HOLD findings).
 
 ---
 
-## Step 4 — Handoff report
+## Step 5 — Handoff report
 
 Print the full handoff. This is the signal that AFK mode is done and the developer should return.
 
