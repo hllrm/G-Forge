@@ -74,6 +74,9 @@ For an existing project without g-team: run `/g-onboard` instead of the above se
 | `/g-listen` | Enter Tier 3 listen mode for smoke test collection |
 | `/g-skill-design` | Design a new plugin skill from a brief |
 | `/g-skill-validate` | Validate a skill or agent file against plugin architecture rules |
+| `/g-audit [path\|all]` | Code quality audit — SOLID violations, smells, dead code, coverage gaps. Targeted: inline report. Whole-codebase: prioritised roadmap milestone. |
+| `/g-optimize [path\|all]` | Performance audit — complexity, N+1, re-render waste, leaks. Targeted: inline report. Whole-codebase: prioritised roadmap milestone. |
+| `/g-refactor [path\|milestone]` | Guided refactor — pre-analyse, spec, human approval, wave execution, review gate. Accepts a path, an audit milestone file, or runs interactively. |
 
 ### Hard stops
 
