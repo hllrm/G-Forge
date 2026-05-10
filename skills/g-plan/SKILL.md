@@ -7,6 +7,16 @@ description: Decompose the current request into atomic tasks and produce a paral
 
 You are driving the planning phase. Execute these steps in order.
 
+## Step 0a — Identify the task
+
+Determine what is being planned before asking anything else:
+
+1. **Check the triggering message.** If the developer's message describes a task, feature, or bug fix — use that. No question needed.
+2. **If the message is just `/g-plan` with no description:** Read `ROADMAP.md` and `todo.md` (if present) to find the active milestone and next task.
+   - If one active item is clearly next: announce "Planning: [item]" and proceed — do not ask.
+   - If multiple items are equally valid: ask one specific question: "Should I plan [X] or [Y]?" Never ask an open-ended "what do you want to plan?"
+3. **Proceed.** Once the task is established, continue to Step 0. Do not ask the developer to confirm what is already clear from context.
+
 ## Step 0 — Tier 3 DoD prerequisite
 
 Ask the developer: "Does this project have a QA panel or structured manual test UI?"
