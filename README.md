@@ -6,6 +6,22 @@ G-Team installs a structured development workflow into any Claude Code project: 
 
 ---
 
+## Why G-Team
+
+Most AI coding tools are built around a single idea: automate as much as possible and get the human out of the loop. The result is tools that are complex to configure, fragmented across a dozen commands, and optimised for the appearance of productivity — not for whether the project actually succeeds.
+
+G-Team is built on a different assumption: **the human is the most valuable part of the loop.** Claude handles the structured, repetitive, and cost-optimisable work. The decisions that determine whether a project succeeds — what to build, in what order, and whether it's actually done — stay with you.
+
+That means:
+
+- **Project management is a first-class concern.** `/g-roadmap` doesn't fill in a template — it challenges your feature list, narrates its grouping assumptions, justifies the milestone sequence, and plans version targets before writing a single line. `/g-kickoff` questions scope before it becomes a commitment. The plan approval gate means nothing executes until you've seen the full wave schedule and said yes.
+- **Every merge decision requires human sign-off.** The commit gate is locked until `/g-review` issues MERGE READY. HOLD means fix everything listed, no partial merges. Tier 3 smoke testing is yours — Claude collects findings but never substitutes your judgment on whether the app actually works.
+- **Token cost is optimised, not token count.** Haiku handles reads and searches, Sonnet implements, Opus reviews. The same work costs less because it lands on the right model tier. Structured planning eliminates the back-and-forth and rework cycles that burn expensive tokens without producing output.
+
+The goal isn't to automate your project. It's to give it a better chance of succeeding.
+
+---
+
 ## Install
 
 ### Prerequisites
