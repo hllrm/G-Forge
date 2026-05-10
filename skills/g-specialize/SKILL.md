@@ -36,6 +36,7 @@ Read whichever of these exist in the current working directory:
   - `@angular/core` → **angular**
   - `astro` → **astro**
   - `@remix-run/react` → **remix**
+  - `react-router` AND (`@react-router/dev` in devDependencies OR `react-router.config.ts` exists) → **remix** (React Router v7 framework mode — same architecture as Remix v2)
   - `react-native` or `expo` → **react-native**
   - `react` (no next/remix/native) → **react**
   - `express` → **express**
@@ -111,6 +112,9 @@ After building the `Profiles to apply` list, sort the detected stack names alpha
 | `electron-vue-pinia` | electron + vue-pinia        | contextBridge + Pinia IPC integration, cross-window state                         |
 | `react-tauri`        | react + tauri               | `invoke()` typed API layer, Tauri event hooks in React, capability scoping        |
 | `tauri-vue-pinia`    | tauri + vue-pinia           | `invoke()` typed API layer, Pinia + Tauri event subscriptions, capability scoping |
+| `astro-react`        | astro + react               | Island isolation, serializable prop contract, cross-island state via nanostores, React hydration directives |
+| `astro-vue`          | astro + vue-pinia           | Island isolation, serializable prop contract, cross-island state via nanostores, Vue hydration directives  |
+| `astro-svelte`       | astro + sveltekit           | Island isolation, serializable prop contract, native Svelte store sharing across islands, hydration directives |
 
 If any detected stacks fully cover a combo's required stacks, add that combo key to `Combos detected`. Combo profiles install rules only — no architect agent.
 
@@ -252,7 +256,7 @@ Stack → file mapping (agent file + rules file):
 - `laravel`         → `profiles/laravel/agents/laravel-architect.md`               + `profiles/laravel/rules/architecture.md`
 - `maui`            → `profiles/maui/agents/maui-architect.md`                     + `profiles/maui/rules/architecture.md`
 - `nest-js`         → `profiles/nest-js/agents/nest-architect.md`                  + `profiles/nest-js/rules/architecture.md`
-- `next-js`         → `profiles/next-js/agents/next-architect.md`                  + `profiles/next-js/rules/architecture.md`
+- `next-js`         → `profiles/next-js/agents/next-js-architect.md`               + `profiles/next-js/rules/architecture.md`
 - `node-ts`         → `profiles/node-ts/agents/node-architect.md`                  + `profiles/node-ts/rules/architecture.md`
 - `nuxt`            → `profiles/nuxt/agents/nuxt-architect.md`                     + `profiles/nuxt/rules/architecture.md`
 - `phoenix-liveview`→ `profiles/phoenix-liveview/agents/phoenix-architect.md`      + `profiles/phoenix-liveview/rules/architecture.md`
@@ -287,6 +291,9 @@ Combo → file mapping:
 - `electron-vue-pinia` → `profiles/electron-vue-pinia/rules/architecture.md`
 - `react-tauri`        → `profiles/react-tauri/rules/architecture.md`
 - `tauri-vue-pinia`    → `profiles/tauri-vue-pinia/rules/architecture.md`
+- `astro-react`        → `profiles/astro-react/rules/architecture.md`
+- `astro-vue`          → `profiles/astro-vue/rules/architecture.md`
+- `astro-svelte`       → `profiles/astro-svelte/rules/architecture.md`
 
 Read the combo rules file before writing anything.
 
