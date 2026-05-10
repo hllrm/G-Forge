@@ -25,7 +25,7 @@ G-Team installs a structured development workflow into any Claude Code project: 
 /plugin install g-team
 ```
 
-All 16 G-Team agents, 15 skills, and 45 stack profiles become available globally across all your projects.
+All 16 G-Team agents, 16 skills, 45 stack profiles, and 4 combo profiles become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -51,7 +51,7 @@ Run `/g-update` inside any project that uses G-Team. It does everything in one p
 G-Team also checks for updates automatically. The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
 
 ```
-⚡ g-team update available: 0.4.2 → 0.4.3 — run /g-update to pull and sync
+⚡ g-team update available: 0.4.4 → 0.5.0 — run /g-update to pull and sync
 ```
 
 If `/g-update`'s git pull fails (cache is not a git clone), it will tell you to reinstall manually:
@@ -74,7 +74,7 @@ This loads G-Team for that session only. Re-run with `--plugin-dir` each time, o
 
 ### Verify
 
-Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`.
 
 ### Set up a new project
 
@@ -82,7 +82,8 @@ Run these three commands in order inside your project directory:
 
 ```bash
 /g-kickoff     # interview → scope challenge → brief → project_brief.md
-/g-init        # scaffold CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md, milestones/, commit gate
+/g-init        # scaffold CLAUDE.md (G-rules injected), G-RULES.md, milestones/, commit gate
+/g-roadmap     # intake features → cluster → sequence → write ROADMAP.md
 /g-specialize  # detect stack → install architect agent + architecture rules
 ```
 
@@ -150,6 +151,7 @@ Existing project:
 
 Then for both:
 /g-init        →   scaffolded project + commit gate + workflow hooks
+/g-roadmap     →   features → milestones → ROADMAP.md
 /g-specialize  →   stack architect agent + architecture rules
 
 Day-to-day (auto-triggered — no command needed):
@@ -199,6 +201,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-doctor` | 9-point health check: all 3 hooks installed, all hooks registered in settings.json, G-Team Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
 | `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
 | `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
+| `/g-roadmap` | Four-phase milestone planner: feature dump → cluster (narrated) → sequence (narrated) → approve → ROADMAP.md. Auto-triggers on any feature idea or empty milestone list. |
 | `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
 | `/g-init` | Scaffold CLAUDE.md, G-RULES.md, ROADMAP.md, milestones/, commit enforcement hooks |
 | `/g-specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
@@ -266,6 +269,19 @@ Installed per-project by `/g-specialize`. Each profile adds a stack-specific arc
 
 Game-dev profiles (`unity`, `unreal`, `godot-gdscript`, `godot-csharp`, `cpp-cmake`) include object pooling rules and state machine patterns aligned with Section F of G-RULES.md.
 
+### Combo Profiles
+
+4 combo profiles are detected automatically by `/g-specialize` when your project uses two stacks that have emergent cross-stack patterns — patterns that aren't in either tool's docs alone.
+
+| Combo | Required stacks | Patterns covered |
+|-------|-----------------|-----------------|
+| `electron-react` | electron + react | contextBridge API layer, IPC channel constants, cross-window state |
+| `electron-vue-pinia` | electron + vue-pinia | contextBridge + Pinia IPC integration, cross-window state |
+| `react-tauri` | react + tauri | `invoke()` typed API layer, Tauri event hooks in React, capability scoping |
+| `tauri-vue-pinia` | tauri + vue-pinia | `invoke()` typed API layer, Pinia + Tauri event subscriptions, capability scoping |
+
+Combo profiles install rules only — no architect agent. Detected automatically; no explicit argument needed.
+
 ---
 
 ## Playbook
@@ -287,6 +303,22 @@ Quick reference for the most common workflows.
                      Registers all three in .claude/settings.json
 
 /g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
+```
+
+### Planning the roadmap
+
+```
+/g-roadmap      Feature dump: tell it everything you want to build, in any order
+                     PM groups features into clusters and narrates why — common
+                       surfaces, shared deps, release cohesion
+                     Sequences clusters into milestones and explains every ordering
+                       decision — what blocks what, where the MVP cut is
+                     Four gated phases: dump → cluster → sequence → approve
+                     Writes ROADMAP.md only after you type "approve"
+
+Auto-triggers:  — no ROADMAP.md exists in the project
+                — no active (🔄) or unstarted (⬜) milestones in ROADMAP.md
+                — any feature idea is mentioned in conversation
 ```
 
 ### Onboarding an existing project

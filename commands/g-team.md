@@ -1,6 +1,6 @@
 ---
-description: G-Team workflow commands. Subcommands: help, status, doctor, init, kickoff, onboard, brief, plan, execute, review, specialize, update, skill-design, skill-validate.
-argument-hint: <help|status|doctor|init|kickoff|onboard|brief|plan|execute|review|specialize|update|skill-design|skill-validate> [args]
+description: G-Team workflow commands. Subcommands: help, status, doctor, init, kickoff, onboard, brief, roadmap, plan, execute, review, specialize, update, skill-design, skill-validate.
+argument-hint: <help|status|doctor|init|kickoff|onboard|brief|roadmap|plan|execute|review|specialize|update|skill-design|skill-validate> [args]
 ---
 
 Route to the correct skill file based on the subcommand in $ARGUMENTS.
@@ -14,6 +14,7 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 - `kickoff`    → `skills/g-kickoff/SKILL.md`
 - `onboard`    → `skills/g-onboard/SKILL.md`
 - `brief`      → `skills/g-brief/SKILL.md`
+- `roadmap`    → `skills/g-roadmap/SKILL.md`
 - `plan`       → `skills/g-plan/SKILL.md`
 - `execute`    → `skills/g-execute/SKILL.md`  (remaining args: $ARGUMENTS)
 - `review`     → `skills/g-review/SKILL.md`
@@ -30,6 +31,7 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `kickoff` — interview about goals and stack; produce project_brief.md
   - `onboard` — onboard onto an existing codebase; produce project_brief.md
   - `brief` — refresh project_brief.md as the project evolves
+  - `roadmap` — intake features, cluster and sequence into milestones, write ROADMAP.md
   - `plan` — decompose request into atomic tasks and parallel wave schedule
   - `execute [wave]` — dispatch parallel agents per wave; optionally resume from a specific wave number
   - `review` — run full review pipeline; issues MERGE READY or HOLD
