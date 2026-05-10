@@ -100,6 +100,12 @@ AFK Mode — Autonomous Milestone Executor
   Model:       Opus (orchestration) · Sonnet (implementation) · Haiku (reads)
   Auto-stops:  BLOCKED tasks only — everything else runs through
 
+  Before you confirm — set up for fully unattended execution:
+    1. Press Shift+Tab to cycle permission mode to "Auto-approve"
+       (bottom of the screen — cycles: Normal → Auto-approve → Plan)
+       Without this, Claude will pause on every tool-use permission prompt.
+    2. Confirm you are on Opus (or chose to proceed on current model above).
+
   What happens next:
     1. All pending waves execute in sequence (tasks within each wave in parallel)
     2. /g-review runs automatically after the last wave
