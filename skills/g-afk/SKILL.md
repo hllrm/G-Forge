@@ -102,15 +102,7 @@ Use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-t
 For each wave marked `pending` or `in progress` in the Progress table, execute it by following g-execute's instructions exactly. The key AFK-mode rules:
 
 - **No between-wave check-ins.** After each wave completes and its Progress row is updated to `complete`, immediately proceed to the next wave without asking the developer.
-- **BLOCKED = hard stop.** If any task returns a BLOCKED signal, stop all execution immediately and surface the blocker:
-  ```
-  ⚠ AFK Interrupted — BLOCKED
-
-    Wave [N], Task [X]: [blocker description]
-    Action required: [what the developer needs to do]
-
-  Fix the blocker and re-run /g-afk to resume from Wave [N].
-  ```
+- **BLOCKED = structured cycle break.** If any task returns a BLOCKED signal, stop all execution immediately. Update the Progress table, then print the same cycle break report format used for safety violations — with `Reason: task requires human input` and the specific blocker description under `Violation`. Give a concrete `How to resume` pointing to the blocked task.
 - **Wave failures are not blockers.** If a non-blocking error occurs (test flake, lint warning), log it and continue. Surface it in the final handoff.
 
 Update the Progress table after each wave: `pending` → `in progress` → `complete`.
@@ -181,15 +173,34 @@ The following are unconditionally prohibited during AFK execution:
 - Piped remote installs (`curl ... | bash`, `wget ... | bash`)
 - Any command that mutates state outside the project directory
 
-**Violation handling.**
+**Violation handling — structured cycle break.**
 If a deny-listed or out-of-scope action is attempted (whether caught by the deny list or detected behaviorally):
-1. Stop all execution immediately
-2. Do not attempt the action via any alternative path
-3. Report:
+1. Do not attempt the action via any alternative path.
+2. Update the Progress table in `docs/plans/<plan>.md` to reflect accurately which waves are `complete` and which are still `pending` or `in progress`.
+3. Print the full cycle break report:
+
 ```
-✗ AFK Safety Violation — [action] is not permitted in autonomous mode
-  AFK stopped at Wave [N], Task [X].
-  Resume manually: fix the underlying need and re-run /g-afk, or handle this step yourself.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFK CYCLE BREAK — Safety violation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Violation:   [exact action that was blocked, e.g. "git push origin main"]
+Reason:      [which rule it violated — remote side-effect / out-of-scope path / deny-listed command]
+Stopped at:  Wave [N], Task [X] — [task name]
+
+Progress at time of break:
+  [list each wave: ✓ complete / ✗ stopped here / ○ not started]
+
+What was written:
+  [list any files created or modified during this AFK run]
+
+How to resume:
+  Option A — Handle the blocked step manually, then run /g-afk again to continue from Wave [N].
+  Option B — If the step shouldn't have been part of the plan, update docs/plans/<plan>.md
+              and re-run /g-afk.
+
+No further autonomous actions will be taken this session.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ## Rules
