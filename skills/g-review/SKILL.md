@@ -116,6 +116,18 @@ Present code-lead's verdict to the developer verbatim.
    - Update the corresponding milestone entry in `ROADMAP.md` from `🚧 In progress` to `✅ Done`
    - Move the milestone to the `## Done` section of `ROADMAP.md`
    - Report: `✓ Milestone [ID — Name] closed out`
+   - **Version bump prompt:** Detect the current version by checking (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`. Read the current version string. Based on the milestone's nature, suggest the appropriate semver bump:
+     - Features / new capabilities → **minor** (x.Y.0)
+     - Bug fixes / maintenance / polish → **patch** (x.y.Z)
+     - Breaking changes / API redesign → **major** (X.0.0)
+   - Tell the developer:
+     ```
+     ✓ Milestone closed — version bump recommended
+       Current version: [x.y.z]
+       Suggested:       [suggested bump] → [new version]  ([reason: new skill / bug fix / etc.])
+       Run /g-update after bumping to sync project files.
+     ```
+   - Do not bump the version automatically — the developer decides and commits it separately.
 6. If only some tasks are done:
    - Save the partial updates to the milestone file
    - Report: `✓ [N] milestone tasks checked off — [M] remaining`
