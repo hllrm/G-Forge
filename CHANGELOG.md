@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [0.7.0] — 2026-05-10
+## [0.7.0] — 2026-05-11
 
 ### Added
 
@@ -20,11 +20,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`next-js` architect agent filename** — `g-specialize` referenced `next-architect.md`; actual file is `next-js-architect.md`. Would have silently failed to install the Next.js architect on every project.
 - **React Router v7 not detected** — Remix rebranded to React Router v7 (`react-router` package + `@react-router/dev` in devDependencies, or `react-router.config.ts` present). Added detection path mapping to the existing `remix` profile (file-based routing + loader/action architecture is identical).
 
+- **`/g-docs [path|all]`** — documentation audit and generation skill. Scans for missing or stale JSDoc/docstrings, missing module headers, incomplete README sections, undocumented environment variables, CHANGELOG gaps, missing ADRs, and absent API reference docs. Targeted mode invokes `doc-writer` on each gap immediately. Whole-codebase mode produces a prioritised debt report (P0–P2) and optionally writes a `milestones/M-docs-YYYY-MM.md` roadmap entry.
+- **`/g-adr [title]`** — architectural decision record skill. Interactive five-question flow (context, decision, alternatives, consequences, status) writes a standard ADR to `docs/decisions/NNN-title.md`. Auto-suggests follow-up actions (CLAUDE.md update, project_brief.md tech table, superseding previous ADRs). Auto-suggested by `spec-writer` when a task involves an architectural choice.
+- **`G-RULES.md §G — Documentation Standards`** — new section covering all documentation layers: code-level (JSDoc/docstrings/doc comments, module headers, format by language), architecture-level (ADRs in `docs/decisions/`, currency rule), project-level (README completeness checklist, CHANGELOG currency, env var reference), API-level (OpenAPI spec, SDK reference), and operational-level (deployment guide, runbook). Currency rule: any PR that changes a signature, behaviour, or public API must update the corresponding docs in the same PR. Former §G (Testing Protocol) renumbered to §H.
+
 ### Changed
 
-- `G-RULES.md` §B maintenance skills table updated with `/g-audit`, `/g-optimize`, `/g-refactor` entries.
+- `G-RULES.md` §B maintenance skills table updated with `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr` entries.
+- `G-RULES.md` Project Tracking file hierarchy updated with `docs/decisions/`, `docs/env-vars.md`, and `CHANGELOG.md` entries.
+- `agents/code-reviewer.md`: added Documentation coverage checklist — missing public API docs (Major), stale docs (Major), missing README update (Major), missing CHANGELOG entry (Major), missing env var documentation (Major), missing ADR (Major), missing module header (Minor), redundant docs (Minor).
+- `agents/review-orchestrator.md`: added conditional `doc-writer` dispatch when diff touches exported symbols — writes missing/stale JSDoc in the same review pass rather than issuing a HOLD.
+- `agents/spec-writer.md`: added Documentation done conditions section — JSDoc for new exports, README for user-facing features, env var reference, ADR for architectural decisions, CHANGELOG entry for significant changes.
 - `g-specialize` combo detection table and combo file mapping extended with the three Astro combos.
-- README: skill count 17 → 20, combo profile count 4 → 7, command list and combo table updated.
+- README: skill count 17 → 22, combo profile count 4 → 7, command list updated.
 
 ---
 

@@ -37,6 +37,15 @@ One sentence: what this produces.
 ## Done condition
 [One specific, mechanically checkable check — a command with expected output, or a file existence check]
 
+## Documentation done conditions
+Include these additional done conditions when the task type warrants them:
+- **New or changed public exports**: "JSDoc/docstring written for every new or changed exported symbol."
+- **New user-facing feature, command, or config option**: "README section written or updated."
+- **New environment variable**: "Env var documented in [docs/env-vars.md | .env.example | README]."
+- **New external dependency or architectural pattern**: "ADR written in docs/decisions/."
+- **Any significant change**: "CHANGELOG entry written under the appropriate version heading."
+Omit these if they do not apply to the task — do not add them as boilerplate.
+
 ## Rules
 - Every path must be exact and relative to the project root.
 - Every step must be actionable without re-reading the original request.

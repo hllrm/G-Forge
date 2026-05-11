@@ -77,6 +77,8 @@ For an existing project without g-team: run `/g-onboard` instead of the above se
 | `/g-audit [path\|all]` | Code quality audit — SOLID violations, smells, dead code, coverage gaps. Targeted: inline report. Whole-codebase: prioritised roadmap milestone. |
 | `/g-optimize [path\|all]` | Performance audit — complexity, N+1, re-render waste, leaks. Targeted: inline report. Whole-codebase: prioritised roadmap milestone. |
 | `/g-refactor [path\|milestone]` | Guided refactor — pre-analyse, spec, human approval, wave execution, review gate. Accepts a path, an audit milestone file, or runs interactively. |
+| `/g-docs [path\|all]` | Documentation audit and generation — missing JSDoc/docstrings, stale docs, README gaps, undocumented env vars, CHANGELOG gaps, missing ADRs. Targeted: fix via doc-writer. Whole-codebase: debt report + optional milestone. |
+| `/g-adr [title]` | Capture an architectural decision record interactively. Writes to `docs/decisions/NNN-title.md`. Run whenever a significant technical choice is made. |
 
 ### Hard stops
 
@@ -229,7 +231,58 @@ Run `/g-specialize` once after `/g-init` to detect the project stack and install
 
 ---
 
-## G · Testing Protocol
+## G · Documentation Standards
+
+Undocumented decisions become invisible. Undocumented APIs block adoption. Undocumented env vars stop new developers from running the project. Documentation is a delivery requirement, not a post-delivery polish task.
+
+### What must be documented
+
+**Code level — required when behaviour is non-obvious:**
+- Every exported function, class, interface, or type where the name and type signature do not fully explain the WHY: the constraint respected, the invariant maintained, or the consequence of misuse.
+- Every source module >100 lines where the filename alone does not explain the module's purpose and constraints — one-paragraph header at the top.
+- Format by language: TypeScript/JavaScript → JSDoc (`/** ... */`); Python → docstring (`"""..."""`); Go → doc comment (`// FunctionName ...`); Rust → `///`; C# → `/// <summary>`.
+- Document the WHY. Never restate the type signature or function name in prose. If a comment would only say "gets the user by ID", omit it — the name already says that.
+
+**Architecture level — required for significant decisions:**
+- Every significant technical decision — new stack component, new external dependency, new pattern applied project-wide, replacement of an existing approach — must have an ADR in `docs/decisions/`.
+- Run `/g-adr` to capture decisions interactively. Capture immediately, while context is fresh.
+- CLAUDE.md carries architecture *rules*. ADRs carry the *rationale* behind those rules. Both are required.
+
+**Project level — required for every project:**
+- README must contain: what the project is (one sentence), why someone would use it, installation/setup, quickstart example, configuration reference, and a link to or description of the public API (if one exists).
+- CHANGELOG must have an entry for every release covering: new features, bug fixes, breaking changes, deprecations. Update CHANGELOG in the same PR as the change — never retroactively.
+- Environment variables: every env var read by the application must be documented in `docs/env-vars.md`, `.env.example`, or a dedicated README section. Include: var name, purpose, required/optional, example value, default if optional.
+
+**API level — required when a public API is exposed:**
+- REST APIs: maintain an OpenAPI spec (`openapi.yaml` or equivalent). Update the spec in the same PR as the endpoint change.
+- SDK/library public APIs: JSDoc/docstrings on every exported symbol are the API reference. No additional reference document needed if docs are complete.
+- Webhook payloads, event schemas, message formats: document the payload shape and all fields.
+
+**Operational level — required before first deployment:**
+- Deployment guide: steps to deploy to production from a clean checkout.
+- Environment variable reference (see Project level above).
+- Runbook for common failure modes: what breaks, how to detect it, how to recover.
+
+### What does not need documentation
+
+- Private/internal functions whose name and types fully explain them.
+- Trivial getters/setters with self-evident names.
+- Test files — test names serve as documentation.
+- Generated files — document the generator, not the output.
+
+### Currency rule
+
+Any PR that changes a function signature, module responsibility, user-facing behaviour, configuration option, or public API must update the corresponding documentation in the same PR. Outdated documentation is a Major finding in code review — it actively misleads.
+
+### Documentation review
+
+`code-reviewer` checks for missing and stale documentation on every PR. Missing documentation on public exports is a **Major** finding that blocks MERGE READY. `doc-writer` is dispatched by `review-orchestrator` when the diff touches public exports, to fill gaps before the review completes.
+
+Run `/g-docs [path|all]` at any time for a full documentation audit with gap-filling. Run `/g-adr` to capture any architectural decision.
+
+---
+
+## H · Testing Protocol
 
 **Three tiers — different owners, different rules.**
 
@@ -297,6 +350,9 @@ Manual protocol (if `/g-listen` is unavailable):
 | `milestones/M*.md` | `/g-roadmap`, `/g-plan` | Per-milestone scope, tasks, done conditions |
 | `todo.md` | HQ | Active task ledger — Handoff + Tasks + Details |
 | `todo-done.md` | HQ | Archive of closed tasks and pass reports |
+| `docs/decisions/NNN-title.md` | `/g-adr` | Architectural Decision Records — rationale behind significant technical choices |
+| `docs/env-vars.md` | `doc-writer`, `/g-docs` | Environment variable reference — name, purpose, required/optional, example |
+| `CHANGELOG.md` | HQ, `doc-writer` | Version history — features, fixes, breaking changes, deprecations |
 
 ### Commit gate infrastructure
 
