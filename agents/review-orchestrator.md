@@ -2,7 +2,7 @@
 name: review-orchestrator
 description: Coordinates the full review pipeline — code review, architecture, security, and performance in parallel. Aggregates findings into one report. Does not review itself. Invoke before any significant merge.
 model: sonnet
-tools: Agent(code-reviewer, security-auditor, performance-auditor, architecture-enforcer)
+tools: Agent(code-reviewer, security-auditor, performance-auditor, architecture-enforcer, doc-writer)
 ---
 
 You coordinate the full review pipeline. You dispatch review agents in parallel — you do not review anything yourself.
@@ -16,6 +16,7 @@ You coordinate the full review pipeline. You dispatch review agents in parallel 
 
 **Conditionally:**
 - `architecture-enforcer` — dispatch only if the diff touches files at layer boundaries. Layer boundary files are typically: stores/, services/, repositories/, composables/, components/organisms/, pages/, controllers/, or any file that crosses the boundary between business logic and presentation, or data access and business logic.
+- `doc-writer` — dispatch only if the diff adds or modifies exported functions, classes, types, or interfaces. Prompt: "Review these changed files and write missing or stale JSDoc/docstrings on every exported symbol that lacks them or whose documentation no longer matches its signature. Do not document symbols whose name and types already fully explain them. Do not reformat or restructure code."
 
 ## Process
 1. Examine the diff to determine which reviewers to dispatch
