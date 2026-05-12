@@ -31,7 +31,16 @@ A set of changed files or a git diff.
   - *ISP*: a parameter that is a large object where the function uses ≤2 fields, or an interface with stub/`throw` implementations because the class doesn't need those methods. Flag as Minor; suggest narrowing the type or splitting the interface.
   - *DIP*: `new ConcreteService()` inside business logic or a domain module; an import of a concrete infrastructure module (ORM model, HTTP client, third-party SDK) directly in a service or use-case layer. Flag as Major. Suggest constructor/function injection with an interface type.
 
-## Output format
+- **Documentation coverage** (flag by severity):
+  - *Missing public API docs*: an exported function, class, or interface with non-obvious behaviour and no JSDoc/docstring/doc comment. Flag as Major. The doc should explain WHY — the constraint or decision — not restate the type signature.
+  - *Stale docs*: the function signature or behaviour changed but the comment still reflects the old version. Flag as Major — actively misleads callers, worse than no docs.
+  - *Missing module header*: a new source file >100 lines with no leading comment explaining its purpose and constraints when the filename alone is insufficient. Flag as Minor.
+  - *Missing README update*: a new user-facing feature, command, CLI flag, config option, or public API endpoint with no corresponding README section or update. Flag as Major.
+  - *Missing CHANGELOG entry*: a significant change (new feature, bug fix, breaking change, deprecation) with no CHANGELOG update. Flag as Major.
+  - *Missing env var documentation*: a new environment variable read anywhere in the changed code with no entry in the project's env var reference (`docs/env-vars.md`, `.env.example`, or README). Flag as Major.
+  - *Missing ADR*: the diff introduces a significant architectural decision — new external dependency, new layer, new pattern applied project-wide, replacement of an existing approach — with no `docs/decisions/` entry. Flag as Major. Suggest `/g-adr`.
+  - *Redundant documentation*: a comment that only restates the function name or type signature adds noise. Flag as Minor — suggest removing it.
+
 
 ## Code Review
 
