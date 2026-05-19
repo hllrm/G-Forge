@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.14.0] — 2026-05-19
+
+### Added
+- **`flask` stack profile** — architect agent + architecture rules. Covers app factory pattern (no module-level `Flask(__name__)`), blueprint-only route registration, service-layer framework-agnosticism (no `flask.request`/`g`/`current_app` below the route boundary), repository pattern over `Model.query`, and Marshmallow/Pydantic schema discipline. Auto-detected by `/g-specialize` from `flask` in `requirements.txt` or `pyproject.toml`.
+- **`pygame` stack profile** — architect agent + architecture rules. Covers single-site `pygame.event.get()` discipline, `dt`-based motion (no frame-count motion), scene/entity/system separation, asset lifecycle (load at scene transitions, never per-frame), frame-time budget (16.6ms at 60 FPS), and the universal state-machine / object-pooling rules from G-RULES §F. Auto-detected from `pygame` in dependency files.
+- **`xamarin` stack profile (legacy)** — architect agent + architecture rules for Xamarin.Forms projects. Covers MVVM discipline, view-model framework-agnosticism, `DependencyService` boundary for platform features, async/await UI-thread marshalling, and `OnPropertyChanged(nameof(...))`. Flags Xamarin.Forms end-of-support (May 2024) and recommends MAUI for new work. Auto-detected from `Xamarin.Forms` in `.csproj` when `Microsoft.Maui` is absent.
+- **`dependency-auditor` agent** — 17th general-purpose agent. Audits 9+ manifest types (npm/yarn/pnpm/bun, pip, Cargo, Go, Gem, Composer, pubspec, .NET, JVM) for: known security advisories (Critical), deprecated and unmaintained packages (Major), license conflicts (Major), unused declarations (Minor), duplicate versions (Minor), and major-version drift (Minor). Read-only — never upgrades. Sonnet tier; tools: Read, Glob, Grep.
+- **`frontend-data-flow` supplementary profile wired into `/g-specialize`** — the pre-existing `profiles/frontend-data-flow/` (covering the two-network model and the four canonical frontend violations: HTTP in components, shadow-state ref sync, watch-as-dispatch, caller-follows-truck) now auto-installs alongside any component-framework stack: `react`, `vue-pinia`, `nuxt`, `next-js`, `sveltekit`, `angular`, `remix`, `astro`, or any astro-* combo. Supplementary — never replaces the per-framework architect.
+
+### Changed
+- `/g-specialize` supported-stacks list, detection rules, and interactive prompt now include flask, pygame, xamarin, and the supplementary frontend-data-flow.
+- Marketplace description updated: 17 agents, 26 skills, 48 stack profiles, 7 combo profiles, 1 supplementary profile.
+
 ## [0.13.0] — 2026-05-19
 
 ### Added
