@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.9.0] — 2026-05-19
+
+### Added
+
+- **G-Team self-hosting** — the g-team plugin repo now runs on its own tooling. `CLAUDE.md`, `G-RULES.md`, hooks (`check-commit.sh`, `post-commit-cleanup.sh`, `workflow-checkpoint.sh`, `pre-compact.sh`), and `settings.json` are installed and active on the repo itself.
+- **`pre-compact.sh` installed** — PreCompact hook wired into `.claude/hooks/` and registered in `.claude/settings.json`. Fires before context compression; writes `.claude/compact-state.md` with branch, last 5 commits, and the Handoff block from `todo.md`.
+- **Retroactive milestone files** — `milestones/M6-auto-trigger.md` and `milestones/M7-correctness.md` added to complete the milestone file history (M1–M8 now all present).
+- **`claude-plugin` stack profile** — architect agent (`profiles/claude-plugin/agents/claude-plugin-architect.md`) validates skill structure, command routing, agent format, hook design, and manifest; architecture rules (`profiles/claude-plugin/rules/architecture.md`) cover all 6 layers with explicit Skill, Agent, Command, and Version rules. Profile is auto-detected by `/g-specialize` via `.claude-plugin/plugin.json` presence.
+- **`/g-skill-design`** — 7-step skill for designing new g-team skills from scratch: gather requirements, check for existing similar skills, draft and confirm step outline, write SKILL.md, write command file, update router, report.
+- **`/g-skill-validate [name]`** — 6-step validation skill: full ✓/✗ checklist across SKILL.md format, command file Glob+Read pattern, router registration, and agent frontmatter; issues VALID or NEEDS FIXES verdict.
+
 ## [0.8.1] — 2026-05-15
 
 ### Added
