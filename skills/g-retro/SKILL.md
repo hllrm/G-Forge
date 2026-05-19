@@ -37,7 +37,7 @@ From these sources extract:
 
 ## Step 3 — Interview for patterns and decisions
 
-Ask the developer two questions, one at a time. Wait for the answer to each before asking the next.
+Ask the developer the following questions, one at a time. Wait for the answer to each before asking the next.
 
 **Question 1:**
 > "Any decisions made this session worth recording? (tech choices, approach changes, anything you'd want to remember next time — or 'none')"
@@ -48,6 +48,25 @@ Wait for answer.
 > "Any patterns that worked well or failed? Anything to do differently next time? (or 'none')"
 
 Wait for answer.
+
+**Question 3 (conditional — only if a forecast file exists for the active plan):**
+
+Before asking, derive the plan slug for this session using the following deterministic order:
+
+1. **Branch name** — if the current branch matches `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, or `chore/<slug>`, strip the prefix and use `<slug>` as the candidate.
+2. **Forecast directory** — check whether `docs/forecasts/<candidate>.md` exists. If yes, that is the active plan.
+3. **Fallback** — if no match by branch, find the most-recently-modified file under `docs/forecasts/*.md` whose corresponding `docs/plans/<slug>.md` has at least one wave in the Progress table not yet marked `complete`. If no such file exists, skip Question 3 silently.
+
+When a forecast file is identified, ask:
+
+> "Forecast for this milestone predicted the following scenarios — for each, did it actually happen? (yes / no / partial)
+> 1. [scenario 1 from forecast]
+> 2. [scenario 2 from forecast]
+> ..."
+
+Wait for answer. Then update the `## Outcome` table in the identified forecast file with the developer's verdict for each row. This closes the feedback loop — `/g-patterns` reads these outcomes to weight pattern confidence in future runs.
+
+If derivation yields no forecast file, skip Question 3 silently — it is conditional and only fires when a forecast exists to verify.
 
 ## Step 4 — Write the retro file
 

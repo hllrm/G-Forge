@@ -81,6 +81,7 @@ For an existing project without g-team: run `/g-onboard` instead of the above se
 | `/g-docs [path\|all]` | Documentation audit and generation — missing JSDoc/docstrings, stale docs, README gaps, undocumented env vars, CHANGELOG gaps, missing ADRs. Targeted: fix via doc-writer. Whole-codebase: debt report + optional milestone. |
 | `/g-adr [title]` | Capture an architectural decision record interactively. Writes to `docs/decisions/NNN-title.md`. Run whenever a significant technical choice is made. |
 | `/g-patterns` | Mine `docs/retros/` and `todo-done.md` for recurring failure patterns. Bucket by frequency (isolated / emerging / systemic) and propose concrete profile-rule edits for any pattern observed ≥2 times. Apply/defer/dismiss per suggestion. |
+| `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Advisory — never blocks approval. Persists `docs/forecasts/<slug>.md` for feedback-loop mining. |
 
 ### Hard stops
 
