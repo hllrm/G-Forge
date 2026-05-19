@@ -41,7 +41,7 @@ The goal isn't to automate your project. It's to give it a better chance of succ
 /plugin install g-team
 ```
 
-All 16 G-Forge agents, 26 skills, 45 stack profiles, and 7 combo profiles become available globally across all your projects.
+All 17 G-Forge agents, 26 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -241,7 +241,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ## Agents
 
-16 agents ship with every install. Full reference: [docs/agents.md](docs/agents.md)
+17 agents ship with every install. Full reference: [docs/agents.md](docs/agents.md)
 
 | Agent | Tier | Role |
 |-------|------|------|
@@ -261,6 +261,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `doc-writer` | Haiku | Inline docs explaining WHY not WHAT |
 | `pr-writer` | Haiku | PR descriptions from git diff |
 | `refactor-executor` | Haiku | Spec-exact refactoring, no scope creep |
+| `dependency-auditor` | Sonnet | Manifest security advisories, deprecations, license conflicts, unused declarations |
 
 ---
 
@@ -268,7 +269,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 Installed per-project by `/g-specialize`. Each profile adds a stack-specific architect agent and appends architecture rules to `CLAUDE.md`. Once installed, the agent is project-native — no plugin required at runtime.
 
-45 profiles ship with the plugin. Auto-detected from your project's dependency files when you run `/g-specialize`.
+48 stack profiles ship with the plugin, plus 1 supplementary profile (`frontend-data-flow`) that auto-installs alongside any component-framework stack. Auto-detected from your project's dependency files when you run `/g-specialize`.
 
 **Web Frontend**
 `react` · `next-js` · `nuxt` · `vue-pinia` · `sveltekit` · `angular` · `astro` · `remix`
@@ -277,21 +278,25 @@ Installed per-project by `/g-specialize`. Each profile adds a stack-specific arc
 `node-ts` · `express` · `nest-js` · `go-gin` · `go-fiber` · `rust-axum` · `hono` · `bun`
 
 **Python / Ruby / PHP**
-`fastapi` · `django` · `laravel` · `rails` · `python-textual` · `python-cli` · `python-ml` · `python-data`
+`fastapi` · `django` · `flask` · `laravel` · `rails` · `python-textual` · `python-cli` · `python-ml` · `python-data`
 
 **JVM / .NET**
-`spring-boot` · `asp-net-core` · `kotlin-ktor` · `kotlin-android` · `phoenix-liveview` · `wpf-csharp` · `maui`
+`spring-boot` · `asp-net-core` · `kotlin-ktor` · `kotlin-android` · `phoenix-liveview` · `wpf-csharp` · `maui` · `xamarin` (legacy)
 
 **Mobile / Desktop**
 `react-native` · `flutter` · `swift-ios` · `electron` · `tauri` · `capacitor`
 
 **Game Dev + Systems**
-`unity` · `unreal` · `godot-gdscript` · `godot-csharp` · `cpp-cmake` · `rust-cli` · `c-embedded`
+`unity` · `unreal` · `godot-gdscript` · `godot-csharp` · `pygame` · `cpp-cmake` · `rust-cli` · `c-embedded`
 
 **Claude Code Plugin**
 `claude-plugin` — architect agent + architecture rules for Claude Code plugin development (skill structure, command routing, agent format, hook design, manifest validation)
 
-Game-dev profiles (`unity`, `unreal`, `godot-gdscript`, `godot-csharp`, `cpp-cmake`) include object pooling rules and state machine patterns aligned with Section F of G-RULES.md.
+Game-dev profiles (`unity`, `unreal`, `godot-gdscript`, `godot-csharp`, `pygame`, `cpp-cmake`) include object pooling rules and state machine patterns aligned with Section F of G-RULES.md.
+
+### Supplementary profiles
+
+`frontend-data-flow` ships its own architect agent and rules covering the two-network model (read/write) and the four canonical frontend violations (HTTP in components, shadow-state ref sync, watch-as-dispatch, caller-follows-truck). It auto-installs alongside any component-framework profile (`react`, `vue-pinia`, `nuxt`, `next-js`, `sveltekit`, `angular`, `remix`, `astro`, or any astro-* combo) — never replaces the per-framework architect.
 
 ### Combo Profiles
 
@@ -510,6 +515,6 @@ git push
 | M10 — Organizational Learning Loop | ✅ Done |
 | M11 — Planning Intelligence | ✅ Done |
 | M12 — Reliability & Adaptive Systems | ✅ Done |
-| M13 — Profile Additions | ⬜ Not started |
+| M13 — Profile Additions | ✅ Done |
 | M14 — Advanced Production Modeling | ⬜ Not started |
 | M15 — Hook / Behavioral Integration Pass | ⬜ Not started |
