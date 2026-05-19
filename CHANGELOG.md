@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.12.0] — 2026-05-19
+
+### Added
+- **`/g-forecast [plan-slug]`** — scope-realism and premortem skill. Runs against an approved or pending plan. Outputs a complexity score (0–10), a quantified miss-risk percentage with risk tag (Low / Moderate / Elevated / High), and a ranked top-5 premortem of likely failure scenarios. Each scenario carries likelihood × impact, a concrete mitigation, and a source citation back to the retros or git history that surfaced the pattern. Advisory — never blocks plan approval. Persists `docs/forecasts/<plan-slug>.md` with an empty `Outcome` table that `/g-retro` fills in to close the feedback loop.
+- **Premortem wired into `/g-plan`** — new Step 3b dispatches `/g-forecast` after wave-planner and surfaces the forecast summary in the Step 4 approval block. High-risk plans (≥75% miss-risk) get a one-line ⚠ recommendation to re-scope, but the approval gate is unchanged.
+- **Feedback loop closed** — `/g-retro` Step 3 includes a conditional premortem-accuracy question when a forecast file exists for the active plan; answers populate the `Outcome` table in `docs/forecasts/<plan-slug>.md`. `/g-patterns` Step 1 now reads `docs/forecasts/*.md` as a signal source; predicted-and-hit scenarios are weighted as high-confidence patterns (weight 2). The four-step loop is now wired: `/g-patterns` → `/g-forecast` → `/g-retro` → `/g-patterns`.
+- **Milestone health in workflow checkpoint** — `hooks/workflow-checkpoint.sh` now emits a `Health:` line on every prompt. Shows `✓ clean` when there are no signals, or `⚠ N rework · M blocked · K holds` when rework commits, BLOCKED markers, or HOLD verdicts are present on the current branch.
+
 ## [0.11.0] — 2026-05-19
 
 ### Added
