@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: feat/m10-organizational-learning-loop
+HANDOFF — g-forge | branch: feat/m11-planning-intelligence
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · M10 — /g-patterns skill (pattern mining + rule-edit suggestions), v0.11.0 bump
-Next up:          · M11 — Planning Intelligence (/g-forecast, premortem, in-flight health)
-Active context:   · M10 implemented; awaiting /g-review before merge to main
+Done this pass:   · M11 — /g-forecast skill, premortem wiring, feedback loop, health line, v0.12.0 bump
+Next up:          · M12 — Reliability & Adaptive Systems (8-metric telemetry, adaptive orchestration)
+Active context:   · M11 implemented; awaiting /g-review before merge to main
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -110,7 +110,7 @@ Active context:   · M10 implemented; awaiting /g-review before merge to main
 ---
 
 ### M11 — Planning Intelligence
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 **Version:** v0.12.0
 **Goal:** /g-plan and /g-roadmap gain forecast, premortem, and in-flight health tracking
 **Scope:**

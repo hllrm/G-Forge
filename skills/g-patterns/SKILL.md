@@ -13,6 +13,7 @@ You are running an organisational-learning pass: read every retro and the closed
 Read in parallel:
 
 - All files in `docs/retros/` — every `.md` file
+- All files in `docs/forecasts/` if the directory exists — used in Step 2e for forecast-outcome mining (closes the loop with `/g-forecast` and `/g-retro`)
 - `todo-done.md` — the full file if it exists (optional source)
 - `G-RULES.md` — full file (needed in Step 4 for edit-target mapping)
 - `git log --oneline -100` via Bash — used in Step 2 to detect rework commits
@@ -59,15 +60,21 @@ Scan the git log gathered in Step 1 for rework commit markers:
 
 For each match, record: commit short SHA, subject, and a normalised label derived from the reverted change's subject.
 
-### 2d — Output of Step 2
+### 2d — Forecast-outcome signals (if `docs/forecasts/` exists)
 
-The output of this step is a single flat list of signal records, each with: `{source_kind, source_id, verbatim, label}` where `source_kind` is one of `retro` / `todo-done` / `git-log`. This flat list is the input to Step 3.
+For each forecast file, read the `## Outcome` table populated by `/g-retro`. A row marked `Actually happened? = yes` is a **predicted-and-hit** signal — it is a high-confidence pattern because both the premortem and the retro confirmed it. A row marked `partial` is a medium-confidence signal. Rows marked `no` are negative evidence and are not patterns — discard them.
+
+For each `yes` or `partial` row, record a signal with `source_kind = forecast`, the scenario label, and the forecast filename as `source_id`. Confidence weight: `yes` counts as weight 2 (since both prediction and reality confirmed it), `partial` counts as weight 1.
+
+### 2e — Output of Step 2
+
+The output of this step is a single flat list of signal records, each with: `{source_kind, source_id, verbatim, label, weight}` where `source_kind` is one of `retro` / `todo-done` / `git-log` / `forecast`. `weight` defaults to 1; forecast `yes` rows are weight 2, forecast `partial` rows are weight 1. This flat list is the input to Step 3 — bucketing consumes the `weight` field, not raw signal count.
 
 ## Step 3 — Bucket by frequency
 
-Group all extracted signals by their normalised label. For each group, count distinct source files (retros or todo-done blocks) that contain the pattern.
+Group all extracted signals by their normalised label. For each group, compute its weighted count: sum the `weight` field of every signal in the group, treating distinct source files as distinct contributions (two signals from the same source file collapse to one — count by source, weighted). Forecast `yes` signals contribute weight 2, forecast `partial` signals contribute weight 1, and all other source kinds contribute weight 1. This boosts patterns that were both predicted and observed (forecast `yes`) into the Systemic bucket faster than corpus-only signals.
 
-Bucket by count:
+Bucket by weighted count:
 
 | Count | Bucket | Symbol |
 |------|--------|--------|
