@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.15.0] — 2026-05-19
+
+### Added
+- **`/g-blast-radius [file|plan|feature]`** — dependency-impact skill. Given a target (file path, plan slug, or feature label), computes forward references (what the target depends on), reverse references (what depends on the target), and per-file volatility from git history (commits-in-last-50 × 2, clamped 0–10). Aggregates to a single rating: ✓ Narrow / ⚠ Moderate / ✗ Wide. Persists report to `docs/blast-radius/<slug>.md` and surfaces top reverse-dependency files plus hot zones.
+- **`/g-identity`** — temporal-cognition skill. Synthesises the project's operational personality from accumulated retros, forecasts, telemetry snapshots, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces a 5-section narrative (what this project is / how it ships / what it does well / where it struggles / what it's becoming) written to `docs/identity.md`. Qualitative complement to `/g-telemetry`'s quantitative snapshot. Refuses to run on a thin corpus.
+- **`/g-forecast` Step 2b: blast-radius integration** — when `docs/blast-radius/<plan-slug>.md` exists, the rating is folded into the complexity score (+0 Narrow / +1 Moderate / +2 Wide). Complexity remains clamped to 0–10. Surfaces in the Step 7 report as `+ blast-radius adjustment`.
+- **`/g-forecast` Step 2c: economic reasoning** — every forecast now includes an estimated token-cost band derived from agent-dispatch count, expected diff size, and review overhead. Expressed as `low – high` with a size tag: Small / Medium / Large / Very Large. Advisory — never blocks approval. Surfaces in the Step 7 report alongside complexity and miss-risk.
+
 ## [0.14.0] — 2026-05-19
 
 ### Added

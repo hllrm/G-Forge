@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: feat/m13-profile-additions
+HANDOFF — g-forge | branch: feat/m14-advanced-production-modeling
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · M13 — flask + pygame + xamarin profiles, dependency-auditor agent, frontend-data-flow auto-install, v0.14.0 bump
-Next up:          · M14 — Advanced Production Modeling (dependency intelligence, economic reasoning, temporal cognition)
-Active context:   · M13 implemented; awaiting /g-review before merge to main
+Done this pass:   · M14 — /g-blast-radius + /g-identity skills, /g-forecast economic reasoning, v0.15.0 bump
+Next up:          · M15 — Hook / Behavioral Integration Pass (the v1.0.0 cohesion milestone)
+Active context:   · M14 implemented; pre-shipping complete; awaiting /g-review before merge to main
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -153,7 +153,7 @@ Active context:   · M13 implemented; awaiting /g-review before merge to main
 ---
 
 ### M14 — Advanced Production Modeling
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 **Version:** v0.15.0
 **Goal:** PM layer reasons about feature dependencies, costs, and long-term project trajectory
 **Scope:**

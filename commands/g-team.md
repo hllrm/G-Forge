@@ -1,6 +1,6 @@
 ---
-description: G-Forge workflow commands. Subcommands: help, status, doctor, init, kickoff, onboard, brief, roadmap, plan, execute, review, afk, specialize, update, skill-design, skill-validate, patterns, forecast, telemetry.
-argument-hint: <help|status|doctor|init|kickoff|onboard|brief|roadmap|plan|execute|review|afk|specialize|update|skill-design|skill-validate|patterns|forecast|telemetry> [args]
+description: G-Forge workflow commands. Subcommands: help, status, doctor, init, kickoff, onboard, brief, roadmap, plan, execute, review, afk, specialize, update, skill-design, skill-validate, patterns, forecast, telemetry, blast-radius, identity.
+argument-hint: <help|status|doctor|init|kickoff|onboard|brief|roadmap|plan|execute|review|afk|specialize|update|skill-design|skill-validate|patterns|forecast|telemetry|blast-radius|identity> [args]
 ---
 
 Route to the correct skill file based on the subcommand in $ARGUMENTS.
@@ -26,6 +26,8 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 - `patterns`   → `skills/g-patterns/SKILL.md`
 - `forecast`   → `skills/g-forecast/SKILL.md`  (remaining args: $ARGUMENTS)
 - `telemetry`  → `skills/g-telemetry/SKILL.md`
+- `blast-radius` → `skills/g-blast-radius/SKILL.md`  (remaining args: $ARGUMENTS)
+- `identity`   → `skills/g-identity/SKILL.md`
 
 If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `help` — show current project state and next recommended action
@@ -47,3 +49,5 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `patterns` — mine docs/retros/ and todo-done.md for recurring failure patterns; propose rule edits
   - `forecast [plan-slug]` — premortem and scope-realism analysis on a plan; produces complexity score, miss-risk %, and ranked failure scenarios
   - `telemetry` — compute 8 reliability metrics and derive a health profile (stable / cautious / defensive / recovery); drives adaptive orchestration in /g-execute and /g-review
+  - `blast-radius [file|plan|feature]` — forward + reverse dependency graph, per-file volatility, aggregate rating (Narrow / Moderate / Wide); feeds /g-forecast complexity score
+  - `identity` — narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, and git history; written to docs/identity.md
