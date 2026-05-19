@@ -1,6 +1,6 @@
 ---
 name: g-specialize
-description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, claude-plugin.
+description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin, claude-plugin. Supplementary: frontend-data-flow (auto-installed alongside component frameworks).
 ---
 
 **Announce:** "Using g-specialize to apply the stack profile."
@@ -51,7 +51,8 @@ Read whichever of these exist in the current working directory:
 - `requirements.txt` or `pyproject.toml` — read full contents:
   - `fastapi` → **fastapi**
   - `django` or `djangorestframework` → **django**
-  - `flask` → note: flask has no G-Forge profile yet
+  - `flask` → **flask**
+  - `pygame` → **pygame**
   - `textual` → **python-textual**
   - `click` or `typer` → **python-cli**
   - `torch` or `tensorflow` or `scikit-learn` → **python-ml**
@@ -71,6 +72,7 @@ Read whichever of these exist in the current working directory:
   - `Microsoft.AspNetCore` → **asp-net-core**
   - `PresentationFramework` → **wpf-csharp**
   - `Microsoft.Maui` → **maui**
+  - `Xamarin.Forms` (without `Microsoft.Maui`) → **xamarin** (legacy — Xamarin.Forms reached end-of-support May 2024; flag this to the developer with a migration-to-MAUI note)
 
 - `pubspec.yaml`:
   - `flutter:` SDK entry → **flutter**
@@ -118,6 +120,10 @@ After building the `Profiles to apply` list, sort the detected stack names alpha
 
 If any detected stacks fully cover a combo's required stacks, add that combo key to `Combos detected`. Combo profiles install rules only — no architect agent.
 
+**Supplementary profile auto-detection — `frontend-data-flow`:**
+
+If `Profiles to apply` contains any component-framework stack — `react`, `vue-pinia`, `nuxt`, `next-js`, `sveltekit`, `angular`, `remix`, `astro`, or any astro-* combo — also add `frontend-data-flow` to the apply list. This is a **supplementary** profile: it ships its own architect agent (`frontend-data-flow-architect`) and rules file (`profiles/frontend-data-flow/rules/architecture.md`), and it covers the universal two-network frontend data-flow model (read network + write network) plus the four canonical violations (HTTP in components, shadow-state ref sync, watch-as-dispatch, caller-follows-truck). It complements the per-framework architect — never replaces it. Surface it in confirmation as `+ frontend-data-flow (supplementary, auto-installed alongside component frameworks)`.
+
 ## Step 2 — Research current stable/LTS state
 
 For each stack in `Profiles to apply`, run a WebSearch to verify the current stable and LTS version and identify any best-practice changes that may not be reflected in the installed profile.
@@ -158,14 +164,14 @@ Store all version notes for use in Step 3 (confirmation) and Step 7 (agent insta
 ## Step 3 — Handle edge cases before confirming
 
 **If an explicit stack argument was provided** (e.g. `/g-specialize vue-pinia`):
-- Validate it is one of the 44 supported stacks listed in the description frontmatter. If not, say: "Unknown stack '[arg]'. Run `/g-specialize` with no argument to auto-detect, or pick from the supported list." and stop.
+- Validate it is one of the supported stacks listed in the description frontmatter. If not, say: "Unknown stack '[arg]'. Run `/g-specialize` with no argument to auto-detect, or pick from the supported list." and stop.
 - Use this as the confirmed profile list, skipping further detection.
 
 **If no brief and no dependency files exist:**
-- Ask the developer: "I couldn't find a project_brief.md or any dependency files. Which profile(s) should I apply? Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp."
+- Ask the developer: "I couldn't find a project_brief.md or any dependency files. Which profile(s) should I apply? Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin."
 - Wait for answer. Use it as the confirmed profile list.
 
-**If unsupported stacks were detected (flask, etc.):**
+**If unsupported stacks were detected:**
 - Note them in the confirmation: "I detected [stack] which doesn't have a G-Forge profile yet. I'll skip that one."
 
 **If the picture is ambiguous or there are conflicts:**
@@ -178,7 +184,7 @@ Before asking the user, dispatch `code-lead` with:
 - The dependency file contents
 
 Ask code-lead:
-> "Based on this project's brief and dependencies, which G-Forge stack profiles should be applied? The supported profiles are: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp. If the project is multi-stack, list all that apply. Flag anything that looks like a mismatch or a risky stack choice."
+> "Based on this project's brief and dependencies, which G-Forge stack profiles should be applied? The supported profiles are: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin. If the project is multi-stack, list all that apply. Flag anything that looks like a mismatch or a risky stack choice. Note that frontend-data-flow is a supplementary profile that I auto-install alongside any component framework — do not list it as a primary stack."
 
 Present code-lead's response to the developer: "Here is code-lead's stack read — does this match what you're building?"
 
