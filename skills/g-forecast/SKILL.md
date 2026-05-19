@@ -38,6 +38,41 @@ Compute a 0–10 complexity score from these signals (read directly from the pla
 
 Sum the components and clamp to 0–10. Record the breakdown.
 
+## Step 2b — Incorporate blast-radius signal (if available)
+
+Check whether `docs/blast-radius/<plan-slug>.md` exists. If it does, read its rating and adjust the complexity score from Step 2:
+
+| Blast-radius rating | Complexity adjustment |
+|---------------------|------------------------|
+| ✓ Narrow | +0 |
+| ⚠ Moderate | +1 |
+| ✗ Wide | +2 |
+
+Re-clamp the resulting complexity score to 0–10. Record the original score, the blast-radius rating, and the final adjusted score in the breakdown — both are surfaced in Step 7's report.
+
+If no blast-radius file exists, skip this step silently. The developer can run `/g-blast-radius` separately and re-run `/g-forecast` to incorporate the signal.
+
+## Step 2c — Estimate token cost band
+
+Compute a rough token-cost band for executing the plan. This is intentionally a band, not a point estimate — token consumption is governed by agent dispatch counts and diff sizes, both of which vary widely.
+
+```
+agent_dispatches_estimate = sum over waves of (task_count_in_wave)
+diff_size_estimate        = files_touched × 80   // 80 lines per file is the historical median
+review_overhead           = base 6000 tokens + 2000 per agent dispatched
+total_estimate            = agent_dispatches_estimate × 4000 + diff_size_estimate × 4 + review_overhead
+```
+
+Express as a band: `low = total × 0.6`, `high = total × 1.8`. Round to nearest 1k.
+
+Tag by absolute size of the high estimate:
+- < 50k tokens — `Small`
+- 50–200k tokens — `Medium`
+- 200–800k tokens — `Large`
+- > 800k tokens — `Very Large — consider re-scoping`
+
+This estimate is surfaced in the Step 7 report as `Estimated token cost: low – high (tag)`. It is advisory — never blocks approval.
+
 ## Step 3 — Pull historical patterns
 
 Read the corpus the same way `/g-patterns` does, but only for premortem seeding:
@@ -107,8 +142,9 @@ Print exactly:
 G-FORECAST — [plan name]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Complexity:  [X/10]   (files [F] · waves [W] · boundaries [B] · new surface [S] · rule edits [R])
-Miss-risk:   [P]%     ([Low / Moderate / Elevated / High])
+Complexity:    [X/10]   (files [F] · waves [W] · boundaries [B] · new surface [S] · rule edits [R][ + blast-radius adjustment if applied])
+Miss-risk:     [P]%     ([Low / Moderate / Elevated / High])
+Est. tokens:   [low]–[high]   ([Small / Medium / Large / Very Large])
 
 Premortem — top failure scenarios:
   1. [scenario label]       likelihood [L] · impact [I] · score [LxI]
