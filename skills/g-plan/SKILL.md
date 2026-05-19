@@ -58,6 +58,22 @@ Dispatch the `wave-planner` agent with the complete task list from task-decompos
 
 Wait for the wave schedule before proceeding.
 
+## Step 3a — Write the pending-forecast handoff
+
+Before invoking `/g-forecast`, write the in-memory task list and wave schedule to `docs/plans/.pending-forecast.md` using the same Plan File Format defined later in this skill. This is a temporary handoff file — `/g-forecast` Step 1 reads it preferentially when present, so the forecast targets *this* plan (which has not yet been approved or saved as the official `<slug>.md`) and not a stale older plan.
+
+Delete `docs/plans/.pending-forecast.md` at the end of Step 4 — whether the developer approves, edits, or rejects the plan. It must never persist past the approval gate.
+
+## Step 3b — Run `/g-forecast` for scope-realism and premortem
+
+Use Glob to find `skills/g-forecast/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions. `/g-forecast` will pick up `docs/plans/.pending-forecast.md` per its Step 1 case 1.
+
+The forecast returns: a complexity score (0–10), a miss-risk percentage with risk tag, and a ranked top-5 premortem of likely failure scenarios with mitigations. It is **advisory** — it never blocks the approval gate. Its job is to surface risk so the developer can decide whether to proceed, mitigate, or re-scope.
+
+Carry the forecast summary forward into Step 4 so the developer sees it alongside the plan.
+
+If `/g-forecast` returns High risk (≥75%), surface this prominently in Step 4 and add a one-line recommendation that the developer consider re-scoping — but do not block. The developer's approval is still authoritative.
+
 ## Step 4 — Present plan and wait for approval
 
 Present the full output to the developer:
@@ -69,11 +85,24 @@ Present the full output to the developer:
 
 [wave schedule from wave-planner]
 
+### Forecast (advisory)
+
+Complexity: [X/10]   Miss-risk: [P]% — [Low / Moderate / Elevated / High]
+
+Top premortem scenarios:
+  1. [scenario] — mitigation: [one line]
+  2. [scenario] — mitigation: [one line]
+  3. [scenario] — mitigation: [one line]
+
+[if High risk] ⚠ This plan exceeds the 75% miss-risk threshold. Consider re-scoping before approval. (Advisory only — your approval is still authoritative.)
+
 ---
 Ready to execute? Reply 'approved' to begin, or describe changes.
 ```
 
 **Do not proceed without explicit developer approval.** If the developer requests changes, update the plan and re-present. Repeat until approved.
+
+When the developer responds (approval, edit, or reject), delete `docs/plans/.pending-forecast.md` if it exists — the handoff file from Step 3a must never persist past this gate.
 
 ## Step 4a — Save approved plan to disk
 
