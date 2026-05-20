@@ -62,29 +62,53 @@ If the derived profile is `stable`, also reset `.claude/review-holds` to `0` (wr
 
 Write the chosen profile name as a single line to `.claude/telemetry-profile`. Overwrite any existing content. Create `.claude/` if it does not exist.
 
-Also write a structured snapshot to `docs/telemetry/YYYY-MM-DD.md` (create directory if missing). Schema:
+## Step 5b — Compute agent coverage
+
+The 17 G-Forge agents are: `task-decomposer`, `wave-planner`, `spec-writer`, `code-reviewer`, `security-auditor`, `architecture-enforcer`, `performance-auditor`, `debugger`, `error-detective`, `project-manager`, `review-orchestrator`, `code-lead`, `test-writer`, `doc-writer`, `pr-writer`, `refactor-executor`, `dependency-auditor`.
+
+Read all files in `docs/retros/` (up to the 10 most recent by filename date, or all if fewer). For each agent name, count how many retro files mention it at least once (case-insensitive, whole-word match).
+
+Classify each agent:
+- **never** — 0 mentions across all retros read
+- **rarely** — mentioned in only 1 retro
+- **used** — mentioned in 2 or more retros
+
+Write `.claude/telemetry-coverage` with this format (bare text, no JSON):
+
+```
+never:dependency-auditor,performance-auditor
+rarely:doc-writer
+```
+
+Omit a line entirely if the list for that category is empty. If all agents are `used`, write an empty file.
+
+Also append a coverage section to the `docs/telemetry/YYYY-MM-DD.md` snapshot:
 
 ````markdown
-# Telemetry snapshot — [YYYY-MM-DD]
+## Agent coverage (last [N] retros)
 
-**Profile:** [stable / cautious / defensive / recovery]
-**⚠ count:** [N]
+| Agent | Retros mentioning it | Status |
+|-------|---------------------|--------|
+| task-decomposer | [N] | used / rarely / never |
+| wave-planner | [N] | ... |
+| spec-writer | [N] | ... |
+| code-reviewer | [N] | ... |
+| security-auditor | [N] | ... |
+| architecture-enforcer | [N] | ... |
+| performance-auditor | [N] | ... |
+| debugger | [N] | ... |
+| error-detective | [N] | ... |
+| project-manager | [N] | ... |
+| review-orchestrator | [N] | ... |
+| code-lead | [N] | ... |
+| test-writer | [N] | ... |
+| doc-writer | [N] | ... |
+| pr-writer | [N] | ... |
+| refactor-executor | [N] | ... |
+| dependency-auditor | [N] | ... |
 
-## Metrics
-
-| # | Metric | Value | Status | Source |
-|---|--------|-------|--------|--------|
-| 1 | Hallucination rate | [X%] | ✓ / ⚠ / n/a | [filenames or git refs] |
-| 2 | Review catch rate | [X%] | ... | ... |
-| 3 | Regression frequency | [X%] | ... | ... |
-| 4 | Rework rate | [X%] | ... | ... |
-| 5 | Spec deviation | [X%] | ... | ... |
-| 6 | Escalation frequency | [X%] | ... | ... |
-| 7 | Token efficiency | [X/100] | ... | ... |
-| 8 | Retry dependency | [X%] | ... | ... |
-
-## Notes
-[Any metrics that hit n/a, plus any one-line context the developer should know]
+**Never used:** [comma-separated list, or "none"]
+**Rarely used:** [comma-separated list, or "none"]
 ````
 
 ## Step 6 — Print summary
@@ -110,8 +134,12 @@ Profile: [stable / cautious / defensive / recovery]   ⚠ [N] of 8 metrics out o
 Effect on adaptive orchestration:
   [list the behavioural changes that apply to the chosen profile per docs/telemetry-metrics.md — e.g. for cautious: "/g-review will add one extra reviewer on next dispatch"]
 
+Coverage: [N] of 17 agents used · never: [list or "none"] · rarely: [list or "none"]
+  (workflow-checkpoint will surface suggestions for never-used agents once per day)
+
 Snapshot written: docs/telemetry/[YYYY-MM-DD].md
 Profile persisted: .claude/telemetry-profile
+Coverage persisted: .claude/telemetry-coverage
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
