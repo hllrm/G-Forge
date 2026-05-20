@@ -124,25 +124,27 @@ Report: `✓ G-RULES.md — realigned`
 
 ---
 
-## Step 4 — Update architecture rules in CLAUDE.md
+## Step 4 — Migrate and verify architecture rules format
+
+Architecture rules should live in `.claude/rules/architecture-[stack].md` files, with CLAUDE.md holding only a one-line `@reference` per profile. This step migrates any legacy inline blocks to that format, then verifies the references are correct. The actual content update happens in Step 6.
 
 For each `<!-- G-Forge [stack] Architecture Rules` block found in Step 2:
 
-1. Extract the stack name from the marker (e.g. `vue-pinia`, `fastapi`)
-2. Read the current rules from `[plugin-root]/profiles/[stack]/rules/architecture.md`
-3. In CLAUDE.md, replace everything between:
-   ```
-   <!-- G-Forge [stack] Architecture Rules — injected by /g-specialize. Do not edit manually. -->
-   ```
-   and:
-   ```
-   <!-- End G-Forge [stack] Architecture Rules -->
-   ```
-   with the fresh content from the plugin (keeping both marker lines).
+1. Extract the stack name from the marker.
+2. Read everything between the opening and closing marker lines.
+3. **Detect the format:**
 
-If a stack's profile no longer exists in the plugin (removed), tell the developer and skip it — do not delete the block.
+**New format** — the block contains only `@.claude/rules/architecture-[stack].md` (one line, possibly with surrounding whitespace):
+- Verify `.claude/rules/architecture-[stack].md` exists in the project. If missing, recreate it from the plugin. Report: `✓ CLAUDE.md — [stack] rules reference verified`.
+- Content update is handled by Step 6 — nothing more to do here.
 
-Report: `✓ CLAUDE.md — [stack] architecture rules updated` for each stack.
+**Legacy format** — the block contains the full rules content inline (more than 3 non-empty lines):
+- Write the inline content to `.claude/rules/architecture-[stack].md` (create `.claude/rules/` if needed).
+- Replace everything between the markers with the single line: `@.claude/rules/architecture-[stack].md`
+- Report: `✓ CLAUDE.md — [stack] rules extracted to .claude/rules/ · CLAUDE.md compacted`
+- Step 6 will then update `.claude/rules/architecture-[stack].md` to the current plugin version.
+
+If a stack's profile no longer exists in the plugin (removed), tell the developer and skip it — do not delete the block or the rules file.
 
 ---
 
