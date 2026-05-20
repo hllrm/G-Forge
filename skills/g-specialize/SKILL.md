@@ -348,7 +348,7 @@ For each profile whose rules are not yet present, append:
 
 Repeat this same loop for each combo key in `Combos detected` — same marker format, same duplication check, same append pattern. Use `profiles/<combo-key>/rules/architecture.md` as the content source.
 
-## Step 8 — Report
+## Step 8 — Report and initial dependency audit
 
 ```
 Stack profiles applied ✓
@@ -364,6 +364,8 @@ Dispatch them during any review or planning task that touches their stack.
 ```
 
 List only the profiles that were actually applied.
+
+**Initial dependency audit:** After the installation report, dispatch `dependency-auditor` with all dependency manifest files identified in Step 1 (e.g. `package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`). This is the project's baseline dependency audit — surface any security advisories, deprecated packages, license conflicts, and unused declarations before development begins. If no manifest files were found, skip silently.
 
 ## Rules
 - Never write any file before the developer confirms in Step 4.

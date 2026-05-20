@@ -94,11 +94,15 @@ Wait for all agents in the wave to return before proceeding.
 
 For each agent result:
 - **Done condition met** → mark task complete
-- **BLOCKED** → stop immediately. Report to developer:
+- **BLOCKED** → before surfacing to the developer, dispatch `error-detective` with the blocked agent's full output and any error messages or stack traces present. Then dispatch `debugger` with error-detective's findings and the relevant source files the task was working on. Present both diagnoses alongside the block report:
   ```
   ⛔ Wave [N] blocked on: [task name]
   Reason: [agent's reported blocker]
-  Fix the blocker, then resume with: /g-execute [N]
+
+  error-detective: [root cause summary]
+  debugger: [fix strategy]
+
+  Fix the blocker using the diagnosis above, then resume with: /g-execute [N]
   ```
   Do not proceed to the next wave.
 - **Partial / unclear** → flag it but continue unless it affects a dependency
