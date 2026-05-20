@@ -502,8 +502,13 @@ git push
 | Find security issues | `security-auditor` | files to audit + data flow context |
 | Write tests (unit/integration/e2e) | `test-writer` | implementation or spec + test framework |
 | Root cause an error | `error-detective` | stack trace or log output |
+| Investigate a specific bug | `debugger` | error-detective findings + relevant source files |
+| Write a precise implementation spec | `spec-writer` | feature or refactor description + constraints |
 | Write docs for a module | `doc-writer` | the file + any design intent notes |
 | Check architecture violations | `architecture-enforcer` | diff + layer map |
+| Review a diff for code quality | `code-reviewer` | the diff + any relevant context |
+| Audit for performance issues | `performance-auditor` | files or paths to scan + any known bottlenecks |
+| Audit dependencies | `dependency-auditor` | package manifest(s) — `package.json`, `requirements.txt`, `Cargo.toml`, etc. |
 | Break down a task | `task-decomposer` | feature description + constraints |
 | Schedule parallel work | `wave-planner` | task list from task-decomposer |
 
