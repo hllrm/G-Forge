@@ -46,8 +46,10 @@ Before reviewing any code, verify the test suite passes.
 **If any tests fail:**
 - Do NOT write `.claude/g-team-approved`
 - Report the failing tests verbatim
-- Stop with verdict: `HOLD — tests failing. Fix all test failures before re-running /g-review.`
-- Do not proceed to Step 2
+- Dispatch `error-detective` with the full test output and the current diff (`git diff main...HEAD`). Ask it to identify the root cause of each failure — file, line, pattern.
+- After error-detective returns, dispatch `debugger` with error-detective's findings and the relevant source files. Ask for a concrete fix strategy.
+- Present both diagnoses to the developer, then stop with verdict: `HOLD — tests failing. Diagnosis above. Fix all failures before re-running /g-review.`
+- Do not proceed to Step 2.
 
 **If the project has no tests** (no test directory, no test script, no test framework detected):
 - Report: `⚠ No test suite detected`
@@ -65,6 +67,8 @@ git diff main...HEAD
 If output is empty, run: `git diff --staged`
 
 If both are empty, ask the developer: "What branch or commit range should I review?"
+
+After capturing the diff, check whether it includes changes to any dependency manifest: `package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`, `Pipfile`, `pyproject.toml`, `pom.xml`, `build.gradle`. Set `manifest_changed: true` if any are present in the diff. This flag is used in Step 4 to dispatch `dependency-auditor` in parallel.
 
 ## Step 3 — Gather done conditions
 
@@ -86,7 +90,11 @@ Dispatch the `code-lead` agent. Provide **all of the following** in the prompt s
 - The current branch name (from `git branch --show-current`)
 - The task list (if known)
 
-code-lead will verify remaining done conditions structurally (file checks, grep, read) and dispatch review-orchestrator internally. It must NOT re-run tests or type-check when attested results are provided. Pass the telemetry profile from Step 0 to code-lead so its dispatch of review-orchestrator scales reviewer count and pre-review additions accordingly. Wait for code-lead's complete verdict.
+code-lead will verify remaining done conditions structurally (file checks, grep, read) and dispatch review-orchestrator internally. It must NOT re-run tests or type-check when attested results are provided. Pass the telemetry profile from Step 0 to code-lead so its dispatch of review-orchestrator scales reviewer count and pre-review additions accordingly.
+
+If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s) and the diff context. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
+
+Wait for code-lead's complete verdict.
 
 If code-lead returns HOLD, increment `.claude/review-holds` by 1 — this counter feeds the rework-rate telemetry metric (per `docs/telemetry-metrics.md` §4) regardless of the active profile. If the file does not exist, create it with value `1`. The increment is unconditional; only the *review-intensity adjustments above* depend on the profile. `/g-telemetry` resets the counter to `0` when a `stable` profile is derived.
 
@@ -125,6 +133,7 @@ Present code-lead's verdict to the developer verbatim.
 - Create `.claude/` directory if it does not exist
 - Write `.claude/g-team-approved` with content: `approved`
 - Tell the developer: "MERGE READY. Commit gate unlocked — you can now run git commit and merge."
+- Ask once: "Would you like a PR description? (yes/no)" — if yes, dispatch `pr-writer` with the full diff from Step 2 and the done conditions from Step 3. Present the PR description. If no, continue silently.
 
 **Milestone close-out (MERGE READY only):**
 
