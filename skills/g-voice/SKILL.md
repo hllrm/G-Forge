@@ -5,7 +5,7 @@ description: Set how G-Forge communicates with you. With no argument, runs a sho
 
 **Announce:** "Using g-voice to set the communication style."
 
-You manage how G-Forge talks to the developer. The profile changes rendering — never facts, never verdicts. The developer should never have to self-select a tier they don't understand — when called with no argument, run the intake interview and derive the right profile from their answers.
+The voice profile is PM's communication register. Same facts, same verdicts, same enforcement — what changes is how PM frames results, how much context accompanies a finding, and how terse or explanatory the output is. The developer should never self-select a tier they don't understand — when called with no argument, run the intake interview and derive the right profile from their answers.
 
 ## Step 1 — Resolve intent
 
