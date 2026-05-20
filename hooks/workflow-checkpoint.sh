@@ -105,6 +105,38 @@ else
     echo "  Tier:   full"
 fi
 
+# Agent coverage nudge — surface one never-used agent suggestion, once per day.
+# Populated by /g-telemetry Step 5b. Cycles through never-used agents one per day.
+COVERAGE_FILE=".claude/telemetry-coverage"
+NUDGE_STAMP=".claude/coverage-nudge-stamp"
+NUDGE_INDEX=".claude/coverage-nudge-index"
+
+if [ -f "$COVERAGE_FILE" ]; then
+    NEEDS_NUDGE=true
+    if [ -f "$NUDGE_STAMP" ] && find "$NUDGE_STAMP" -mmin -1440 2>/dev/null | grep -q .; then
+        NEEDS_NUDGE=false
+    fi
+
+    if [ "$NEEDS_NUDGE" = true ]; then
+        NEVER_LINE=$(grep '^never:' "$COVERAGE_FILE" 2>/dev/null | sed 's/^never://')
+        if [ -n "$NEVER_LINE" ]; then
+            # Build array of never-used agents and rotate through them by index
+            NEVER_AGENTS=$(printf '%s' "$NEVER_LINE" | tr ',' '\n' | sed 's/^[[:space:]]*//' | grep -v '^$')
+            AGENT_COUNT=$(printf '%s\n' "$NEVER_AGENTS" | wc -l | tr -d '[:space:]')
+            IDX=0
+            [ -f "$NUDGE_INDEX" ] && IDX=$(cat "$NUDGE_INDEX" 2>/dev/null | tr -d '[:space:]')
+            case "$IDX" in ''|*[!0-9]*) IDX=0 ;; esac
+            IDX=$((IDX % AGENT_COUNT))
+            AGENT=$(printf '%s\n' "$NEVER_AGENTS" | sed -n "$((IDX + 1))p" | tr -d '[:space:]')
+            if [ -n "$AGENT" ]; then
+                echo "  💡 $AGENT has never been used in this project — dispatch it directly or see the Playbook"
+                printf '%d\n' "$((IDX + 1))" > "$NUDGE_INDEX"
+                touch "$NUDGE_STAMP"
+            fi
+        fi
+    fi
+fi
+
 # Self-update check — background curl once per day, zero blocking latency
 CLAUDE_DIR="$HOME/.claude"
 INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-team/g-team/.claude-plugin/plugin.json"

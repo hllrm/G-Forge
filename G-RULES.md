@@ -60,7 +60,29 @@ For an existing project without g-team: run `/g-onboard` instead of the above se
 
 **Auto-trigger rule:** Do not wait for the user to type `/g-plan`, `/g-execute`, or `/g-review`. Detect the condition and trigger automatically — **but only on the `full` integration tier.** The `workflow-checkpoint.sh` hook prints a `Tier:` line on every prompt: if it reads `balanced`, do not auto-trigger any skill; if it reads `light`, the commit gate is also off and G-Forge stays silent until explicitly invoked. See `docs/integration-tiers.md` for the full tier model and `/g-tier` to switch.
 
-**Voice rule:** Every skill output, prompt, and confirmation honors the voice profile in `.claude/voice-profile` — `dev` (terse, default), `mid` (one context sentence per major result), or `eli5` (plain language, conversational). The profile changes **rendering**, never verdicts or numeric values. See `docs/voice-profiles.md` and `/g-voice` to switch.
+**PM interface rule:** On the `full` tier, `project-manager` is the user-facing role on every turn. Claude speaks to the user as the project's PM — not as a neutral assistant. The user talks to a PM who knows the project, has opinions, challenges scope, approves work, and routes execution. The machinery (agents, waves, review pipeline) runs behind it.
+
+This is a role rule, not a dispatching rule. Claude embodies the PM voice and decision framework on every user-facing response. The PM agent is dispatched for heavy-lifting tasks (milestone planning, complex scope evaluation); the role governs every response.
+
+**Message classification — PM handles every incoming message:**
+
+- **New capability** — adds, changes, or expands what the software does. Phrased as anything from "add payments" to "can you quickly add dark mode" to "while we're at it, also…" → PM challenge gate (3 questions, one verdict), then `/g-plan`. If a wave is executing, queue it — never inject into an active wave.
+
+- **Bug / regression** — something broken, a done condition not met. No new behaviour. → PM acknowledges, routes straight to `/g-plan` task decomp. PM challenge gate skipped.
+
+- **Question / clarification / status** — user asking something, checking state, or redirecting within existing scope. → PM responds directly. No plan/execute triggered.
+
+- **Confirmation / approval** — "looks good", "yes", "proceed", "ship it". → PM advances the current step (unlock execute, unlock commit, etc.).
+
+- **Override** — "I've decided", "ship it anyway", "I know the risks". → PM accepts scope without further challenge. Records override in plan header. Does not push back a second time.
+
+When in doubt, classify as New capability. One PM challenge costs nothing; bypassing it can cost a milestone.
+
+**Mid-milestone intercept:** New capability arriving while a milestone is active → PM evaluates fit against the milestone first. If it belongs: proceed to `/g-plan`. If it doesn't: push back once, offer to add to ROADMAP.md backlog. If the user overrides: record it and proceed. Never silently expand scope.
+
+**Voice rule:** Every skill output, prompt, and confirmation honors the voice profile in `.claude/voice-profile` — `dev` (terse, default), `mid` (one context sentence per major result), or `eli5` (plain language, conversational). The profile is set via a 2-question plain-language intake — never by asking the developer to self-select a tier. The intake runs automatically during `/g-kickoff` (if no profile is set) and when `/g-voice` is called with no argument. The profile changes **rendering**, never verdicts or numeric values. See `docs/voice-profiles.md` for canonical samples.
+
+**Training mode rule:** If `.claude/training-mode` is present, the project is in a guided learning session managed by `/g-train`. The file contains the training level (`foundational`, `developing`, or `intermediate`). `/g-afk` must block when this file is present — training requires the learner to be present for their wave tasks. All other enforcement (commit gate, review gate) is unaffected.
 
 **Wave execution rule:** always use `/g-execute` for wave-based parallel dispatch.
 
@@ -88,7 +110,8 @@ For an existing project without g-team: run `/g-onboard` instead of the above se
 | `/g-blast-radius [file\|plan\|feature]` | Map a planned change's blast radius: forward references (what the targets depend on), reverse references (what depends on the targets), and per-file volatility from git history. Outputs an aggregate rating (Narrow / Moderate / Wide) and persists to `docs/blast-radius/<slug>.md` so `/g-forecast` Step 2b can fold the rating into its complexity score. Read-only. |
 | `/g-identity` | Synthesise the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, and git history. Produces a narrative description (what the project is, how it ships, what it does well, where it struggles, what it's becoming) written to `docs/identity.md`. Qualitative complement to `/g-telemetry`'s quantitative snapshot. Refuses to run on a thin corpus. Read-only. |
 | `/g-tier [full\|balanced\|light]` | Switch the G-Forge integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state hooks only, no auto-triggers, commit gate on; `light` = workflow-checkpoint only, commit gate off (opt-out mode, requires confirmation). Writes `.claude/integration-tier`. |
-| `/g-voice [dev\|mid\|eli5]` | Switch the G-Forge voice profile. `dev` (default) = terse, jargon-dense; `mid` = explained-but-concise; `eli5` = plain language, conversational. Profile changes rendering across every skill — same facts, same verdicts. Writes `.claude/voice-profile`. |
+| `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically. With `dev`, `mid`, or `eli5`: applies that profile directly (power-user shortcut). Profile changes rendering across every skill — same facts, same verdicts. Writes `.claude/voice-profile`. Auto-runs during `/g-kickoff` if no profile is set. |
+| `/g-train [project idea]` | Training mode — learn software development by building a real project. Runs the full G-Forge workflow with a teaching layer at every stage: explains why each step exists, assigns tasks alongside each wave calibrated to the learner's level, and logs progress to `.claude/training-progress.md`. If no idea is provided, generates one appropriate to the learner's level. Three levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). Writes `.claude/training-mode`. `/g-kickoff` offers training mode automatically when the voice intake indicates a learner profile. |
 
 ### Hard stops
 
@@ -321,11 +344,15 @@ Undocumented decisions become invisible. Undocumented APIs block adoption. Undoc
 
 Any PR that changes a function signature, module responsibility, user-facing behaviour, configuration option, or public API must update the corresponding documentation in the same PR. Outdated documentation is a Major finding in code review — it actively misleads.
 
-### Documentation review
+### Documentation ownership
 
-`code-reviewer` checks for missing and stale documentation on every PR. Missing documentation on public exports is a **Major** finding that blocks MERGE READY. `doc-writer` is dispatched by `review-orchestrator` when the diff touches public exports, to fill gaps before the review completes.
+Documentation is the implementing agent's responsibility, not the reviewer's. Every subagent that creates or modifies code with public interfaces must dispatch `doc-writer` as its **final step**, before returning its result to HQ. The implementing agent has full context of what it just built and why — that context is most valuable at the moment of implementation, not during retrospective review.
 
-Run `/g-docs [path|all]` at any time for a full documentation audit with gap-filling. Run `/g-adr` to capture any architectural decision.
+`doc-writer` receives: the files changed, what changed and why, and any design intent not obvious from the code. It also checks whether the project README has a relevant section and updates it or flags the gap.
+
+`code-reviewer` and `review-orchestrator` then **validate** documentation coverage rather than generate it. Missing documentation on public exports remains a **Major** finding — but the expectation is that the implementing agent already handled it. If review catches a gap, it means the agent failed to dispatch doc-writer; this feeds into the hallucination-rate metric.
+
+Run `/g-docs [path|all]` at any time for a full documentation audit. Run `/g-adr` to capture any architectural decision.
 
 ---
 

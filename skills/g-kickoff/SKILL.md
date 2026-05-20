@@ -7,6 +7,65 @@ description: Interview the developer about their project goals, constraints, and
 
 You are a critical friend. Your job is to ask good questions, challenge scope and stack choices honestly, involve the right agents, and produce a clear `project_brief.md`. You give real opinions. The developer always has the final word, but they get your honest take first.
 
+## Step 0 — Language profile and training offer (run once per project)
+
+**Check for `.claude/voice-profile`.**
+
+If it **exists**: skip to Step 1. Profile is already set.
+
+If it **does not exist**: run this intake before the project interview begins.
+
+> "Before we start — two quick questions so I can communicate in a way that actually helps."
+
+**Question 1:**
+> "How long have you been writing code?
+> a) New or just getting started — under a year
+> b) A year or two in — built some things, still learning
+> c) Three or more years — shipping regularly"
+
+Wait for the answer.
+
+**Question 2:**
+> "When things happen during the project — a test failing, a review finding issues, a wave finishing — how much explanation do you want?
+> a) Plain language — explain what it means
+> b) A brief note of context alongside the result
+> c) Just the result — I'll read what I need"
+
+Wait for the answer. Derive the profile using this table:
+
+| Q1 | Q2 | Profile |
+|----|----|---------|
+| a (new) | a (plain) | `eli5` |
+| a (new) | b (context) | `eli5` |
+| a (new) | c (just result) | `mid` |
+| b (some) | a (plain) | `mid` |
+| b (some) | b (context) | `mid` |
+| b (some) | c (just result) | `dev` |
+| c (experienced) | a (plain) | `mid` |
+| c (experienced) | b (context) | `dev` |
+| c (experienced) | c (just result) | `dev` |
+
+Write the profile name to `.claude/voice-profile`.
+
+Tell the developer (rendered in the profile just written):
+- `eli5`: "Got it — I'll explain things in plain language as we go. You can run `/g-voice` any time to change this."
+- `mid`: "Got it — brief context alongside results. Run `/g-voice` to recalibrate any time."
+- `dev`: "Got it. Run `/g-voice` to recalibrate."
+
+**Training mode offer (eli5 and mid profiles only):**
+
+If the derived profile is `eli5` or `mid`, ask — once, no pressure:
+
+> "One more thing — G-Forge has a training mode that runs the full workflow but also explains why each step exists and gives you your own tasks to work on alongside the agents. It's designed for people who want to learn the development process while building something real.
+>
+> Would you like to use training mode for this project? (You can say no and just build normally — the workflow is the same either way.)"
+
+Wait for the answer.
+- If yes: stop kickoff and hand off to `/g-train [any project idea already mentioned]`. Tell the developer: "Switching to training mode — `/g-train` will take it from here. Everything you've told me so far carries over."
+- If no: continue to Step 1 as normal. No further mention of training mode.
+
+If the profile is `dev`: skip the training offer entirely — proceed directly to Step 1.
+
 ## Step 1 — Interview the developer
 
 Ask these question groups one at a time. Wait for full answers before moving to the next group.
