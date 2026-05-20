@@ -52,6 +52,21 @@ Dispatch the `task-decomposer` agent. Provide:
 
 Wait for the task list before proceeding. Do not proceed if task-decomposer returns any "Clarify:" items — resolve those with the developer first.
 
+## Step 2a — Dependency scan for planned additions
+
+Scan the task list returned by task-decomposer for any task that explicitly mentions installing, adding, or integrating a new external package or library — e.g. "add Stripe SDK", "install redis-py", "integrate the OpenAI client", "add [package name] dependency".
+
+If any such tasks are found, dispatch `dependency-auditor` **in parallel with Step 3** (wave-planner dispatch). Provide it the identified package names and the project stack context.
+
+If dependency-auditor returns any HIGH severity findings for a planned new package:
+- Add a `⚠ Dependency risk: [package] — [issue]` line to the plan header before the wave schedule
+- The developer sees this in the Step 4 approval gate alongside the wave schedule and forecast
+- If the developer approves despite the warning, record it as an accepted risk in the plan file header
+
+MEDIUM and LOW findings are included in the plan header as notes — informational, never blocking.
+
+If no tasks mention new packages, skip silently.
+
 ## Step 3 — Dispatch wave-planner
 
 Dispatch the `wave-planner` agent with the complete task list from task-decomposer.

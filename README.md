@@ -41,7 +41,7 @@ The goal isn't to automate your project. It's to give it a better chance of succ
 /plugin install g-team
 ```
 
-All 17 G-Forge agents, 30 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All 17 G-Forge agents, 31 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -90,7 +90,7 @@ This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, 
 
 ### Verify
 
-Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`.
 
 ### Set up a new project
 
@@ -232,6 +232,11 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
 | `/g-skill-design` | Design a new g-team skill from scratch — requirements gathering, step drafting, SKILL.md + command file + router wiring |
 | `/g-skill-validate [name]` | Validate a skill or agent against structural rules — ✓/✗ checklist, VALID or NEEDS FIXES verdict |
+| `/g-audit [path]` | Full-codebase or targeted code quality audit — SOLID violations, code smells, architectural drift, dead code, test coverage gaps. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
+| `/g-optimize [path]` | Full-codebase or targeted performance audit — algorithmic complexity, N+1 queries, re-render waste, resource leaks, caching opportunities. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
+| `/g-refactor [path\|milestone]` | Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review gate. Accepts a scope path or an audit milestone file. Checks test coverage before execution and runs the full review gate after |
+| `/g-docs [path]` | Documentation audit and generation — scans for missing or stale code docs, README gaps, undocumented env vars, CHANGELOG gaps, and ADR omissions. Targeted scope fixes gaps immediately via doc-writer; whole-codebase scope produces a prioritised documentation debt report |
+| `/g-adr [title]` | Capture an architectural decision record — interactive prompts gather context, decision, alternatives considered, and consequences. Writes to `docs/decisions/NNN-title.md` in standard ADR format. Run when making a significant technical choice |
 | `/g-retro` | Save a structured session retrospective to `docs/retros/YYYY-MM-DD-topic.md` — what was done, decisions made, patterns that worked/failed, and cold-start context for the next session |
 | `/g-patterns` | Mine `docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
 | `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `docs/forecasts/<slug>.md`. |
@@ -239,7 +244,8 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
 | `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
 | `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `docs/integration-tiers.md`. |
-| `/g-voice [dev\|mid\|eli5]` | Switch the voice profile. `dev` (default) = terse, jargon-dense; `mid` = explained-but-concise; `eli5` = plain language, conversational. Same facts, same verdicts — rendering changes. Read mode shows side-by-side samples. Writes `.claude/voice-profile`. See `docs/voice-profiles.md`. |
+| `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
+| `/g-train [project idea]` | Training mode — learn software development by building a real project. Sets up the learner profile, confirms the project, and writes `.claude/training-mode`. From that point on, PM runs the session in **mentor register** — a genuinely distinct mode: explains the "why" before every step, assigns you tasks alongside the agent swarms, checks in after each wave, and logs your progress to `.claude/training-progress.md`. The workflow is unchanged; the framing is different. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
 
 ---
 
@@ -258,7 +264,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `performance-auditor` | Sonnet | N+1 queries, O(n²) paths, hot-path issues |
 | `debugger` | Sonnet | Root cause analysis, fix strategy |
 | `error-detective` | Sonnet | Log and stack trace pattern analysis |
-| `project-manager` | Sonnet | Feature challenge gate + end-to-end lifecycle coordination |
+| `project-manager` | Sonnet | Primary user interface for every session — challenge gate, roadmap ownership, lifecycle coordination. Shifts to mentor register in training mode. Checks for plugin updates weekly. |
 | `review-orchestrator` | Sonnet | Parallel review pipeline aggregation |
 | `code-lead` | Opus | Technical sign-off, merge gate verdict |
 | `test-writer` | Haiku | Unit, integration, and e2e tests from specs; fixed data only |
@@ -496,8 +502,13 @@ git push
 | Find security issues | `security-auditor` | files to audit + data flow context |
 | Write tests (unit/integration/e2e) | `test-writer` | implementation or spec + test framework |
 | Root cause an error | `error-detective` | stack trace or log output |
+| Investigate a specific bug | `debugger` | error-detective findings + relevant source files |
+| Write a precise implementation spec | `spec-writer` | feature or refactor description + constraints |
 | Write docs for a module | `doc-writer` | the file + any design intent notes |
 | Check architecture violations | `architecture-enforcer` | diff + layer map |
+| Review a diff for code quality | `code-reviewer` | the diff + any relevant context |
+| Audit for performance issues | `performance-auditor` | files or paths to scan + any known bottlenecks |
+| Audit dependencies | `dependency-auditor` | package manifest(s) — `package.json`, `requirements.txt`, `Cargo.toml`, etc. |
 | Break down a task | `task-decomposer` | feature description + constraints |
 | Schedule parallel work | `wave-planner` | task list from task-decomposer |
 
@@ -521,4 +532,4 @@ git push
 | M12 — Reliability & Adaptive Systems | ✅ Done |
 | M13 — Profile Additions | ✅ Done |
 | M14 — Advanced Production Modeling | ✅ Done |
-| M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0 shipped** |
+| M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0-rc** |
