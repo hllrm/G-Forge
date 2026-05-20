@@ -521,4 +521,4 @@ git push
 | M12 — Reliability & Adaptive Systems | ✅ Done |
 | M13 — Profile Additions | ✅ Done |
 | M14 — Advanced Production Modeling | ✅ Done |
-| M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0 shipped** |
+| M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0-rc** |
