@@ -332,21 +332,34 @@ If no version note was produced for a stack (Step 2 returned no stable data), sk
 
 Combo profiles have no agent file — skip agent installation for any combo key in the install list.
 
-## Step 7 — Append architecture rules to CLAUDE.md
+## Step 7 — Install architecture rules
+
+Architecture rules live in `.claude/rules/` as separate files. CLAUDE.md holds a one-line `@reference` per profile — never the full content inline. This keeps CLAUDE.md thin regardless of how many profiles are installed, and allows `/g-update` to refresh rules by writing files rather than surgically editing CLAUDE.md.
+
+Create `.claude/rules/` if it does not exist.
 
 Read `CLAUDE.md` in the current project root. If it does not exist, create it with just a `# [Project]` header first.
 
-For each profile, check whether rules are already present by searching for `<!-- G-Forge [stack] Architecture Rules -->`. If found, tell the developer: "Architecture rules for [stack] already in CLAUDE.md. Skipping." and skip that profile's rules.
+**For each profile in the install list:**
 
-For each profile whose rules are not yet present, append:
+1. Copy `profiles/[stack]/rules/architecture.md` from the plugin to `.claude/rules/architecture-[stack].md` in the project. Overwrite if it already exists — rules files are g-team managed.
 
+2. Check if `<!-- G-Forge [stack] Architecture Rules` is already present in CLAUDE.md.
+   - If found: skip (already registered).
+   - If not found: append:
+     ```
+     <!-- G-Forge [stack] Architecture Rules — injected by /g-specialize. Do not edit manually. -->
+     @.claude/rules/architecture-[stack].md
+     <!-- End G-Forge [stack] Architecture Rules -->
+     ```
+
+**Repeat for each combo key in `Combos detected`** — same pattern. Combo rules destination: `.claude/rules/architecture-[combo-key].md`.
+
+Report per profile:
 ```
-<!-- G-Forge [stack] Architecture Rules — injected by /g-specialize. Do not edit manually. -->
-[full content of profiles/[stack]/rules/architecture.md]
-<!-- End G-Forge [stack] Architecture Rules -->
+✓ .claude/rules/architecture-[stack].md   — rules installed
+✓ CLAUDE.md — @.claude/rules/architecture-[stack].md registered
 ```
-
-Repeat this same loop for each combo key in `Combos detected` — same marker format, same duplication check, same append pattern. Use `profiles/<combo-key>/rules/architecture.md` as the content source.
 
 ## Step 8 — Report and initial dependency audit
 
