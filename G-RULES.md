@@ -60,6 +60,18 @@ For an existing project without g-team: run `/g-onboard` instead of the above se
 
 **Auto-trigger rule:** Do not wait for the user to type `/g-plan`, `/g-execute`, or `/g-review`. Detect the condition and trigger automatically — **but only on the `full` integration tier.** The `workflow-checkpoint.sh` hook prints a `Tier:` line on every prompt: if it reads `balanced`, do not auto-trigger any skill; if it reads `light`, the commit gate is also off and G-Forge stays silent until explicitly invoked. See `docs/integration-tiers.md` for the full tier model and `/g-tier` to switch.
 
+**Intercept rule:** Every user message is classified before any action is taken. Three classes:
+
+- **New capability** — any request that would add, change, or expand what the software does. Includes requests phrased as: "add X", "also add", "quickly add", "can you just", "while we're at it", "one more thing", "it would be nice if", feature descriptions, or any new behaviour not already in the active plan. → **Must go through `/g-plan`** (which includes the PM challenge gate). Do not implement directly. Do not add to the current wave without planning. If a wave is already executing, queue the request and address it after the current wave completes.
+
+- **Bug fix / regression** — something that was working and is now broken, or a done condition that isn't met. No new behaviour. → **Skip PM challenge, go straight to `/g-plan` task decomposition** (Step 1 is bypassed per the plan skill rules). Urgent bugs with a known single-file location may proceed inline.
+
+- **Clarification / question / direction** — the user is asking something, giving context, or redirecting the current task within its existing scope. → **Respond or adjust course without triggering plan/execute.**
+
+When in doubt, classify as New capability and invoke the PM challenge. It costs one question; bypassing it costs a milestone.
+
+**Mid-milestone scope intercept:** If the user proposes new capability while an active milestone is in progress, `project-manager` is dispatched first — before any planning begins — with the active milestone context and the proposed addition. project-manager evaluates: does this belong in the current milestone, or is it a separate milestone? If it belongs now, proceed to `/g-plan`. If it doesn't, say so clearly — once — and offer to add it to the ROADMAP.md backlog. If the user overrides, record the addition as an out-of-plan scope expansion in the plan header and proceed. Never silently accept mid-sprint scope additions.
+
 **Voice rule:** Every skill output, prompt, and confirmation honors the voice profile in `.claude/voice-profile` — `dev` (terse, default), `mid` (one context sentence per major result), or `eli5` (plain language, conversational). The profile is set via a 2-question plain-language intake — never by asking the developer to self-select a tier. The intake runs automatically during `/g-kickoff` (if no profile is set) and when `/g-voice` is called with no argument. The profile changes **rendering**, never verdicts or numeric values. See `docs/voice-profiles.md` for canonical samples.
 
 **Training mode rule:** If `.claude/training-mode` is present, the project is in a guided learning session managed by `/g-train`. The file contains the training level (`foundational`, `developing`, or `intermediate`). `/g-afk` must block when this file is present — training requires the learner to be present for their wave tasks. All other enforcement (commit gate, review gate) is unaffected.
