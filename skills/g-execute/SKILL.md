@@ -85,7 +85,8 @@ Each agent prompt must be self-contained and include:
 - The specific task and its done condition from the plan
 - Relevant file paths mentioned in the plan
 - The constraint: "Do not touch files outside your task scope."
-- "Return: brief summary of what you did and whether your done condition is met."
+- **Documentation step (mandatory):** "After completing your implementation, dispatch `doc-writer` for every file you created or modified that has public interfaces, exported functions, classes, or types. Provide doc-writer with: the files changed, what changed and why, and any design intent that isn't obvious from the code. Also check whether the project README has a section relevant to what you built — if it does, update it; if it's missing and should exist, create it or flag the gap explicitly in your summary. Include doc-writer's output in your task summary."
+- "Return: brief summary of what you did, what doc-writer updated, and whether your done condition is met."
 - The Step 0 telemetry-profile clause (when the active profile is `defensive` or `recovery`)
 
 ### Wave completion gate

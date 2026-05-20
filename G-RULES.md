@@ -324,11 +324,15 @@ Undocumented decisions become invisible. Undocumented APIs block adoption. Undoc
 
 Any PR that changes a function signature, module responsibility, user-facing behaviour, configuration option, or public API must update the corresponding documentation in the same PR. Outdated documentation is a Major finding in code review — it actively misleads.
 
-### Documentation review
+### Documentation ownership
 
-`code-reviewer` checks for missing and stale documentation on every PR. Missing documentation on public exports is a **Major** finding that blocks MERGE READY. `doc-writer` is dispatched by `review-orchestrator` when the diff touches public exports, to fill gaps before the review completes.
+Documentation is the implementing agent's responsibility, not the reviewer's. Every subagent that creates or modifies code with public interfaces must dispatch `doc-writer` as its **final step**, before returning its result to HQ. The implementing agent has full context of what it just built and why — that context is most valuable at the moment of implementation, not during retrospective review.
 
-Run `/g-docs [path|all]` at any time for a full documentation audit with gap-filling. Run `/g-adr` to capture any architectural decision.
+`doc-writer` receives: the files changed, what changed and why, and any design intent not obvious from the code. It also checks whether the project README has a relevant section and updates it or flags the gap.
+
+`code-reviewer` and `review-orchestrator` then **validate** documentation coverage rather than generate it. Missing documentation on public exports remains a **Major** finding — but the expectation is that the implementing agent already handled it. If review catches a gap, it means the agent failed to dispatch doc-writer; this feeds into the hallucination-rate metric.
+
+Run `/g-docs [path|all]` at any time for a full documentation audit. Run `/g-adr` to capture any architectural decision.
 
 ---
 
