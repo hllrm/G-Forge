@@ -245,7 +245,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
 | `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `docs/integration-tiers.md`. |
 | `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
-| `/g-train [project idea]` | Training mode — learn software development by building a real project. Runs the full G-Forge workflow (kickoff → roadmap → plan → execute → review) with a teaching layer at every stage: explains why each step exists and gives you tasks alongside the agent swarms calibrated to your experience level. If you have no project idea, G-Forge generates one suited to your level. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
+| `/g-train [project idea]` | Training mode — learn software development by building a real project. Sets up the learner profile, confirms the project, and writes `.claude/training-mode`. From that point on, PM runs the session in **mentor register** — a genuinely distinct mode: explains the "why" before every step, assigns you tasks alongside the agent swarms, checks in after each wave, and logs your progress to `.claude/training-progress.md`. The workflow is unchanged; the framing is different. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
 
 ---
 
@@ -264,7 +264,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `performance-auditor` | Sonnet | N+1 queries, O(n²) paths, hot-path issues |
 | `debugger` | Sonnet | Root cause analysis, fix strategy |
 | `error-detective` | Sonnet | Log and stack trace pattern analysis |
-| `project-manager` | Sonnet | Feature challenge gate + end-to-end lifecycle coordination |
+| `project-manager` | Sonnet | Primary user interface for every session — challenge gate, roadmap ownership, lifecycle coordination. Shifts to mentor register in training mode. Checks for plugin updates weekly. |
 | `review-orchestrator` | Sonnet | Parallel review pipeline aggregation |
 | `code-lead` | Opus | Technical sign-off, merge gate verdict |
 | `test-writer` | Haiku | Unit, integration, and e2e tests from specs; fixed data only |
