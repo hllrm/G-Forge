@@ -1,23 +1,57 @@
 ---
 name: g-voice
-description: Switch the G-Forge voice profile between `dev` (terse, jargon-dense — default), `mid` (explained-but-concise, glossary inline), and `eli5` (plain language, conversational). Writes `.claude/voice-profile`. Every G-Forge skill reads this and renders its output accordingly.
+description: Set how G-Forge communicates with you. With no argument, runs a short 2-question intake and sets the right profile automatically — you never need to know the tier names. With `dev`, `mid`, or `eli5` as an argument, applies that profile directly. Writes `.claude/voice-profile`. Every G-Forge skill reads this and renders its output accordingly.
 ---
 
-**Announce:** "Using g-voice to read or change the voice profile."
+**Announce:** "Using g-voice to set the communication style."
 
-You manage how G-Forge talks to the developer. The profile changes rendering — never facts, never verdicts.
+You manage how G-Forge talks to the developer. The profile changes rendering — never facts, never verdicts. The developer should never have to self-select a tier they don't understand — when called with no argument, run the intake interview and derive the right profile from their answers.
 
 ## Step 1 — Resolve intent
 
 Inspect `$ARGUMENTS`:
 
-1. **Empty** — read `.claude/voice-profile`. If absent, treat as `dev`. Print the status block (Step 5) including a 3-sample preview of how each profile renders the same example output. Do not write.
-2. **One of `dev` / `mid` / `eli5`** — proceed to Step 2.
+1. **Empty** — run the language intake (Step 1a). Do not show the current profile or ask the developer to pick a tier — interview first, write second.
+2. **One of `dev` / `mid` / `eli5`** — skip to Step 2 (power-user shortcut).
 3. **Anything else** — print:
    ```
-   ✗ Unknown profile '[arg]'. Valid: dev, mid, eli5.
+   ✗ Unknown value '[arg]'. Run /g-voice with no argument to answer a couple of questions and have the right style set for you. Or use: dev · mid · eli5
    ```
    Stop.
+
+## Step 1a — Language intake (empty-arg case only)
+
+Ask these two questions one at a time, in plain language. Never mention `dev`, `mid`, `eli5`, or "profile" to the developer.
+
+**Question 1:**
+> "A quick question so I can communicate in a way that actually helps — how long have you been writing code?
+> a) New or just getting started — under a year
+> b) A year or two in — I've built some things, still learning
+> c) Three or more years — I ship regularly"
+
+Wait for the answer.
+
+**Question 2:**
+> "When something important happens — a test failing, a review flagging issues, a wave finishing — how much explanation do you want?
+> a) Plain language — explain what it means, not just the technical term
+> b) A brief note of context alongside the result
+> c) Just the result — I'll figure out the rest"
+
+Wait for the answer. Derive the profile:
+
+| Q1 | Q2 | Profile |
+|----|----|---------|
+| a (new) | a (plain) | `eli5` |
+| a (new) | b (context) | `eli5` |
+| a (new) | c (just result) | `mid` |
+| b (some experience) | a (plain) | `mid` |
+| b (some experience) | b (context) | `mid` |
+| b (some experience) | c (just result) | `dev` |
+| c (experienced) | a (plain) | `mid` |
+| c (experienced) | b (context) | `dev` |
+| c (experienced) | c (just result) | `dev` |
+
+Proceed to Step 2 with the derived profile name.
 
 ## Step 2 — Apply the switch
 

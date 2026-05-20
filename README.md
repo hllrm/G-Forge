@@ -41,7 +41,7 @@ The goal isn't to automate your project. It's to give it a better chance of succ
 /plugin install g-team
 ```
 
-All 17 G-Forge agents, 30 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All 17 G-Forge agents, 31 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -90,7 +90,7 @@ This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, 
 
 ### Verify
 
-Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`.
 
 ### Set up a new project
 
@@ -244,7 +244,8 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
 | `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
 | `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `docs/integration-tiers.md`. |
-| `/g-voice [dev\|mid\|eli5]` | Switch the voice profile. `dev` (default) = terse, jargon-dense; `mid` = explained-but-concise; `eli5` = plain language, conversational. Same facts, same verdicts — rendering changes. Read mode shows side-by-side samples. Writes `.claude/voice-profile`. See `docs/voice-profiles.md`. |
+| `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
+| `/g-train [project idea]` | Training mode — learn software development by building a real project. Runs the full G-Forge workflow (kickoff → roadmap → plan → execute → review) with a teaching layer at every stage: explains why each step exists and gives you tasks alongside the agent swarms calibrated to your experience level. If you have no project idea, G-Forge generates one suited to your level. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
 
 ---
 
