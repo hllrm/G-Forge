@@ -1,6 +1,6 @@
 ---
 name: g-specialize
-description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin, claude-plugin. Supplementary: frontend-data-flow (auto-installed alongside component frameworks).
+description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Version research uses a three-layer strategy — Upstash Redis cache (if UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set), then Context7 MCP docs (if mcp__context7 is configured), then WebSearch fallback — so results are fast on repeat runs and authoritative on first run. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin, claude-plugin. Supplementary: frontend-data-flow (auto-installed alongside component frameworks).
 ---
 
 **Announce:** "Using g-specialize to apply the stack profile."
@@ -126,9 +126,87 @@ If `Profiles to apply` contains any component-framework stack — `react`, `vue-
 
 ## Step 2 — Research current stable/LTS state
 
-For each stack in `Profiles to apply`, run a WebSearch to verify the current stable and LTS version and identify any best-practice changes that may not be reflected in the installed profile.
+For each stack in `Profiles to apply`, research the current stable version and best-practice changes using a three-layer strategy: Upstash cache → Context7 docs → WebSearch fallback.
 
-**Search queries to run (in parallel, one pair per stack):**
+---
+
+### 2a — Upstash cache check (optional)
+
+Skip this sub-step entirely if `UPSTASH_REDIS_REST_URL` or `UPSTASH_REDIS_REST_TOKEN` are not set in the environment.
+
+For each stack, run via Bash:
+
+```bash
+CACHE_KEY="g-forge:specialize:[stack]:$(date +%Y-%m)"
+curl -sf \
+  -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN" \
+  "${UPSTASH_REDIS_REST_URL}/get/${CACHE_KEY}"
+```
+
+The response is a JSON object `{"result": "<value>"}`. If `result` is non-null and non-empty, use that string as the version note for this stack and skip sub-steps 2b and 2c for it. If `result` is null (cache miss) or the curl fails, proceed to 2b.
+
+Cache keys are scoped to year-month (`YYYY-MM`), so a cached note is valid for the remainder of the calendar month.
+
+---
+
+### 2b — Context7 docs lookup (primary, for cache-miss stacks)
+
+Context7 provides authoritative, up-to-date library documentation directly. Use it before falling back to web search.
+
+For each stack that was not satisfied by the cache:
+
+1. Call `mcp__context7__resolve-library-id` with the library name from the mapping below. If the tool is unavailable (MCP not configured), skip to 2c for all remaining stacks.
+
+2. If a library ID is returned, call `mcp__context7__get-library-docs` with that ID, `topic: "stable version changelog breaking changes"`, and `tokens: 5000`.
+
+3. From the response extract:
+   - Current stable version number (and LTS if the ecosystem tracks both)
+   - Breaking changes or major deprecations since the prior major — only those affecting code patterns (file structure, API surface, idioms)
+   - Updated recommended patterns that differ from the profile baseline (new router API, state management shift, compiler default, etc.)
+
+   Ignore: verbatim changelogs, patch-level fixes, anything behind a feature flag, anything pre-release.
+
+4. If `resolve-library-id` returns no match, or `get-library-docs` returns an empty or insufficient response, mark this stack for **WebSearch fallback** (2c).
+
+**Stack → Context7 library name mapping:**
+
+| Stack | Library name(s) to resolve |
+|---|---|
+| `react` | `facebook/react` |
+| `vue-pinia` | `vuejs/core` + `vuejs/pinia` (resolve both; merge results) |
+| `next-js` | `vercel/next.js` |
+| `nuxt` | `nuxt/nuxt` |
+| `sveltekit` | `sveltejs/kit` |
+| `angular` | `angular/angular` |
+| `astro` | `withastro/astro` |
+| `remix` | `remix-run/remix` |
+| `react-native` | `facebook/react-native` |
+| `expo` / `capacitor` | `expo/expo` |
+| `nest-js` | `nestjs/nest` |
+| `express` | `expressjs/express` |
+| `hono` | `honojs/hono` |
+| `bun` | `oven-sh/bun` |
+| `fastapi` | `tiangolo/fastapi` |
+| `django` | `django/django` |
+| `flask` | `pallets/flask` |
+| `laravel` | `laravel/framework` |
+| `rails` | `rails/rails` |
+| `phoenix-liveview` | `phoenixframework/phoenix_live_view` |
+| `spring-boot` | `spring-projects/spring-boot` |
+| `kotlin-ktor` | `ktorio/ktor` |
+| `rust-axum` | `tokio-rs/axum` |
+| `tauri` | `tauri-apps/tauri` |
+| `electron` | `electron/electron` |
+| `flutter` | `flutter/flutter` |
+| `swift-ios` | `apple/swift` |
+
+For stacks not in this table (e.g. `c-embedded`, `cpp-cmake`, `godot-*`, `unity`, `unreal`, `wpf-csharp`, `maui`, `xamarin`, `pygame`, `python-textual`, `python-cli`, `python-data`, `python-ml`, `go-fiber`, `go-gin`, `rust-cli`, `node-ts`, `kotlin-android`, `claude-plugin`): skip to WebSearch fallback (2c) directly.
+
+---
+
+### 2c — WebSearch fallback (for stacks not covered by Context7 or with empty responses)
+
+For each remaining stack, run in parallel (one pair per stack):
 - `"[stack] stable release [current year]"`
 - `"[stack] best practices [current year]"`
 
@@ -137,27 +215,45 @@ For each stack in `Profiles to apply`, run a WebSearch to verify the current sta
 - Ignore anything labelled alpha, beta, RC, canary, nightly, preview, experimental, or unreleased.
 - If the only available information is pre-release, skip and note: "No stable/LTS data found — profile defaults apply."
 
-**Extract per stack (skip if not found in stable/LTS sources):**
-- Current stable version number (and LTS version if the ecosystem tracks both separately)
-- Any **breaking changes or major deprecations** since the prior major version — only if they affect recommended code patterns (file structure, API surface, idioms)
-- Any **updated recommended patterns** that differ from what the profile likely captures (e.g., a new router API replacing the old one, a new state management recommendation, a compiler option that is now the default)
+Extract the same fields as 2b (stable version, breaking changes, updated patterns). Apply the same exclusions (no verbatim changelogs, no patch details, no feature-flagged APIs).
 
-**Do not extract:**
-- Changelogs, release notes verbatim, or lists of bug fixes
-- Minor patch details
-- Anything still behind a feature flag or opt-in experimental API
+---
 
-**Synthesise into a version note per stack:**
+### 2d — Synthesise version notes
+
+For each stack (regardless of which source produced the data), format as:
 
 ```
 [stack] — stable [version] (LTS: [version or "same"])
+Source: [context7 | websearch | upstash-cache]
 Notable since last major:
   • [change 1 — one line, code-impact only]
   • [change 2]
   (or: "No material pattern changes found.")
 ```
 
-If a stack returns no stable-version data after searching, note `"stable version not confirmed — profile defaults apply"` and continue.
+If a stack returns no data from any source, note `"stable version not confirmed — profile defaults apply"` and continue.
+
+---
+
+### 2e — Upstash cache write (optional)
+
+Skip if Upstash env vars are not set, or if the note came from the cache (no need to re-write).
+
+For each freshly-researched version note, store it via Bash:
+
+```bash
+CACHE_KEY="g-forge:specialize:[stack]:$(date +%Y-%m)"
+NOTE="[url-encoded version note string]"
+curl -sf -X POST "${UPSTASH_REDIS_REST_URL}" \
+  -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "[\"SET\", \"${CACHE_KEY}\", \"${NOTE}\", \"EX\", \"2592000\"]"
+```
+
+TTL is 2 592 000 seconds (30 days). This ensures the note is available for future `/g-specialize` runs in the same project without re-fetching.
+
+---
 
 Store all version notes for use in Step 3 (confirmation) and Step 7 (agent installation).
 
@@ -389,3 +485,6 @@ List only the profiles that were actually applied.
 - If the developer provides an explicit stack arg, skip all detection and go straight to Step 2 (research) then Step 4 (confirm).
 - Research (Step 2) covers stable and LTS releases only. Pre-release, canary, experimental, and RC versions are ignored regardless of recency.
 - Version notes are informational — they do not override profile rules. If a current stable pattern contradicts a profile rule, surface the conflict to the developer during confirmation; do not silently rewrite the rules file.
+- Upstash and Context7 are both optional. If `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` are absent, skip all cache steps silently. If the `mcp__context7` tools are unavailable, skip to WebSearch fallback. Never block or error because of a missing optional service.
+- Version note source (`context7 | websearch | upstash-cache`) is included in the synthesised note so developers can see which data tier was hit.
+- Upstash cache TTL is 30 days. Keys are scoped to year-month so a note never survives past its calendar month without a refresh.
