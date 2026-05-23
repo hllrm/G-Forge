@@ -315,6 +315,16 @@ Agent filename: use the filename of the agent file from the stack → file mappi
 
 If the file already exists, read it first. If the `name:` field in frontmatter matches, tell the developer: "[agent-name] is already installed. Overwrite? (y/n)" and wait for confirmation before proceeding.
 
+**Before writing each agent file**, inject the following fields into the frontmatter if not already present. Add them after the last existing frontmatter field, before the closing `---`:
+
+```
+skills:
+  - project-context
+memory: project
+```
+
+This gives each architect agent a warm start (project structure map preloaded) and persistent memory that accumulates stack-specific patterns and violations across sessions.
+
 **After writing each agent file**, append the stack's version note from Step 2 as a versioned addendum at the end of the file:
 
 ```

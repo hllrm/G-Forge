@@ -124,6 +124,7 @@ For each of the following four hook files, copy from `<plugin-hooks>/<filename>`
 |------|--------|-------------|
 | `check-commit.sh` | `<plugin-hooks>/check-commit.sh` | `.claude/hooks/check-commit.sh` |
 | `post-commit-cleanup.sh` | `<plugin-hooks>/post-commit-cleanup.sh` | `.claude/hooks/post-commit-cleanup.sh` |
+| `build-index.sh` | `<plugin-hooks>/build-index.sh` | `.claude/hooks/build-index.sh` |
 | `pre-compact.sh` | `<plugin-hooks>/pre-compact.sh` | `.claude/hooks/pre-compact.sh` |
 | `workflow-checkpoint.sh` | `<plugin-hooks>/workflow-checkpoint.sh` | `.claude/hooks/workflow-checkpoint.sh` |
 
@@ -183,6 +184,11 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
             "type": "command",
             "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/post-commit-cleanup.sh\"'",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/build-index.sh\"'",
+            "timeout": 5000
           }
         ]
       }
@@ -204,7 +210,19 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
 
 Write the merged result back to `.claude/settings.json`.
 
-## Step 7a — First-chat onboarding (voice + tier)
+## Step 7a — Bootstrap project context index
+
+Create `.claude/skills/project-context/` if it does not exist. Then run:
+
+```bash
+bash .claude/hooks/build-index.sh
+```
+
+This generates the first `.claude/skills/project-context/SKILL.md` from the current repo state. On a brand-new repo with no commits yet, the script exits cleanly with no output — the index will populate on the first commit.
+
+Report: `✓ .claude/skills/project-context/ — project context index initialized`
+
+## Step 7b — First-chat onboarding (voice + tier)
 
 Ask the developer two short questions to set up `.claude/voice-profile` and `.claude/integration-tier`. Ask one at a time, wait for each answer.
 
