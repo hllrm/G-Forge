@@ -137,13 +137,14 @@ All four hook scripts are **copied verbatim from the plugin cache** rather than 
 
 Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-team/g-team/*/hooks/`. Call this `<plugin-hooks>`.
 
-For each of the following four hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
+For each of the following five hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
 
 | Hook | Source | Destination |
 |------|--------|-------------|
 | `check-commit.sh` | `<plugin-hooks>/check-commit.sh` | `.claude/hooks/check-commit.sh` |
 | `post-commit-cleanup.sh` | `<plugin-hooks>/post-commit-cleanup.sh` | `.claude/hooks/post-commit-cleanup.sh` |
 | `pre-compact.sh` | `<plugin-hooks>/pre-compact.sh` | `.claude/hooks/pre-compact.sh` |
+| `session-start.sh` | `<plugin-hooks>/session-start.sh` | `.claude/hooks/session-start.sh` |
 | `workflow-checkpoint.sh` | `<plugin-hooks>/workflow-checkpoint.sh` | `.claude/hooks/workflow-checkpoint.sh` |
 
 After copying each file, ensure it is executable: `chmod +x .claude/hooks/<filename>` (best effort — on Windows, file mode bits may not apply but Claude Code still runs the script via bash).
@@ -153,10 +154,11 @@ Report:
   ✓ .claude/hooks/check-commit.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/post-commit-cleanup.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/pre-compact.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/session-start.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/workflow-checkpoint.sh — installed (canonical from plugin cache)
 ```
 
-If the plugin cache does not contain any of the four scripts, stop and report:
+If the plugin cache does not contain any of the five scripts, stop and report:
 ```
 ✗ Plugin cache missing hook file: <plugin-hooks>/<filename>
   Reinstall the plugin: /plugin install g-team
@@ -216,6 +218,17 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/session-start.sh\"'",
+            "timeout": 8000
+          }
+        ]
+      }
     ]
   }
 }
@@ -271,7 +284,7 @@ G-Forge initialized ✓
   ✓ ROADMAP.md — stub created (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
-  ✓ .claude/hooks/ — check-commit.sh, workflow-checkpoint.sh, post-commit-cleanup.sh, and pre-compact.sh installed
+  ✓ .claude/hooks/ — check-commit.sh, workflow-checkpoint.sh, post-commit-cleanup.sh, pre-compact.sh, and session-start.sh installed
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]
