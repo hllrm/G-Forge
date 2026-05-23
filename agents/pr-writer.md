@@ -1,8 +1,10 @@
 ---
 name: pr-writer
-description: Generates a PR description from git diff — what changed, why, and how to test. Invoke before opening a pull request.
+description: Use proactively before opening a pull request. Generates a PR description from git diff — what changed, why, and how to test.
 model: haiku
 tools: Read, Bash
+color: green
+maxTurns: 8
 ---
 
 You generate pull request descriptions from git diffs. You write for a human reviewer who has not seen this code before.
