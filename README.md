@@ -193,13 +193,15 @@ Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orch
 
 ## Commit Enforcement
 
-Once `/g-init` is run in a project, three hooks are installed:
+Once `/g-init` is run in a project, four hooks are installed:
 
 **`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count (from `.claude/tier3-active`), and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
 
 **`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-team-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
 
 **`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-team-approved` after a successful commit.
+
+**`build-index.sh`** (`PostToolUse`) — fires after every `git commit`. Regenerates `.claude/skills/project-context/SKILL.md` with a machine-derived project map: source tree, recent commits, active milestone, and key dependencies. This index is preloaded into `code-lead`, `wave-planner`, `task-decomposer`, and all architect agents so they start with full project context rather than discovering it via tool calls.
 
 The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
@@ -253,10 +255,12 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 17 agents ship with every install. Full reference: [docs/agents.md](docs/agents.md)
 
+Three agents are **scaffolded** — they start warm with project context preloaded and no discovery turns needed. `code-lead` additionally accumulates a persistent memory of project-specific patterns across sessions.
+
 | Agent | Tier | Role |
 |-------|------|------|
-| `task-decomposer` | Sonnet | Atomic task breakdown with done conditions |
-| `wave-planner` | Sonnet | Parallel wave schedule from task list |
+| `task-decomposer` | Sonnet | Atomic task breakdown with done conditions — project context preloaded |
+| `wave-planner` | Sonnet | Parallel wave schedule from task list — project context preloaded |
 | `spec-writer` | Sonnet | Precise implementation specs for executor agents |
 | `code-reviewer` | Opus | Code quality, logic errors, DRY violations |
 | `security-auditor` | Opus | OWASP Top 10, injection, secrets, auth flaws |
@@ -266,7 +270,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `error-detective` | Sonnet | Log and stack trace pattern analysis |
 | `project-manager` | Sonnet | Primary user interface for every session — challenge gate, roadmap ownership, lifecycle coordination. Shifts to mentor register in training mode. Checks for plugin updates weekly. |
 | `review-orchestrator` | Sonnet | Parallel review pipeline aggregation |
-| `code-lead` | Opus | Technical sign-off, merge gate verdict |
+| `code-lead` | Opus | Technical sign-off, merge gate verdict — project context preloaded, persistent memory across sessions |
 | `test-writer` | Haiku | Unit, integration, and e2e tests from specs; fixed data only |
 | `doc-writer` | Haiku | Inline docs explaining WHY not WHAT |
 | `pr-writer` | Haiku | PR descriptions from git diff |
@@ -342,7 +346,9 @@ Quick reference for the most common workflows.
                      Installs .claude/hooks/workflow-checkpoint.sh (UserPromptSubmit)
                                .claude/hooks/check-commit.sh (PreToolUse — commit gate)
                                .claude/hooks/post-commit-cleanup.sh (PostToolUse — sentinel cleanup)
-                     Registers all three in .claude/settings.json
+                               .claude/hooks/build-index.sh (PostToolUse — project context index)
+                     Registers all four in .claude/settings.json
+                     Builds first .claude/skills/project-context/SKILL.md immediately
 
 /g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
 ```
