@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: Produces a precise implementation spec from a brief or task — precise enough for a Haiku agent to execute without judgment calls. Invoke when a task needs speccing before handoff.
+description: Use when a task needs to be specced before handoff to an executor. Produces an implementation spec precise enough for a Haiku agent to execute without judgment calls.
 model: sonnet
 tools: Read, Glob, Grep
 color: blue
