@@ -269,8 +269,9 @@ G-Forge initialized ✓
   ✓ ROADMAP.md — stub created (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
-  ✓ .claude/hooks/ — check-commit.sh, workflow-checkpoint.sh, post-commit-cleanup.sh, and pre-compact.sh installed
+  ✓ .claude/hooks/ — check-commit.sh, workflow-checkpoint.sh, post-commit-cleanup.sh, build-index.sh, and pre-compact.sh installed
   ✓ .claude/settings.json — hooks registered
+  ✓ .claude/skills/project-context/ — project context index initialized
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]
 

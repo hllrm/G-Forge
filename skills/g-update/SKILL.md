@@ -186,6 +186,11 @@ Read `[plugin-root]/skills/g-init/SKILL.md` once. Extract each hook script's con
 - **File exists:** Replace with the extracted content. Report: `✓ .claude/hooks/post-commit-cleanup.sh — updated`.
 - **File does not exist:** Create it (along with `.claude/hooks/` if needed), write the content, and register the `PostToolUse` hook in `.claude/settings.json` if not already present (same merge-not-overwrite pattern as other hooks). Report: `✓ .claude/hooks/post-commit-cleanup.sh — created and registered`.
 
+**build-index.sh:** Two cases:
+
+- **File exists:** Replace with the content from `[plugin-root]/hooks/build-index.sh`. Report: `✓ .claude/hooks/build-index.sh — updated`.
+- **File does not exist:** Copy from `[plugin-root]/hooks/build-index.sh`, make executable, and ensure the `PostToolUse` hook entry referencing `build-index.sh` is present in `.claude/settings.json` (merge-not-overwrite). Create `.claude/skills/project-context/` if it does not exist and run `bash .claude/hooks/build-index.sh` to generate the first index. Report: `✓ .claude/hooks/build-index.sh — created and registered`.
+
 **workflow-checkpoint.sh:** Two cases:
 
 - **File exists:** Replace with the extracted content. Report: `✓ .claude/hooks/workflow-checkpoint.sh — updated`. Then check whether `.claude/settings.json` already contains a `UserPromptSubmit` hook entry whose command references `workflow-checkpoint.sh`. If it does not, add it using the same merge-not-overwrite pattern (read the current JSON, insert the hook under `hooks.UserPromptSubmit`, write back without touching other keys). Report: `✓ .claude/settings.json — UserPromptSubmit hook verified` only if the entry was missing and was just added.
