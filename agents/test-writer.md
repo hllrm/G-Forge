@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Writes tests from a spec or implementation — unit, integration, or end-to-end as applicable. Fixed data only, no Date.now() or random values. Invoke after spec-writer or after implementing code that needs coverage.
+description: Use proactively after implementing code that needs coverage or when spec-writer produces a spec. Writes unit, integration, or e2e tests. Fixed data only, no Date.now() or random values.
 model: haiku
 tools: Read, Glob, Grep, Write, Edit
 color: green

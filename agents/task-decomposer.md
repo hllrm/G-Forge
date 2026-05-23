@@ -1,6 +1,6 @@
 ---
 name: task-decomposer
-description: Breaks any request into atomic, verifiable tasks with done conditions. Invoke at the start of any multi-step implementation before touching code.
+description: Use at the start of any multi-step implementation before touching code. Breaks the request into atomic, verifiable tasks with done conditions.
 model: sonnet
 tools: Read, Glob, Grep
 color: blue
