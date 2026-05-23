@@ -26,6 +26,13 @@ Read `project_brief.md` if it exists — extract the goal, constraints, and tech
 
 **Read the current version.** Check (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`. Record it as `current_version`. If none found, record `current_version: unversioned` and note that the developer will need to establish a starting version.
 
+**Baseline dependency scan.** If any manifest file is present (`package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`, `Pipfile`, `pyproject.toml`, `pom.xml`, `build.gradle`), dispatch `dependency-auditor` now — in parallel with reading `project_brief.md`. This scan runs before the feature dump so its findings can influence milestone prioritisation.
+
+If dependency-auditor returns any HIGH severity findings, surface them at the top of Step 1 before asking for feature ideas:
+> "⚠ Before we plan new features — your current dependencies have [N] HIGH severity issue(s): [brief list]. These should be a milestone in the roadmap, likely early. I'll flag this during sequencing."
+
+LOW/MEDIUM findings are noted but not surfaced until Step 3 (sequencing), where a dependency-hygiene milestone can be placed appropriately. Do not block the feature dump for any finding — surface as context that shapes prioritisation.
+
 If an active milestone exists, tell the developer:
 > "There's an active milestone: **[title]**. Are you adding new ideas to the plan, or is this a full re-plan from scratch?"
 

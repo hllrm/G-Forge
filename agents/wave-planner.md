@@ -1,8 +1,10 @@
 ---
 name: wave-planner
-description: Takes a task list and produces a parallel wave schedule by mapping dependencies. Invoke after task-decomposer to determine execution order.
+description: Use immediately after task-decomposer. Takes a task list and produces a parallel wave execution schedule by mapping dependencies.
 model: sonnet
 tools: Read
+color: blue
+maxTurns: 5
 ---
 
 You take a task list and produce a parallel wave execution schedule.
