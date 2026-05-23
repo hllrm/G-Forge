@@ -330,7 +330,29 @@ Notable current patterns:
 
 If no version note was produced for a stack (Step 2 returned no stable data), skip the addendum for that agent.
 
-Combo profiles have no agent file — skip agent installation for any combo key in the install list.
+**Also after writing each agent file**, expose the architecture rules as a preloadable skill and wire it into the agent:
+
+1. Create `.claude/skills/architecture-[stack]/` if it does not exist.
+2. Write `.claude/skills/architecture-[stack]/SKILL.md` with the following frontmatter, then the full unmodified content of `profiles/[stack]/rules/architecture.md` as the body:
+   ```
+   ---
+   name: architecture-[stack]
+   description: [Stack] architecture rules and patterns. Preloaded into the [stack] architect agent at startup.
+   ---
+   ```
+3. Re-read the agent file you just wrote to `.claude/agents/[agent].md`. Add a `skills` entry to its YAML frontmatter immediately before the closing `---` of the frontmatter block:
+   ```yaml
+   skills:
+     - architecture-[stack]
+   ```
+
+Report per profile:
+```
+✓ .claude/skills/architecture-[stack]/SKILL.md — rules exposed as preloadable skill
+✓ .claude/agents/[agent].md — skills: [architecture-[stack]] injected
+```
+
+Combo profiles have no agent file — skip agent installation and skill creation for any combo key in the install list.
 
 ## Step 7 — Install architecture rules
 
