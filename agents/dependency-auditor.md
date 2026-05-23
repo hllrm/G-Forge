@@ -3,7 +3,6 @@ name: dependency-auditor
 description: Audits project dependencies for security advisories, deprecated packages, unmaintained projects, license conflicts, and unused declarations. Reports with severity and remediation guidance. Does not fix or upgrade. Invoke before any release commit or whenever the dependency manifest changes.
 model: sonnet
 tools: Read, Glob, Grep
-permissionMode: plan
 color: yellow
 maxTurns: 15
 ---
