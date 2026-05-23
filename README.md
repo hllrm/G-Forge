@@ -269,7 +269,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `debugger` | Sonnet | Root cause analysis, fix strategy |
 | `error-detective` | Sonnet | Log and stack trace pattern analysis |
 | `project-manager` | Sonnet | Primary user interface for every session — challenge gate, roadmap ownership, lifecycle coordination. Shifts to mentor register in training mode. Checks for plugin updates weekly. |
-| `review-orchestrator` | Sonnet | Parallel review pipeline aggregation |
+| `review-orchestrator` | Sonnet | Parallel review pipeline aggregation. Must run in the main session or from a skill (depth-0) — spawning it as a nested subagent silently blocks reviewer dispatch. |
 | `code-lead` | Opus | Technical sign-off, merge gate verdict |
 | `test-writer` | Haiku | Unit, integration, and e2e tests from specs; fixed data only |
 | `doc-writer` | Haiku | Inline docs explaining WHY not WHAT |
