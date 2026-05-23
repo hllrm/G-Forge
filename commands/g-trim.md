@@ -1,5 +1,5 @@
 ---
-description: Weekly CLAUDE.md and agent memory optimization pass. Removes orphaned references, duplicate rules, and stale content. Writes .claude/last-trim on completion.
+description: Weekly read-only audit of CLAUDE.md and agent memory. Surfaces orphaned references, duplicate rules, and stale content for human review — never modifies any file. Writes .claude/last-trim on completion.
 argument-hint: []
 ---
 

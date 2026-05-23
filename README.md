@@ -90,7 +90,7 @@ This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, 
 
 ### Verify
 
-Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`, `/g-trim`.
 
 ### Set up a new project
 
@@ -136,7 +136,7 @@ Removes the plugin globally. Per-project commit hooks (installed in `.claude/hoo
 
 `/g-init` installs `G-RULES.md` at the project root and references it from `CLAUDE.md` via `@G-RULES.md`. This gives Claude full session discipline without bloating `CLAUDE.md`.
 
-G-RULES.md has seven sections:
+G-RULES.md has ten sections, each stored as a separate `@`-referenced file in `.claude/rules/`. This keeps the monolithic load optional — reference individual sections in `CLAUDE.md` to reduce per-session token cost.
 
 | Section | What it governs |
 |---------|----------------|
@@ -146,7 +146,10 @@ G-RULES.md has seven sections:
 | **D — Code Quality** | Style (const/let/var), naming conventions, comments, error handling, testing standards, component structure, branch discipline, versioning & release flow |
 | **E — Architecture Gate** | Mandatory plan-first sequence for non-trivial changes; import direction validation; state ownership; hard stops |
 | **F — Design Patterns** | Universal principles and anti-patterns (see below) |
-| **G — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
+| **G — Documentation** | What must be documented, currency rule, documentation ownership model |
+| **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
+| **I — Project Tracking** | File hierarchy, commit gate infrastructure, todo.md structure |
+| **J — Memory** | Six-tier memory layer taxonomy |
 
 ### Section F — Design Patterns
 
@@ -246,6 +249,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `docs/integration-tiers.md`. |
 | `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
 | `/g-train [project idea]` | Training mode — learn software development by building a real project. Sets up the learner profile, confirms the project, and writes `.claude/training-mode`. From that point on, PM runs the session in **mentor register** — a genuinely distinct mode: explains the "why" before every step, assigns you tasks alongside the agent swarms, checks in after each wave, and logs your progress to `.claude/training-progress.md`. The workflow is unchanged; the framing is different. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
+| `/g-trim` | Weekly read-only audit of `CLAUDE.md` and agent memory files. Surfaces orphaned `@references`, duplicate rules, stale content, dead file refs in MEMORY.md files, and overlong memory entries — all flagged for human review, never auto-modified. The only file it writes is `.claude/last-trim`. The workflow-checkpoint hook surfaces a nudge when 7 days have passed since the last audit. |
 
 ---
 
@@ -532,4 +536,5 @@ git push
 | M12 — Reliability & Adaptive Systems | ✅ Done |
 | M13 — Profile Additions | ✅ Done |
 | M14 — Advanced Production Modeling | ✅ Done |
-| M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0-rc** |
+| M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0** |
+| M16 — Agent Hardening & Rules Decentralization | ✅ Done — **v1.2.0** |

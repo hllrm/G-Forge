@@ -1,11 +1,11 @@
 ---
 name: g-trim
-description: Use proactively once a week. Audits CLAUDE.md and agent memory files for bloat, orphaned references, duplicate rules, and stale content. Proposes a compact trim with user approval. Writes .claude/last-trim on completion.
+description: Use proactively once a week. Read-only audit of CLAUDE.md and agent memory for bloat, orphaned references, duplicate rules, and stale content. Reports issues for human review — never modifies any file. Writes .claude/last-trim on completion.
 ---
 
-**Announce:** "Using g-trim to run the weekly optimization pass."
+**Announce:** "Using g-trim to run the weekly optimization audit."
 
-You are auditing CLAUDE.md and agent memory for bloat and stale content. Read first, propose second, act only on approval. Do not modify any file until the developer confirms.
+You are auditing CLAUDE.md and agent memory for issues. This skill is **read-only**. You report findings; the developer decides what to act on. Do not edit, delete, or modify any file.
 
 ## Step 1 — Audit CLAUDE.md
 
@@ -18,11 +18,11 @@ Read `CLAUDE.md`. Check for:
 
 Produce a compact audit table:
 
-| Issue | Location | Proposed action |
-|-------|----------|-----------------|
-| Orphaned @reference | Line N: `@missing-file.md` | Remove |
-| Duplicate rule | Lines N–M | Remove from CLAUDE.md (canonical copy in G-RULES) |
-| Stale mention | Line N | Update to [new value] or remove |
+| # | Issue | Location | Recommendation |
+|---|-------|----------|----------------|
+| 1 | Orphaned @reference | Line N: `@missing-file.md` | Verify file path or remove reference |
+| 2 | Duplicate rule | Lines N–M | Consider removing (canonical copy in G-RULES) |
+| 3 | Stale mention | Line N | Consider updating to [new value] |
 
 ## Step 2 — Audit agent memory
 
@@ -38,47 +38,41 @@ Glob for `.claude/agent-memory/*/MEMORY.md` and `.claude/agent-memory-local/*/ME
 Produce a per-agent table:
 
 **Agent: [name]**
-| Issue | Line | Proposed action |
-|-------|------|-----------------|
-| Dead ref | N | Remove |
-| Duplicate | N, M | Merge |
-| Moot | N | Remove |
+| # | Issue | Line | Recommendation |
+|---|-------|------|----------------|
+| 1 | Dead ref | N | Verify or remove manually |
+| 2 | Duplicate | N, M | Consider merging manually |
+| 3 | Moot | N | Consider removing manually |
 
 If nothing found: `✓ Clean`.
 
-## Step 3 — Confirm with developer
+## Step 3 — Record completion
 
-Present the full findings. If nothing was found:
+Write today's date (`YYYY-MM-DD`) to `.claude/last-trim`. This is the only file write this skill performs.
+
+Report:
+
+```
+g-trim audit complete ✓
+
+  CLAUDE.md:    N issues found
+  Agent memory: N issues across M agents
+  Next audit:   [date + 7 days]
+
+No files were modified. Review the findings above and apply any changes manually.
+```
+
+If no issues were found:
 ```
 ✓ CLAUDE.md — clean
 ✓ Agent memory — all clean
-Nothing to trim. Next check in 7 days.
-```
-
-If issues were found, present the summary and ask:
-> "Apply these changes? (y/n) — or list the numbers you want to skip."
-
-Wait for confirmation before touching any file.
-
-## Step 4 — Apply approved changes
-
-For each approved change, use Edit with precise `old_string` → `new_string`. After each edit, confirm the change landed.
-
-## Step 5 — Record completion
-
-Write today's date (`YYYY-MM-DD`) to `.claude/last-trim`.
-
-Report:
-```
-g-trim complete ✓
-
-  CLAUDE.md:    N changes applied
-  Agent memory: N changes across M agents
-  Next trim:    [date + 7 days]
+Nothing flagged. Next audit in 7 days.
 ```
 
 ## Rules
-- Never delete a rule or memory entry without developer confirmation.
-- If a rule exists in both CLAUDE.md inline and a G-RULES section file, remove it from CLAUDE.md — the G-RULES file is authoritative.
-- If MEMORY.md exceeds 200 lines, flag it but do not auto-truncate — the developer curates it manually.
-- Do not touch `.claude/rules/architecture-*.md` or `.claude/rules/g-rules-*.md` — those are managed by `/g-specialize` and `/g-update`.
+
+- **Never modify, edit, or delete any file.** This skill is read-only.
+- The only write operation permitted is `.claude/last-trim` (the audit timestamp).
+- Do not touch `.claude/rules/architecture-*.md` or `.claude/rules/g-rules-*.md`.
+- If MEMORY.md exceeds 200 lines, flag it — the developer curates it manually.
+- Present findings as observations for the developer to act on, never as automated actions.
