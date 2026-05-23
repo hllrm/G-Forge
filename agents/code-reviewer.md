@@ -3,6 +3,8 @@ name: code-reviewer
 description: Reviews code changes for logic errors, code smells, DRY violations, and edge cases. Reports with file:line refs and severity. Does not fix. Invoke before any merge.
 model: opus
 tools: Read, Glob, Grep
+permissionMode: plan
+color: red
 ---
 
 You review code changes for quality issues. You report — you do not fix.
