@@ -2,7 +2,19 @@
 
 Drop at project root. In `CLAUDE.md` add: `@G-RULES.md`
 
-To load individual sections instead of all rules, reference the installed files directly in `CLAUDE.md`:
+To reduce per-session token cost, replace `@G-RULES.md` in `CLAUDE.md` with only the sections your project needs. Common presets:
+
+| Project type | Recommended sections |
+|---|---|
+| Minimal (any project) | A, B, C, D |
+| + architecture enforcement | + E |
+| + design patterns | + F |
+| + documentation standards | + G |
+| + testing protocol | + H |
+| + project tracking | + I |
+| Full (all rules) | A–J (`@G-RULES.md`) |
+
+Available sections:
 - `@.claude/rules/g-rules-A-session.md` — model selection, planning, execution, token optimisation
 - `@.claude/rules/g-rules-B-workflow.md` — G-Forge lifecycle, per-task loop, PM interface, skills reference
 - `@.claude/rules/g-rules-C-agent-discipline.md` — wave model, spawn decisions, agent caps

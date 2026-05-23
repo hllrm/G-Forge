@@ -49,7 +49,7 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 
 **Wave execution rule:** always use `/g-execute` for wave-based parallel dispatch.
 
-### Maintenance and support skills
+### Core maintenance skills
 
 | Skill | Purpose |
 |-------|---------|
@@ -59,23 +59,10 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 | `/g-help` | Context-aware help — reads project state and detects workflow phase |
 | `/g-doctor` | Health check: missing files, broken hooks, config drift, sentinel state |
 | `/g-listen` | Enter Tier 3 listen mode for smoke test collection |
-| `/g-retro` | Record a session retrospective — what was done, decisions, patterns, and cold-start context for the next session |
-| `/g-skill-design` | Design a new plugin skill from a brief |
-| `/g-skill-validate` | Validate a skill or agent file against plugin architecture rules |
-| `/g-audit [path\|all]` | Code quality audit — SOLID violations, smells, dead code, coverage gaps. Targeted: inline report. Whole-codebase: prioritised roadmap milestone. |
-| `/g-optimize [path\|all]` | Performance audit — complexity, N+1, re-render waste, leaks. Targeted: inline report. Whole-codebase: prioritised roadmap milestone. |
-| `/g-refactor [path\|milestone]` | Guided refactor — pre-analyse, spec, human approval, wave execution, review gate. Accepts a path, an audit milestone file, or runs interactively. |
-| `/g-docs [path\|all]` | Documentation audit and generation — missing JSDoc/docstrings, stale docs, README gaps, undocumented env vars, CHANGELOG gaps, missing ADRs. Targeted: fix via doc-writer. Whole-codebase: debt report + optional milestone. |
-| `/g-adr [title]` | Capture an architectural decision record interactively. Writes to `docs/decisions/NNN-title.md`. Run whenever a significant technical choice is made. |
-| `/g-patterns` | Mine `docs/retros/` and `todo-done.md` for recurring failure patterns. Bucket by frequency (isolated / emerging / systemic) and propose concrete profile-rule edits for any pattern observed ≥2 times. Apply/defer/dismiss per suggestion. |
-| `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Advisory — never blocks approval. Persists `docs/forecasts/<slug>.md` for feedback-loop mining. |
-| `/g-telemetry` | Compute the 8 reliability metrics defined in `docs/telemetry-metrics.md`, derive a health profile (`stable` / `cautious` / `defensive` / `recovery`), and write `.claude/telemetry-profile` for adaptive orchestration. `/g-execute` and `/g-review` read the profile in their Step 0 and adjust wave size, model tier, and reviewer count accordingly. Read-only on history. |
-| `/g-blast-radius [file\|plan\|feature]` | Map a planned change's blast radius: forward references (what the targets depend on), reverse references (what depends on the targets), and per-file volatility from git history. Outputs an aggregate rating (Narrow / Moderate / Wide) and persists to `docs/blast-radius/<slug>.md` so `/g-forecast` Step 2b can fold the rating into its complexity score. Read-only. |
-| `/g-identity` | Synthesise the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, and git history. Produces a narrative description (what the project is, how it ships, what it does well, where it struggles, what it's becoming) written to `docs/identity.md`. Qualitative complement to `/g-telemetry`'s quantitative snapshot. Refuses to run on a thin corpus. Read-only. |
-| `/g-tier [full\|balanced\|light]` | Switch the G-Forge integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state hooks only, no auto-triggers, commit gate on; `light` = workflow-checkpoint only, commit gate off (opt-out mode, requires confirmation). Writes `.claude/integration-tier`. |
-| `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically. With `dev`, `mid`, or `eli5`: applies that profile directly (power-user shortcut). Profile changes rendering across every skill — same facts, same verdicts. Writes `.claude/voice-profile`. Auto-runs during `/g-kickoff` if no profile is set. |
-| `/g-train [project idea]` | Training mode — learn software development by building a real project. Runs the full G-Forge workflow with a teaching layer at every stage: explains why each step exists, assigns tasks alongside each wave calibrated to the learner's level, and logs progress to `.claude/training-progress.md`. If no idea is provided, generates one appropriate to the learner's level. Three levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). Writes `.claude/training-mode`. `/g-kickoff` offers training mode automatically when the voice intake indicates a learner profile. |
-| `/g-trim` | Weekly CLAUDE.md and agent memory optimization pass. Removes orphaned @references, duplicate rules, and stale content from memory files. Run when the weekly nudge appears in the workflow checkpoint. Writes `.claude/last-trim` on completion. |
+| `/g-retro` | Record a session retrospective — decisions, patterns, cold-start context |
+| `/g-trim` | Weekly read-only audit of CLAUDE.md and agent memory — surfaces issues for human review, never modifies files |
+
+Run `/g-help` for the full skill reference including deep-analysis, learning, and configuration tools (`/g-audit`, `/g-optimize`, `/g-refactor`, `/g-patterns`, `/g-telemetry`, `/g-blast-radius`, `/g-forecast`, `/g-identity`, `/g-adr`, `/g-docs`, `/g-tier`, `/g-voice`, `/g-train`, `/g-skill-design`, `/g-skill-validate`).
 
 ### Hard stops
 

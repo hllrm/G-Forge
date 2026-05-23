@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] — 2026-05-23
+
+### Added
+
+- **`session-start.sh` hook (SessionStart event)** — fires once per session open. Runs `git fetch` in the background while checking local state, then reports: branch name, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Zero latency on local checks; fetch runs concurrently with a 5-second hard cap. Prints `✓ Clean and in sync with remote` when nothing to flag.
+- **Wired into `/g-init`** — session-start.sh is now copied from the plugin cache and registered as the `SessionStart` hook alongside the existing four hooks.
+- **Wired into `/g-update`** — session-start.sh is synced on every update; missing registration is auto-added.
+- **Wired into `/g-doctor`** — new required check 11: `session-start.sh` installed and `SessionStart` registered. Required check count 10 → 11.
+- **Selective loading presets in G-RULES.md** — added a project-type table (Minimal / + architecture / + design / + docs / + testing / Full) mapping to the specific section files to @-reference. Replaces the narrative hint with an actionable lookup.
+
+### Changed
+
+- **B-workflow.md skills table slimmed** — the 32-row full-reference table trimmed to 8 core skills (g-update, g-brief, g-status, g-help, g-doctor, g-listen, g-retro, g-trim). Specialist skills removed from always-loaded context (~600 token/prompt saving); available via `/g-help`.
+
 ## [1.2.0] — 2026-05-23
 
 ### Added

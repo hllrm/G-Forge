@@ -538,3 +538,4 @@ git push
 | M14 — Advanced Production Modeling | ✅ Done |
 | M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0** |
 | M16 — Agent Hardening & Rules Decentralization | ✅ Done — **v1.2.0** |
+| M17 — Token Optimization & Session Sync | ✅ Done — **v1.3.0** |

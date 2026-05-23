@@ -192,6 +192,12 @@ Read `[plugin-root]/skills/g-init/SKILL.md` once. Extract each hook script's con
 
 - **File does not exist:** Create it (along with `.claude/hooks/` if needed), write the content, and also register the `UserPromptSubmit` hook in `.claude/settings.json` if it isn't already present. Report: `✓ .claude/hooks/workflow-checkpoint.sh — created and registered`.
 
+**session-start.sh:** Two cases:
+
+- **File exists:** Replace with the content from `[plugin-root]/hooks/session-start.sh`. Report: `✓ .claude/hooks/session-start.sh — updated`. Then check whether `.claude/settings.json` already contains a `SessionStart` hook entry whose command references `session-start.sh`. If it does not, add it. Report: `✓ .claude/settings.json — SessionStart hook verified` only if the entry was missing and was just added.
+
+- **File does not exist:** Create it from the plugin source, and register the `SessionStart` hook in `.claude/settings.json` if not already present. Report: `✓ .claude/hooks/session-start.sh — created and registered`.
+
 ---
 
 ## Step 8 — Report
