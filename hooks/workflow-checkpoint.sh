@@ -137,6 +137,16 @@ if [ -f "$COVERAGE_FILE" ]; then
     fi
 fi
 
+# Weekly g-trim nudge — prompt once after 7 days since last optimization pass.
+TRIM_STAMP=".claude/last-trim"
+NEEDS_TRIM=true
+if [ -f "$TRIM_STAMP" ] && find "$TRIM_STAMP" -mmin -10080 2>/dev/null | grep -q .; then
+    NEEDS_TRIM=false
+fi
+if [ "$NEEDS_TRIM" = true ]; then
+    echo "  📋 Weekly optimization due — run /g-trim to compact CLAUDE.md and agent memory"
+fi
+
 # Self-update check — background curl once per day, zero blocking latency
 CLAUDE_DIR="$HOME/.claude"
 INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-team/g-team/.claude-plugin/plugin.json"
