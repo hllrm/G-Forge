@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0] — 2026-05-23
+
+### Added
+
+- **`/g-trim` skill** — weekly read-only audit of `CLAUDE.md` and agent memory files. Surfaces orphaned `@references`, duplicate rules, stale content, dead file refs in MEMORY.md entries, and overlong memory files — all flagged for human review. **Never modifies any file.** The only write is `.claude/last-trim` (timestamp). `workflow-checkpoint.sh` nudges once per 7 days when the stamp is absent or stale.
+- **G-RULES.md decentralization** — the 480-line monolith split into 10 per-topic section files under `rules/g-rules/` (`A-session` through `J-memory`). `G-RULES.md` becomes a thin `@`-reference index that loads all 10. Projects can reference individual files in `CLAUDE.md` to reduce per-session token cost. All 10 files are installed by `/g-init` and synced by `/g-update`.
+- **`/g-specialize` skills preloading** — after installing a stack architect agent, g-specialize creates a companion `.claude/skills/architecture-<stack>/SKILL.md` containing the architecture rules and injects a `skills:` entry into the agent frontmatter. The architect gets its rule set at startup without depending on the CLAUDE.md `@`-reference chain.
+- **Agent frontmatter hardening** — all 17 agents now use the full Claude Code subagent spec: `effort: max` on review agents, `memory: project` on agents needing persistent context across sessions, `background: true` on non-interactive read-only agents, `isolation: worktree` on `refactor-executor`, and `color` coded by role.
+- **Description routing triggers** — all 17 agent descriptions rewritten to "Use proactively when..." phrasing so Claude auto-delegates to the right agent rather than waiting for explicit invocation.
+- **Weekly g-trim nudge in `workflow-checkpoint.sh`** — surfaces once after 7 days since `.claude/last-trim`.
+
+### Fixed
+
+- **`permissionMode` removed from all agents** — plugin subagents silently ignore `permissionMode` in their frontmatter; the field had no effect and has been removed.
+- **`code-lead` review chain flattened** — subagents cannot spawn other subagents (depth limit: 1). `code-lead` was declaring `review-orchestrator` as a nested dispatch target — a dead declaration. `code-lead` now performs direct review (logic, security, performance, code quality). `review-orchestrator` is documented as depth-0-only: spawn from the main session or a skill, never from another subagent.
+
+### Changed
+
+- Skill count: 31 → 32
+- G-RULES.md sections: 7 → 10 (added G-Documentation, H-Testing, I-Project-Tracking, J-Memory as standalone section files; original G-Testing Protocol renumbered to H)
+
 ## [1.0.0] — 2026-05-19
 
 **🚀 First stable release.** G-Forge becomes a coherent production-intelligence system — not a collection of additions. M15 — Hook / Behavioral Integration Pass — wires every prior milestone into a unified experience the developer can tune to their preferences and project phase.
