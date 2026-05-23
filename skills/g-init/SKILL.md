@@ -33,20 +33,39 @@ Check if `CLAUDE.md` exists at the project root.
 
 Report: `✓ CLAUDE.md — verified`
 
-## Step 2a — Install G-RULES.md
-
-Copy `[plugin-root]/G-RULES.md` to the project root as `G-RULES.md`.
+## Step 2a — Install G-RULES.md and rule section files
 
 The plugin root is `~/.claude/plugins/cache/g-team/g-team/` (use Glob to confirm the exact path).
 
-If `G-RULES.md` already exists at the project root, overwrite it — it is g-team managed.
+1. Copy `[plugin-root]/G-RULES.md` to the project root as `G-RULES.md`. Overwrite if it exists — g-team managed.
 
-Then ensure `CLAUDE.md` contains a reference to it. Add this line near the top of CLAUDE.md (after the title, before any other content) if not already present:
-```
-@G-RULES.md
-```
+2. Create `.claude/rules/` directory if it does not exist.
 
-Report: `✓ G-RULES.md — installed`
+3. For each file in `[plugin-root]/rules/g-rules/`, copy it to `.claude/rules/` prefixed with `g-rules-`. Overwrite if it exists — g-team managed.
+
+   | Source | Destination |
+   |--------|-------------|
+   | `rules/g-rules/A-session.md` | `.claude/rules/g-rules-A-session.md` |
+   | `rules/g-rules/B-workflow.md` | `.claude/rules/g-rules-B-workflow.md` |
+   | `rules/g-rules/C-agent-discipline.md` | `.claude/rules/g-rules-C-agent-discipline.md` |
+   | `rules/g-rules/D-code-quality.md` | `.claude/rules/g-rules-D-code-quality.md` |
+   | `rules/g-rules/E-architecture-gate.md` | `.claude/rules/g-rules-E-architecture-gate.md` |
+   | `rules/g-rules/F-design-patterns.md` | `.claude/rules/g-rules-F-design-patterns.md` |
+   | `rules/g-rules/G-documentation.md` | `.claude/rules/g-rules-G-documentation.md` |
+   | `rules/g-rules/H-testing.md` | `.claude/rules/g-rules-H-testing.md` |
+   | `rules/g-rules/I-project-tracking.md` | `.claude/rules/g-rules-I-project-tracking.md` |
+   | `rules/g-rules/J-memory.md` | `.claude/rules/g-rules-J-memory.md` |
+
+4. Ensure `CLAUDE.md` contains `@G-RULES.md` near the top (after the title, before any other content):
+   ```
+   @G-RULES.md
+   ```
+
+Report:
+```
+✓ G-RULES.md — installed
+✓ .claude/rules/g-rules-*.md — 10 rule section files installed
+```
 
 ## Step 3 — Create ROADMAP.md
 
@@ -248,6 +267,7 @@ G-Forge initialized ✓
 
   ✓ CLAUDE.md — G-Forge rules injected
   ✓ G-RULES.md — installed
+  ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
   ✓ ROADMAP.md — stub created (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
