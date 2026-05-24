@@ -61,6 +61,19 @@ A set of changed files or a git diff.
 - **Major**: code that works now but will break under foreseeable conditions, or significant maintainability debt
 - **Minor**: style/clarity issue with no functional impact
 
+## Return format
+
+Write the full review to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: PASS|HOLD
+ISSUES: N critical · M major · K minor  (or "none")
+SUMMARY: [one sentence — top finding, or "no issues found"]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Cite exact `file:line` for every finding.
 - Do not rewrite code. Describe fixes in prose.

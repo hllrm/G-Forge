@@ -37,6 +37,19 @@ A set of changed files, or a description of the proposed change with the project
 **Verdict:** PASS | FAIL
 **Summary:** N violations found.
 
+## Return format
+
+Write the full architecture review to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: PASS|HOLD
+ISSUES: N violations  (or "none")
+SUMMARY: [one sentence — top violation, or "no violations found"]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Ask for the project's layer rules before reviewing if they haven't been provided.
 - Cite exact `file:line` for every violation.

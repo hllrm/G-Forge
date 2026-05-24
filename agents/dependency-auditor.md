@@ -97,6 +97,19 @@ Manifest(s) audited: [list]
 2 critical, 3 major, 2 minor.
 ```
 
+## Return format
+
+Write the full audit to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: PASS|HOLD
+ISSUES: N critical · M high · M medium · K low  (or "none")
+SUMMARY: [one sentence — top finding, or "no dependency issues found"]
+DETAIL: [output_file path]
+```
+
 ## Rules
 
 - Read-only. Never modify `package.json`, lockfiles, or any dependency manifest.

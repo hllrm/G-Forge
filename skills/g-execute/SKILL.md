@@ -79,23 +79,40 @@ Dispatching [N] tasks in parallel:
 
 ### Parallel dispatch
 
+Before Wave 1, create `docs/agent-output/` if it does not exist. Before each wave create `docs/agent-output/wave-[N]/`.
+
 Dispatch all tasks in the current wave as parallel subagents **in a single message**. Never split a wave across multiple messages.
 
-Each agent prompt must be self-contained and include:
-- The specific task and its done condition from the plan
-- Relevant file paths mentioned in the plan
-- The constraint: "Do not touch files outside your task scope."
-- **Documentation step (mandatory):** "After completing your implementation, dispatch `doc-writer` for every file you created or modified that has public interfaces, exported functions, classes, or types. Provide doc-writer with: the files changed, what changed and why, and any design intent that isn't obvious from the code. Also check whether the project README has a section relevant to what you built — if it does, update it; if it's missing and should exist, create it or flag the gap explicitly in your summary. Include doc-writer's output in your task summary."
-- "Return: brief summary of what you did, what doc-writer updated, and whether your done condition is met."
-- The Step 0 telemetry-profile clause (when the active profile is `defensive` or `recovery`)
+Use this compact template for every agent prompt. Derive `[task-slug]` by lowercasing the task name, replacing spaces and special chars with hyphens, truncated to 40 chars.
+
+```
+Task: [task name]
+Done condition: [done condition from plan]
+Files in scope: [file paths from plan, or "determine from task scope"]
+Output file: docs/agent-output/wave-[N]/[task-slug].md
+Constraint: touch only files in your task scope.
+[if defensive or recovery: telemetry clause from Step 0]
+
+1. Implement the task.
+2. For any file with public interfaces or exported functions, dispatch doc-writer (files changed + design intent).
+3. Write a complete implementation summary to the output file above.
+4. Return ONLY this block — no other prose:
+
+RESULT: DONE|BLOCKED
+SUMMARY: [one sentence]
+FILES: [files changed, comma-separated]
+DONE_CONDITION: met|not met — [reason]
+DETAIL: docs/agent-output/wave-[N]/[task-slug].md
+```
 
 ### Wave completion gate
 
 Wait for all agents in the wave to return before proceeding.
 
-For each agent result:
-- **Done condition met** → mark task complete
-- **BLOCKED** → before surfacing to the developer, dispatch `error-detective` with the blocked agent's full output and any error messages or stack traces present. Then dispatch `debugger` with error-detective's findings and the relevant source files the task was working on. Present both diagnoses alongside the block report:
+Agents return a compact block (`RESULT / SUMMARY / FILES / DONE_CONDITION / DETAIL`). Parse the `RESULT:` field:
+
+- **`DONE`** — compact block is sufficient. Mark task complete. Do not read the detail file unless you need specifics for a dependent wave.
+- **`BLOCKED`** — read the full detail file at the `DETAIL:` path. Then dispatch `error-detective` with the detail file contents and any error messages or stack traces present. Then dispatch `debugger` with error-detective's findings and the relevant source files. Present both diagnoses alongside the block report:
   ```
   ⛔ Wave [N] blocked on: [task name]
   Reason: [agent's reported blocker]

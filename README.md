@@ -290,6 +290,20 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `refactor-executor` | Haiku | Spec-exact refactoring, no scope creep |
 | `dependency-auditor` | Sonnet | Manifest security advisories, deprecations, license conflicts, unused declarations |
 
+### Agent output architecture
+
+All review and analysis agents write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact five-line summary to the calling session:
+
+```
+RESULT: DONE|BLOCKED  (or PASS|HOLD for review agents)
+ISSUES: N critical · M major · K minor
+SUMMARY: [one sentence]
+FILES: [files changed]
+DETAIL: [output file path]
+```
+
+The calling session reads the detail file only when the result is HOLD or BLOCKED. This keeps main-session context growth at ~70 tokens per agent return rather than 1,500–3,000 tokens of inline output — larger waves stay within budget, and the full audit trail is preserved on disk.
+
 ---
 
 ## Stack Profiles

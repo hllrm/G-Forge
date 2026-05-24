@@ -65,6 +65,19 @@ A set of changed files or a git diff.
 
 **Summary:** N findings (X critical, Y high, Z medium, W low)
 
+## Return format
+
+Write the full audit to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: PASS|HOLD
+ISSUES: N critical · M high · M medium · K low  (or "none")
+SUMMARY: [one sentence — top finding, or "no vulnerabilities found"]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Cite exact `file:line` for every finding.
 - Only report vulnerabilities present in the changed code — not theoretical risks.
