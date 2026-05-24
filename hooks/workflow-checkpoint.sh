@@ -78,9 +78,9 @@ fi
 PROMPT_COUNT=$((PROMPT_COUNT + 1))
 printf '%d\n' "$PROMPT_COUNT" > "$PROMPT_COUNT_FILE" 2>/dev/null || true
 
-if [ "$PROMPT_COUNT" -ge 50 ]; then
+if [ "$PROMPT_COUNT" -ge 40 ]; then
     echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges — finish current task, write /g-retro, start fresh session"
-elif [ "$PROMPT_COUNT" -ge 30 ]; then
+elif [ "$PROMPT_COUNT" -ge 25 ]; then
     echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges — approaching 100K tokens, wrap up after this task"
 fi
 
