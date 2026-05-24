@@ -24,7 +24,7 @@
 
 **A6 Delivery** — Complete snippets with all imports. Explain WHY not what. Mark placeholders (`YOUR_API_KEY`). Flag security risks. No `TODO`/`FIXME` in delivered code.
 
-**A7 Context gate** — The workflow checkpoint tracks session prompt depth. At 🟡 amber (~30 exchanges, ~75K tokens): complete the current task before starting anything new. At 🔴 red (~50 exchanges, ~125K tokens): finish the task in flight, run `/g-retro`, then tell the user to open a fresh session. Never start a new `/g-plan` at red. The handoff block in `todo.md` is the continuity contract — it must be current before the session ends.
+**A7 Context gate** — The workflow checkpoint tracks session prompt depth. At 🟡 amber (~25 exchanges, ~60K tokens): complete the current task before starting anything new. At 🔴 red (~40 exchanges, ~100K tokens): finish the task in flight, run `/g-retro`, then tell the user to open a fresh session. Never start a new `/g-plan` at red. The handoff block in `todo.md` is the continuity contract — it must be current before the session ends.
 
 **A8 Three-Strikes** — Same bug class × 3 attempts = STOP. Name the mechanism. List what failed and why. Find an alternative that bypasses it entirely. Escalate model before attempt 3, not after.
 Warning signs: error message changes but bug class persists · you're explaining why *this* approach should work when the last one didn't · fix requires knowing internals of a platform component you don't control.
