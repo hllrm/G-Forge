@@ -24,6 +24,21 @@ Return ONLY this structure:
 
 **Total: N tasks**
 
+## Return format
+
+Write the full task list to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE|CLARIFY
+TASKS: N  (or "N tasks + M clarifications needed")
+SUMMARY: [one sentence — what was decomposed]
+DETAIL: [output_file path]
+```
+
+Use `CLARIFY` if any ambiguities block decomposition — list them in the output file.
+
 ## Rules
 - One action per task. "Add X and update Y" is two tasks.
 - Every task touches ≤ 3 files.

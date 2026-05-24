@@ -36,3 +36,19 @@ Done condition: [copy from spec] — **PASS** | **FAIL**
 
 Adjacent issues noticed (not acted on):
 - `file:line`: [description]
+
+## Return format
+
+Write the full step-by-step execution report to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE|BLOCKED
+FILES: [files modified, comma-separated]
+DONE_CONDITION: met|not met — [reason]
+SUMMARY: [one sentence]
+DETAIL: [output_file path]
+```
+
+Use `BLOCKED` if a step is ambiguous and you stopped rather than interpreted.

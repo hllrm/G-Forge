@@ -55,6 +55,20 @@ You coordinate the full review pipeline. You dispatch review agents in parallel 
 - **PASS WITH NOTES**: no Critical or Major findings, but Minor findings present
 - **PASS**: zero findings across all reviewers
 
+## Return format
+
+Write the full aggregated review summary to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: PASS|PASS WITH NOTES|FAIL
+FINDINGS: N critical · M major · K minor  (or "none")
+REVIEWERS: [agent list]
+SUMMARY: [one sentence — verdict rationale or top blocker]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Do not add your own review findings — aggregate only.
 - Preserve the severity assigned by the original reviewer — do not downgrade.

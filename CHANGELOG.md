@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.6] — 2026-05-24
+
+### Added
+
+- **`/g-plan` Step 3d — wave dependency validation** — after wave-planner returns, validates the schedule structurally before execution: (1) same-wave file conflicts (two tasks in parallel writing the same file — halts until wave-planner resolves), (2) missing source files for mutation tasks (update/modify/refactor on a file that doesn't exist and no earlier wave creates it — blocking), (3) cross-wave output dependency ordering (task references another task's output but both are in the same wave — warning). Blockers halt the plan; warnings surface in the Step 4 approval gate under `### Dependency risks`.
+
+### Changed
+
+- **Compact return format — all agents** — the remaining 9 agents (`debugger`, `doc-writer`, `error-detective`, `refactor-executor`, `review-orchestrator`, `spec-writer`, `task-decomposer`, `test-writer`, `wave-planner`) now write full output to disk and return compact five-line summaries. All 17 agents now have `## Return format` sections. `pr-writer` and `project-manager` are intentionally excluded — they are user-facing and their inline output is the deliverable.
+
 ## [1.3.5] — 2026-05-24
 
 ### Changed

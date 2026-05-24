@@ -48,6 +48,20 @@ Include these additional done conditions when the task type warrants them:
 - **Any significant change**: "CHANGELOG entry written under the appropriate version heading."
 Omit these if they do not apply to the task — do not add them as boilerplate.
 
+## Return format
+
+Write the full spec to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE
+SPEC_FILE: [output_file path]
+STEPS: N implementation steps
+SUMMARY: [one sentence — what this spec implements]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Every path must be exact and relative to the project root.
 - Every step must be actionable without re-reading the original request.

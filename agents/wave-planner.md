@@ -33,6 +33,20 @@ A task list from task-decomposer, formatted as a table with task number, descrip
 
 **Summary: N waves. Peak parallelism: X tasks (Wave Y).**
 
+## Return format
+
+Write the full wave schedule to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE
+WAVES: N
+TASKS: N total — peak parallelism X (Wave Y)
+SUMMARY: [one sentence]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Every task must appear in exactly one wave.
 - A wave with one task is valid — do not force false parallelism.

@@ -31,6 +31,20 @@ Match the project's existing heading level and tone. Public-facing documentation
 - How to install or invoke it
 - A minimal example
 
+## Return format
+
+Write a summary of what was documented to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE
+FILES: [files modified, comma-separated]
+ADDED: N comment(s) / section(s)
+SUMMARY: [one sentence]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - One comment line max per inline comment block. Multi-line comments only for module-level context.
 - If a function needs a paragraph to explain what it does, suggest renaming it instead — flag this.
