@@ -101,9 +101,9 @@ if [ "$SESSION_MODE" = "implementation" ]; then
 fi
 
 if [ "$PROMPT_COUNT" -ge "$RED_THRESHOLD" ]; then
-    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — finish task in flight, run /g-retro, start fresh session"
+    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — ENFORCED: finish task in flight, auto-trigger /g-retro, tell user to start fresh session"
 elif [ "$PROMPT_COUNT" -ge "$AMBER_THRESHOLD" ]; then
-    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — verify context before new work: /context then apply A7 gate"
+    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — run /context, then warn user: finish in-flight work and /g-retro before any new tasks"
 fi
 
 # Milestone health — rework commits, blockers, review holds since main.

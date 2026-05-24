@@ -24,13 +24,11 @@
 
 **A6 Delivery** — Complete snippets with all imports. Explain WHY not what. Mark placeholders (`YOUR_API_KEY`). Flag security risks. No `TODO`/`FIXME` in delivered code.
 
-**A7 Context gate** — The workflow checkpoint tracks session depth and classifies the session as `implementation` (recent commits / dirty tree / active plan → thresholds 25/40) or `conversation` (clean / no plan → thresholds 35/55).
+**A7 Context gate** — The workflow checkpoint classifies the session as `implementation` (recent commits / dirty tree / active plan → thresholds 25/40) or `conversation` (clean / no plan → thresholds 35/55).
 
-At 🟡 **amber**: do not start new work immediately. Run `/context` to read the actual context window percentage. If remaining capacity is ≥ 50%: continue but finish the current task before accepting new scope. If remaining capacity is < 50%: treat as red regardless of exchange count.
+At 🟡 **amber**: run `/context` to read actual window percentage, then surface a direct warning to the user: *"Context is getting full — finish what's in flight, then run /g-retro before we start anything new."* If remaining capacity is < 50%, escalate to red immediately regardless of exchange count. The user still controls what happens next, but the warning must be explicit and visible — not buried in a status line.
 
-At 🔴 **red**: complete only the task currently in flight. When it is done, run `/g-retro`, write the handoff block in `todo.md`, and tell the user to open a fresh session. Never start a new `/g-plan` at red.
-
-The handoff block in `todo.md` is the continuity contract — it must be written and committed before the session ends.
+At 🔴 **red**: enforce without waiting for the user. Accept no new scope. Complete only the task currently executing. When it finishes, automatically trigger `/g-retro`. After /g-retro completes, tell the user: *"Session context exhausted — open a fresh session to continue."* The handoff block in `todo.md` must be written and committed before the session ends — this is non-negotiable.
 
 **A8 Three-Strikes** — Same bug class × 3 attempts = STOP. Name the mechanism. List what failed and why. Find an alternative that bypasses it entirely. Escalate model before attempt 3, not after.
 Warning signs: error message changes but bug class persists · you're explaining why *this* approach should work when the last one didn't · fix requires knowing internals of a platform component you don't control.

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.3] — 2026-05-23
+
+### Changed
+
+- **A7 context gate: amber warns, red enforces** — amber now requires surfacing an explicit user-facing message ("Context is getting full — finish what's in flight, then run /g-retro before we start anything new"). Red is fully enforced: no new scope accepted, `/g-retro` auto-triggers when the current task finishes, session end is mandated.
+- `workflow-checkpoint.sh` amber/red messages updated to match: amber says "warn user", red says "ENFORCED".
+
 ## [1.3.2] — 2026-05-23
 
 ### Changed
