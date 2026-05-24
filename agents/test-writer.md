@@ -39,6 +39,22 @@ If the developer does not specify a framework and one cannot be inferred, ask be
 ## Output
 Produce complete, runnable test code with all necessary imports. Write the test file to the correct location based on project conventions.
 
+## Return format
+
+Write a summary of what was tested to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE|BLOCKED
+FILES: [test files written, comma-separated]
+TESTS: N written
+SUMMARY: [one sentence]
+DETAIL: [output_file path]
+```
+
+Use `BLOCKED` if no test framework can be detected and the developer has not answered the framework question.
+
 ## Rules
 - Every test must run immediately without modification.
 - Do not write tests that always pass (trivially true assertions).

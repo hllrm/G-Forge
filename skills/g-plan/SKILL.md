@@ -129,7 +129,65 @@ After `/g-roadmap` completes, stop the current `/g-plan` run. Tell the developer
 
 **If the developer chooses option 2:**
 
-Add `> ⚠ Risk: estimated ~[N] exchanges exceeds session budget — mid-plan handoff likely` to the plan header. Proceed to Step 3a.
+Add `> ⚠ Risk: estimated ~[N] exchanges exceeds session budget — mid-plan handoff likely` to the plan header. Proceed to Step 3d.
+
+## Step 3d — Wave dependency validation
+
+Before writing the forecast handoff, validate that the wave schedule is internally safe to execute. Run these three checks using Glob, Grep, and Read — do not dispatch an agent for this.
+
+### Check 1 — Same-wave file conflicts
+
+For each wave, compare the `Files in scope` lists across all tasks in that wave. If two tasks in the same wave declare the same file, they would run in parallel and write to the same file simultaneously.
+
+Flag each collision:
+```
+⚠ Parallel write conflict — Wave [N]: [Task A] and [Task B] both scope [file]
+```
+
+For each collision, ask wave-planner to split the conflicting tasks into sequential waves. Do not proceed to Step 3a until wave-planner has revised the schedule and the conflict is resolved.
+
+### Check 2 — Missing source files for mutation tasks
+
+For each task whose description contains an action word that implies an existing file (`update`, `modify`, `extend`, `refactor`, `fix`, `edit`, `change`), use Glob to verify the scoped files exist on disk.
+
+If a scoped file does not exist:
+
+- **If an earlier wave in the schedule creates it** (task description contains `create`, `generate`, `scaffold`, `add`, `write`, or `init` for that filename) — ordering is correct, no action.
+- **If no earlier wave creates it** — flag as a blocker:
+  ```
+  ✗ Missing source — [task name]: [file] does not exist and no prior wave creates it
+  ```
+
+Blockers must be resolved before proceeding. Present them to the developer with two options: (a) add a prerequisite task to the wave schedule, or (b) confirm the file will exist at execution time (developer override — recorded in plan header as accepted risk).
+
+### Check 3 — Cross-wave output dependency ordering
+
+For tasks that reference another task's output by name or file path in their description (e.g. "using the schema generated in the previous task", "after [task name] completes"), verify the referenced task is in an earlier wave. If it is in the same wave or a later wave, flag it:
+```
+⚠ Ordering risk — [task name] references output from [other task] but both are in Wave [N]
+```
+
+Surface ordering risks to wave-planner for a schedule revision. These are not hard blockers — if the developer is confident the tasks are independent, they may override.
+
+### Validation summary
+
+After all three checks, report inline:
+
+```
+Wave dependency check:
+  ✓ No parallel write conflicts
+  ✓ All source files present (or creation-ordered)
+  ✓ No cross-wave ordering violations
+
+  — or —
+
+  ✗ [N] blocker(s) — listed above. Resolve before proceeding.
+  ⚠ [M] warning(s) — listed above. Carried forward to approval gate.
+```
+
+Blockers halt the plan. Warnings are included in the Step 4 approval gate under a `### Dependency risks` line so the developer sees them before approving.
+
+Once all blockers are resolved (either fixed or explicitly overridden), proceed to Step 3a.
 
 ## Step 3a — Write the pending-forecast handoff
 
@@ -172,6 +230,11 @@ Top premortem scenarios:
   3. [scenario] — mitigation: [one line]
 
 [if High risk] ⚠ This plan exceeds the 75% miss-risk threshold. Consider re-scoping before approval. (Advisory only — your approval is still authoritative.)
+
+### Dependency risks
+
+[omit this section if Step 3d found no warnings]
+⚠ [warning text from Step 3d — one line per warning]
 
 ---
 Ready to execute? Reply 'approved' to begin, or describe changes.

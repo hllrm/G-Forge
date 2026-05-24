@@ -36,6 +36,22 @@ Log output, stack traces, error messages, or a description of an incident.
 **Quoted evidence:**
 > [The specific line(s) from the error output this analysis is based on]
 
+## Return format
+
+Write the full error analysis to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE|BLOCKED
+ORIGIN: [file:line or component name]
+TOP_CAUSE: [most probable cause — one line]
+SUMMARY: [one sentence]
+DETAIL: [output_file path]
+```
+
+Use `BLOCKED` if the error output is too ambiguous to diagnose — state what additional logging or context is needed in `TOP_CAUSE`.
+
 ## Rules
 - Always quote the specific error line(s) your analysis is based on.
 - Do not propose fixes — only diagnosis.

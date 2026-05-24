@@ -36,6 +36,22 @@ A bug report, failing test output, or error description. Optionally: relevant co
 
 **Verify by:** [how to confirm the fix worked — a test to write, a command to run, an observable behavior change]
 
+## Return format
+
+Write the full debug report to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: DONE|BLOCKED
+ROOT_CAUSE: [file:line — one-line cause]
+FIX: [specific change location — no code]
+SUMMARY: [one sentence]
+DETAIL: [output_file path]
+```
+
+Use `BLOCKED` if you cannot determine the root cause without more information — state what you need in `ROOT_CAUSE`.
+
 ## Rules
 - Do not write fix code.
 - If you cannot determine the root cause without more information, state exactly what you need and where to find it (log line, variable value, config setting).
