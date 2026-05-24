@@ -336,7 +336,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ### Agent output architecture
 
-All review and analysis agents write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact five-line summary to the calling session:
+All 15 dispatched agents write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact five-line summary to the calling session:
 
 ```
 RESULT: DONE|BLOCKED  (or PASS|HOLD for review agents)
@@ -517,7 +517,7 @@ Auto-triggers:  — no ROADMAP.md exists in the project
 /g-status       Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-doctor       9-point health check — all 3 hooks installed, all hooks wired in
+/g-doctor       11-point health check — all 5 hooks installed and registered in
                      settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md
                      present and referenced, no stale sentinel
                      Reports ✓/✗ per check with a one-line fix instruction
@@ -535,7 +535,14 @@ You can still invoke them manually if needed:
                      Step 1: project-manager challenges the feature request (3 questions,
                        one verdict — bug fixes and refactors skip this gate)
                      Dispatches task-decomposer → wave-planner
-                     Presents wave schedule for approval
+                     Step 3c: context budget check — estimates execution cost
+                       (5 + waves×3 + agents×2 + tasks×1 exchanges) vs remaining
+                       session budget; offers /g-roadmap split if over limit
+                     Step 3d: wave dependency validation — checks same-wave file
+                       conflicts (blocking), missing source files for mutation tasks
+                       (blocking), cross-wave ordering violations (warning)
+                     Runs /g-forecast premortem (complexity score + miss-risk)
+                     Presents wave schedule + budget + forecast for approval
                      Saves approved plan to docs/plans/<feature-slug>.md
                      On approval: hands off to /g-execute
 
@@ -657,3 +664,4 @@ git push
 | M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0** |
 | M16 — Agent Hardening & Rules Decentralization | ✅ Done — **v1.2.0** |
 | M17 — Token Optimization & Session Sync | ✅ Done — **v1.3.3** |
+| M18 — Compact Return Architecture & Plan Derisking | ✅ Done — **v1.5.0** |
