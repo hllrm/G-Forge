@@ -22,6 +22,50 @@ The goal isn't to automate your project. It's to give it a better chance of succ
 
 ---
 
+## How G-Forge works
+
+Five concepts explain almost everything.
+
+### 1. Skills vs Agents
+
+**Skills** are commands you type (`/g-plan`, `/g-review`, etc.). They run in the main Claude session — the one you're talking to. Skills read the project state, make decisions, and coordinate work. You interact with them directly.
+
+**Agents** are spawned subagents. Skills dispatch agents to do the actual work — implementing, reviewing, writing tests. Agents run in isolated sessions, write their output to disk, and return a compact summary. You never talk to an agent directly.
+
+The main session stays thin. Agent sessions spend tokens doing work.
+
+### 2. HQ and the wave model
+
+The main session is HQ. HQ decomposes a task into atomic pieces (via `task-decomposer`), schedules them into parallel waves (via `wave-planner`), dispatches agents to run each wave, and checks results. HQ never implements. Agents never commit.
+
+A **wave** is a batch of tasks that can run in parallel without depending on each other. Wave 1 must fully complete before Wave 2 starts. Within a wave, all tasks are dispatched simultaneously. A BLOCKED result in any task halts the wave immediately — the session surfaces the blocker with a diagnosed fix strategy before proceeding.
+
+### 3. The commit gate
+
+Every `git commit` in a G-Forge project is blocked by a pre-commit hook. The hook checks for `.claude/g-team-approved`. That file is written only when `/g-review` issues a **MERGE READY** verdict after the full review pipeline passes. No other path writes it.
+
+The sentinel is consumed (deleted) on every successful commit, so each commit cycle requires a fresh review.
+
+### 4. G-RULES.md
+
+`/g-init` installs `G-RULES.md` at the project root and wires it into `CLAUDE.md` via `@G-RULES.md`. Every session loads it. It governs model selection, planning discipline, the wave model, review requirements, code quality rules, architecture constraints, testing protocol, and memory management — ten sections in total. Claude follows it without prompting.
+
+You don't configure G-Forge per session. You configure it once via G-RULES.md and it stays consistent.
+
+### 5. Hooks
+
+Five shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
+
+- **SessionStart** — fires once when you open a session. Checks local and remote git state, surfaces uncommitted changes, stash count, ahead/behind counts. Resets the context depth counter.
+- **UserPromptSubmit** — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` if you have a new task, `/g-execute` if a plan is approved, `/g-review` when waves finish).
+- **PreToolUse** — blocks `git commit` unless the sentinel exists.
+- **PostToolUse** — clears the sentinel after a successful commit.
+- **PreCompact** — writes a handoff snapshot before context compaction so the next session knows exactly where to resume.
+
+The hooks are the reason you don't have to type commands for the day-to-day loop. Claude sees the state on every message and responds to it.
+
+---
+
 ## Install
 
 ### Prerequisites
@@ -303,6 +347,51 @@ DETAIL: [output file path]
 ```
 
 The calling session reads the detail file only when the result is HOLD or BLOCKED. This keeps main-session context growth at ~70 tokens per agent return rather than 1,500–3,000 tokens of inline output — larger waves stay within budget, and the full audit trail is preserved on disk.
+
+---
+
+## Token cost saving strategy
+
+G-Forge applies cost controls at every layer of the stack. Here's what each one does and how they compound.
+
+### Model tiering
+
+Every agent targets the minimum model tier that can do its job reliably:
+
+| Tier | Used for |
+|------|---------|
+| Haiku | Reads, searches, doc generation, test writing, refactors from spec — tasks with a clear mechanical outcome |
+| Sonnet | Planning, decomposition, wave coordination, debugging, analysis — tasks requiring reasoning but not judgment |
+| Opus | Review, merge gate, architecture enforcement — tasks where correctness and missed findings have real cost |
+
+Most implementation work lands on Sonnet. Opus is reserved for the review pipeline where a missed critical issue is expensive.
+
+### G-RULES.md selective loading
+
+The full `G-RULES.md` is ~9,000 tokens and loads on every session that references `@G-RULES.md`. For projects that only need a subset of the rules, each of the ten sections is also available as a standalone `@`-referenced file in `.claude/rules/g-rules/`. Reference only the sections your project needs in `CLAUDE.md` — a minimal project referencing `A-session.md`, `D-quality.md`, and `I-tracking.md` saves ~5,400 tokens per session vs the full load.
+
+### Agent compact returns
+
+Agents write full findings to `docs/agent-output/` and return a five-line summary. The main session reads the detail file only on HOLD or BLOCKED. This reduces per-agent context growth from ~1,500–3,000 tokens (inline output) to ~70 tokens (compact block). A six-agent review wave that previously added ~12,000 tokens to main-session context now adds ~420 tokens.
+
+### Context depth management
+
+A prompt counter in `.claude/session-prompt-count` is incremented on every message (reset each session open). The session is classified as `implementation` or `conversation` based on git signals, and mode-appropriate thresholds apply:
+
+| Mode | 🟡 Amber | 🔴 Red |
+|------|---------|-------|
+| Implementation | 25 exchanges | 40 exchanges |
+| Conversation | 35 exchanges | 55 exchanges |
+
+At amber, Claude runs `/context` to check real remaining window, then warns you to finish what's in flight before starting anything new. At red, it's enforced: no new scope, `/g-retro` auto-triggers, and a handoff block is written before the session ends. This prevents the worst-case scenario — a mid-wave context exhaustion that leaves implementation in an inconsistent state.
+
+### Pre-plan context budget check
+
+Before a plan is approved, `/g-plan` estimates its execution cost in exchanges using `5 + waves×3 + agents×2 + tasks×1` and compares it against the remaining budget. Plans that would push the session into red mid-execution are flagged, and the developer chooses between splitting the milestone (via `/g-roadmap`) or accepting the handoff risk. This eliminates surprise context exhaustion mid-wave.
+
+### Wave-based parallelism
+
+Running 6 agents in parallel in one wave costs the main session one round-trip of context growth (one dispatch + one set of compact returns = ~500 tokens). Running the same 6 tasks serially would cost 6 round-trips plus accumulated reasoning context between tasks. Wave size is the primary lever for keeping execution cost proportional to work done rather than to the number of tasks.
 
 ---
 
