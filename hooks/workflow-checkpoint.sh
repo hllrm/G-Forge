@@ -67,7 +67,7 @@ if [ -f ".claude/tier3-active" ]; then
     echo "  Listen mode ACTIVE — ${ITEM_COUNT} item(s) logged — no action until user says done"
 fi
 
-# Context depth counter — increments each prompt; warns at amber (30) and red (50).
+# Context depth counter — increments each prompt; thresholds vary by session mode.
 # Resets to 0 on SessionStart via session-start.sh.
 PROMPT_COUNT_FILE=".claude/session-prompt-count"
 PROMPT_COUNT=0
@@ -78,10 +78,32 @@ fi
 PROMPT_COUNT=$((PROMPT_COUNT + 1))
 printf '%d\n' "$PROMPT_COUNT" > "$PROMPT_COUNT_FILE" 2>/dev/null || true
 
-if [ "$PROMPT_COUNT" -ge 40 ]; then
-    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges — finish current task, write /g-retro, start fresh session"
-elif [ "$PROMPT_COUNT" -ge 25 ]; then
-    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges — approaching 100K tokens, wrap up after this task"
+# Detect session mode: implementation sessions burn context faster (tool calls,
+# code reads, agent dispatches) than conversation/planning sessions.
+# Signals: recent commits, dirty working tree, active plan file.
+SESSION_MODE="conversation"
+_recent=$(git log --oneline --since="4 hours ago" 2>/dev/null | wc -l | tr -d '[:space:]')
+_dirty=$(git status --porcelain 2>/dev/null | wc -l | tr -d '[:space:]')
+_plans=$(ls docs/plans/*.md 2>/dev/null | wc -l | tr -d '[:space:]')
+case "$_recent" in ''|*[!0-9]*) _recent=0 ;; esac
+case "$_dirty"  in ''|*[!0-9]*) _dirty=0  ;; esac
+case "$_plans"  in ''|*[!0-9]*) _plans=0  ;; esac
+if [ "$_recent" -gt 0 ] || [ "$_dirty" -gt 3 ] || [ "$_plans" -gt 0 ]; then
+    SESSION_MODE="implementation"
+fi
+
+# Thresholds: implementation 25/40, conversation 35/55.
+AMBER_THRESHOLD=35
+RED_THRESHOLD=55
+if [ "$SESSION_MODE" = "implementation" ]; then
+    AMBER_THRESHOLD=25
+    RED_THRESHOLD=40
+fi
+
+if [ "$PROMPT_COUNT" -ge "$RED_THRESHOLD" ]; then
+    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — finish task in flight, run /g-retro, start fresh session"
+elif [ "$PROMPT_COUNT" -ge "$AMBER_THRESHOLD" ]; then
+    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — verify context before new work: /context then apply A7 gate"
 fi
 
 # Milestone health — rework commits, blockers, review holds since main.

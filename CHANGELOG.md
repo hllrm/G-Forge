@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.2] — 2026-05-23
+
+### Changed
+
+- **Context depth: mode-aware thresholds** — `workflow-checkpoint.sh` now classifies each session as `implementation` (recent commits, dirty tree, or active plan files present) or `conversation` (clean). Implementation thresholds: 25 amber / 40 red. Conversation thresholds: 35 amber / 55 red. Mode is shown in the warning line.
+- **Amber action protocol in `A-session.md`** — at amber, run `/context` to read actual window percentage. ≥ 50% remaining: continue current task only. < 50% remaining: treat as red. Removes the fixed prompt-count assumption in favour of informed assessment.
+
 ## [1.3.1] — 2026-05-23
 
 ### Added
