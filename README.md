@@ -200,7 +200,16 @@ Once `/g-init` is run in a project, five hooks are installed:
 
 **`session-start.sh`** (`SessionStart`) — fires once when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Also resets the per-session prompt counter used for context depth tracking.
 
-**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count, context depth (🟡 amber at ~30 exchanges / 🔴 red at ~50), and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
+**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count, context depth, and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
+
+Context depth uses mode-aware thresholds. Sessions are classified as `implementation` (recent commits, dirty tree, or active plan files) or `conversation` (clean):
+
+| Mode | 🟡 Amber | 🔴 Red |
+|---|---|---|
+| implementation | ~25 exchanges | ~40 exchanges |
+| conversation | ~35 exchanges | ~55 exchanges |
+
+At amber, Claude runs `/context`, checks remaining window, and warns the user directly: *"Context is getting full — finish what's in flight then /g-retro before anything new."* At red, it's enforced: no new scope, `/g-retro` auto-triggers when the current task finishes, user is told to open a fresh session.
 
 **`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-team-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
 
@@ -544,4 +553,4 @@ git push
 | M14 — Advanced Production Modeling | ✅ Done |
 | M15 — Hook / Behavioral Integration Pass | ✅ Done — **v1.0.0** |
 | M16 — Agent Hardening & Rules Decentralization | ✅ Done — **v1.2.0** |
-| M17 — Token Optimization & Session Sync | ✅ Done — **v1.3.0** |
+| M17 — Token Optimization & Session Sync | ✅ Done — **v1.3.3** |
