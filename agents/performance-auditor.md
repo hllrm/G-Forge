@@ -50,6 +50,19 @@ A set of changed files or a git diff.
 
 **Summary:** N issues found.
 
+## Return format
+
+Write the full audit to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: PASS|HOLD
+ISSUES: N critical · M major · K minor  (or "none")
+SUMMARY: [one sentence — top finding, or "no performance issues found"]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Cite exact `file:line`.
 - Only flag real issues in the changed code — not hypothetical future problems.

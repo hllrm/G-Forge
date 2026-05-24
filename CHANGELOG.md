@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.5] — 2026-05-24
+
+### Changed
+
+- **Agent compact return format** — all six review agents (`code-reviewer`, `security-auditor`, `architecture-enforcer`, `code-lead`, `performance-auditor`, `dependency-auditor`) now write full findings to a disk file and return a five-line compact block (`RESULT / ISSUES / SUMMARY / DETAIL`) to the calling session. Main session reads the detail file only on HOLD or BLOCKED — not on every run. Reduces main-session context growth from ~1,500–3,000 tokens per agent return to ~70 tokens.
+- **`g-execute` compact dispatch template** — each wave task now receives a compact prompt including an `output_file:` path. Agents write implementation summaries to `docs/agent-output/wave-N/<task-slug>.md`. Wave completion gate parses compact `RESULT / SUMMARY / FILES / DONE_CONDITION / DETAIL`; the detail file is read only for BLOCKED tasks. Creates `docs/agent-output/wave-N/` directories before each wave.
+- **`g-review` output file threading** — `code-lead` and `dependency-auditor` dispatched from g-review now receive an `output_file:` path (`docs/agent-output/review/code-lead-YYYY-MM-DD.md` and `docs/agent-output/review/dependency-auditor-YYYY-MM-DD.md`). g-review parses compact returns and reads the detail file only on HOLD or ESCALATE.
+
 ## [1.3.4] — 2026-05-23
 
 ### Added

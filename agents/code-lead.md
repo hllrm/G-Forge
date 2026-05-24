@@ -73,6 +73,19 @@ Based on done conditions + review report, issue one of:
 **Blocking items (if HOLD):**
 - `file:line` — [issue]
 
+## Return format
+
+Write the full review — done-condition table, findings, verdict reasoning — to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+
+Return to the calling session using **only** this compact block — no additional prose:
+
+```
+RESULT: MERGE READY|HOLD|ESCALATE
+ISSUES: N critical · M major · K minor  (or "none")
+SUMMARY: [one sentence — MERGE READY rationale or top blocker]
+DETAIL: [output_file path]
+```
+
 ## Rules
 - Never merge yourself — report the verdict, let HQ execute the merge.
 - Do not downgrade severity once assigned.

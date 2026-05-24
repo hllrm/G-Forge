@@ -81,7 +81,7 @@ If no done conditions can be found, note this — code-lead will flag it as a pr
 
 ## Step 4 — Dispatch code-lead
 
-Dispatch the `code-lead` agent. Provide **all of the following** in the prompt so code-lead does not re-run already-completed checks:
+Dispatch the `code-lead` agent. Provide **all of the following** in the prompt so code-lead does not re-run already-completed checks. Code-lead uses the compact return format — parse its `RESULT:` field; on `HOLD` or `ESCALATE` read the `DETAIL:` file before presenting verdict to the developer.
 
 - **Attested test result** — state explicitly: `"Tests: PASS (attested — exit 0, output below)"` and include the captured output from Step 1, OR `"Tests: skipped — developer override"` if the developer chose (b). If tests failed, you do not reach this step.
 - **Attested type-check result** — if a type-checker was run (e.g. `vue-tsc --noEmit`, `tsc --noEmit`) in any prior step or by an implementing agent, include: `"Type-check: PASS (attested — exit 0)"`. If not run, omit this line.
@@ -89,10 +89,11 @@ Dispatch the `code-lead` agent. Provide **all of the following** in the prompt s
 - The done conditions from Step 3
 - The current branch name (from `git branch --show-current`)
 - The task list (if known)
+- `output_file: docs/agent-output/review/code-lead-[YYYY-MM-DD].md`
 
 code-lead will verify remaining done conditions structurally (file checks, grep, read) and dispatch review-orchestrator internally. It must NOT re-run tests or type-check when attested results are provided. Pass the telemetry profile from Step 0 to code-lead so its dispatch of review-orchestrator scales reviewer count and pre-review additions accordingly.
 
-If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s) and the diff context. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
+If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s), the diff context, and `output_file: docs/agent-output/review/dependency-auditor-[YYYY-MM-DD].md`. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
 
 Wait for code-lead's complete verdict.
 
