@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.1] — 2026-05-23
+
+### Added
+
+- **Context depth counter in `workflow-checkpoint.sh`** — tracks prompt count since session open. 🟡 Amber warning at ~30 exchanges (~75K tokens): complete current task before starting new work. 🔴 Red warning at ~50 exchanges (~125K tokens): finish task in flight, run `/g-retro`, start a fresh session.
+- **Counter reset in `session-start.sh`** — writes `.claude/session-prompt-count` = 0 on each session open so the counter is always session-scoped.
+- **A7 Context gate in `A-session.md`** — rule encoding amber/red behaviour: PM must not start a new `/g-plan` at red; handoff block in `todo.md` is the continuity contract.
+
 ## [1.3.0] — 2026-05-23
 
 ### Added
