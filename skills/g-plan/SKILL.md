@@ -73,6 +73,64 @@ Dispatch the `wave-planner` agent with the complete task list from task-decompos
 
 Wait for the wave schedule before proceeding.
 
+## Step 3c — Context budget check
+
+Estimate whether this plan fits within the remaining session context budget.
+
+**Calculate estimated cost in exchanges:**
+
+```
+base              = 5    (plan/review infrastructure constant)
+per wave          = 3    (dispatch + result collection)
+per agent         = 2    (each agent slot across all waves)
+per task          = 1    (file reads, edits, and tool calls per task)
+
+estimated = 5 + (wave_count × 3) + (total_agent_slots × 2) + (task_count × 1)
+```
+
+Use the wave schedule from Step 3 for `wave_count` and `total_agent_slots`. Use the task list from Step 2 for `task_count`.
+
+**Read remaining budget:**
+
+Read `.claude/session-prompt-count` for the current depth. Once a plan is executing, the session is always `implementation` mode → red threshold = 40. `remaining = 40 − current_depth`.
+
+**Evaluate:**
+
+- `estimated ≤ remaining × 0.8` → budget fine. Add `> Cost estimate: ~[N] exchanges` to the plan header and proceed to Step 3a.
+- `estimated > remaining × 0.8` and `estimated ≤ remaining × 1.2` → tight fit. Add `> ⚠ Cost estimate: ~[N] exchanges (~[remaining] remaining — tight)` to the plan header. Warn the developer in Step 4 but proceed.
+- `estimated > remaining × 1.2` → plan exceeds budget. Stop. Do not proceed to Step 3a. Present:
+
+```
+⚠ Context budget exceeded
+
+  Estimated cost:   ~[N] exchanges
+  Remaining budget: ~[M] exchanges  (red threshold 40 − current depth [C])
+  Shortfall:        ~[N−M] exchanges
+
+  Running this plan would push the session into red mid-execution,
+  forcing an incomplete-wave handoff.
+
+  Options:
+  1. Split — invoke /g-roadmap to break this milestone into
+     sub-milestones that each fit within ~[floor(M × 0.7)] exchanges.
+  2. Proceed — accept the mid-plan handoff risk. Execution will pause
+     at red and require a fresh session to resume incomplete waves.
+
+  Which would you prefer?
+```
+
+**If the developer chooses option 1:**
+
+Use Glob to find `skills/g-roadmap/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it. Run `/g-roadmap` with the following framing passed as context:
+
+> "The current milestone task list is [task list]. The session context budget is ~[M] exchanges per sub-milestone. Split this milestone into sub-milestones where each sub-milestone's estimated cost (base 5 + waves×3 + agents×2 + tasks×1) does not exceed [floor(M × 0.7)] exchanges. Produce a revised ROADMAP.md with the sub-milestones sequenced in dependency order."
+
+After `/g-roadmap` completes, stop the current `/g-plan` run. Tell the developer: "ROADMAP.md updated with sub-milestones. Run /g-plan on the first sub-milestone to begin."
+
+**If the developer chooses option 2:**
+
+Add `> ⚠ Risk: estimated ~[N] exchanges exceeds session budget — mid-plan handoff likely` to the plan header. Proceed to Step 3a.
+
 ## Step 3a — Write the pending-forecast handoff
 
 Before invoking `/g-forecast`, write the in-memory task list and wave schedule to `docs/plans/.pending-forecast.md` using the same Plan File Format defined later in this skill. This is a temporary handoff file — `/g-forecast` Step 1 reads it preferentially when present, so the forecast targets *this* plan (which has not yet been approved or saved as the official `<slug>.md`) and not a stale older plan.
@@ -99,6 +157,10 @@ Present the full output to the developer:
 [task list table from task-decomposer]
 
 [wave schedule from wave-planner]
+
+### Budget
+
+Context cost: ~[N] exchanges   Remaining: ~[M]   [✓ fits / ⚠ tight / from plan header]
 
 ### Forecast (advisory)
 

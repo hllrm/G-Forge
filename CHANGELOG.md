@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.4] — 2026-05-23
+
+### Added
+
+- **`/g-plan` Step 3c — context budget check** — after wave-planner returns, estimates the plan's exchange cost using `5 + waves×3 + agents×2 + tasks×1`. Compares against remaining session budget (red threshold 40 − current depth). Three outcomes: fits (proceed), tight (warn in Step 4), or over budget (block and present split/proceed choice). Cost estimate appears in Step 4's approval block under a `### Budget` line.
+- **Split path invokes `/g-roadmap`** — when the developer chooses to split, `/g-roadmap` is invoked with budget-per-sub-milestone context and produces a revised ROADMAP.md. The current `/g-plan` run stops; the developer re-plans on the first sub-milestone.
+
 ## [1.3.3] — 2026-05-23
 
 ### Changed
