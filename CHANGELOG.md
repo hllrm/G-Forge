@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.0] — 2026-05-24
+
+### Added
+
+- **Compact return architecture — all 15 dispatched agents** — every agent writes full output to disk and returns a five-line compact block to the calling session. The main session reads the detail file only on HOLD or BLOCKED. Per-agent context growth drops from ~1,500–3,000 tokens to ~70 tokens. `pr-writer` and `project-manager` are intentionally excluded — they are user-facing with no intermediate caller.
+- **`/g-plan` Step 3d — wave dependency validation** — checks the wave schedule for same-wave file conflicts (parallel write race — blocking), missing source files for mutation tasks (blocking), and cross-wave output ordering violations (warning surfaced in approval gate under `### Dependency risks`). Runs after wave-planner returns, before the forecast handoff.
+- **`/g-plan` Step 3c — context budget check** — estimates plan execution cost (`5 + waves×3 + agents×2 + tasks×1` exchanges) and compares against remaining session budget. Tight fit warns in Step 4. Over budget blocks and offers `/g-roadmap` split or explicit risk acceptance.
+- **Session-start hook (`session-start.sh`)** — fires once per session open. Checks branch, uncommitted changes, stash count, ahead/behind vs remote, and feature branch drift behind `origin/main`. Resets the per-session prompt counter.
+- **`docs/agent-output/` directory structure** — all wave and review agent output is written to `docs/agent-output/wave-N/<task-slug>.md` and `docs/agent-output/review/<agent>-YYYY-MM-DD.md`. Full audit trail on disk without main-session context cost.
+
+### Changed
+
+- **Context depth management** — `workflow-checkpoint.sh` classifies sessions as `implementation` (25 amber / 40 red) or `conversation` (35 amber / 55 red) from git signals. Amber explicitly warns the user and runs `/context`. Red enforces: no new scope, `/g-retro` auto-triggers, session end required.
+- **G-RULES.md selective loading** — ten sections available as individual `@`-referenced files. Projects reference only the sections they need; minimal projects save ~5,400 tokens per session.
+- **B-workflow.md slim** — core skills reference table trimmed to 8 entries with pointer to `/g-help` for full reference.
+- **README** — added "How G-Forge works" conceptual primer (Skills vs Agents, wave model, commit gate, G-RULES.md, hooks) and "Token cost saving strategy" section documenting all six cost controls with concrete numbers.
+
 ## [1.3.6] — 2026-05-24
 
 ### Added
