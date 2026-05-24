@@ -67,6 +67,23 @@ if [ -f ".claude/tier3-active" ]; then
     echo "  Listen mode ACTIVE — ${ITEM_COUNT} item(s) logged — no action until user says done"
 fi
 
+# Context depth counter — increments each prompt; warns at amber (30) and red (50).
+# Resets to 0 on SessionStart via session-start.sh.
+PROMPT_COUNT_FILE=".claude/session-prompt-count"
+PROMPT_COUNT=0
+if [ -f "$PROMPT_COUNT_FILE" ]; then
+    PROMPT_COUNT=$(cat "$PROMPT_COUNT_FILE" 2>/dev/null | tr -d '[:space:]')
+    case "$PROMPT_COUNT" in ''|*[!0-9]*) PROMPT_COUNT=0 ;; esac
+fi
+PROMPT_COUNT=$((PROMPT_COUNT + 1))
+printf '%d\n' "$PROMPT_COUNT" > "$PROMPT_COUNT_FILE" 2>/dev/null || true
+
+if [ "$PROMPT_COUNT" -ge 50 ]; then
+    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges — finish current task, write /g-retro, start fresh session"
+elif [ "$PROMPT_COUNT" -ge 30 ]; then
+    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges — approaching 100K tokens, wrap up after this task"
+fi
+
 # Milestone health — rework commits, blockers, review holds since main.
 # Patterns kept in sync with /g-patterns Step 2c rework signals.
 REWORK_COUNT=0

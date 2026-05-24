@@ -196,13 +196,17 @@ Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orch
 
 ## Commit Enforcement
 
-Once `/g-init` is run in a project, three hooks are installed:
+Once `/g-init` is run in a project, five hooks are installed:
 
-**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count (from `.claude/tier3-active`), and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
+**`session-start.sh`** (`SessionStart`) — fires once when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Also resets the per-session prompt counter used for context depth tracking.
+
+**`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count, context depth (🟡 amber at ~30 exchanges / 🔴 red at ~50), and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
 
 **`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-team-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
 
 **`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-team-approved` after a successful commit.
+
+**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and handoff block from `todo.md`.
 
 The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
@@ -220,7 +224,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 |-------|-------------|
 | `/g-help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
-| `/g-doctor` | 9-point health check: all 3 hooks installed, all hooks registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
+| `/g-doctor` | 11-point health check: all 5 hooks installed and registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
 | `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
 | `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
 | `/g-roadmap` | Four-phase milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → approve → ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Auto-triggers on any feature idea or empty milestone list. |
@@ -343,10 +347,12 @@ Quick reference for the most common workflows.
                      Produces project_brief.md with tech decisions table
 
 /g-init         Creates CLAUDE.md with G-rules, G-RULES.md, ROADMAP.md, milestones/M1.md, todo.md
-                     Installs .claude/hooks/workflow-checkpoint.sh (UserPromptSubmit)
+                     Installs .claude/hooks/session-start.sh (SessionStart — repo sync + context reset)
+                               .claude/hooks/workflow-checkpoint.sh (UserPromptSubmit — state + context depth)
                                .claude/hooks/check-commit.sh (PreToolUse — commit gate)
                                .claude/hooks/post-commit-cleanup.sh (PostToolUse — sentinel cleanup)
-                     Registers all three in .claude/settings.json
+                               .claude/hooks/pre-compact.sh (PreCompact — handoff snapshot)
+                     Registers all five in .claude/settings.json
 
 /g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
 ```

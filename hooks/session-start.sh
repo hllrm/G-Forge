@@ -50,3 +50,7 @@ if [ "$DIRTY_COUNT" -eq 0 ] && [ "$STASH_COUNT" -eq 0 ] && \
    [ "$BEHIND" -eq 0 ]       && [ "$AHEAD" -eq 0 ]; then
     echo "  ✓ Clean and in sync with remote"
 fi
+
+# Reset the per-session prompt counter so workflow-checkpoint can track
+# context depth from session open.
+printf '0\n' > ".claude/session-prompt-count" 2>/dev/null || true
