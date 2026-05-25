@@ -81,8 +81,8 @@ The hooks are the reason you don't have to type commands for the day-to-day loop
 `/plugin` is only available in the Claude Code CLI. Open a terminal and run `claude`, then:
 
 ```bash
-/plugin marketplace add hllrm/g-team
-/plugin install g-team
+/plugin marketplace add hllrm/g-forge
+/plugin install g-forge
 ```
 
 All 17 G-Forge agents, 32 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
@@ -94,8 +94,8 @@ All 17 G-Forge agents, 32 skills, 48 stack profiles, 7 combo profiles, and 1 sup
 ```bash
 # In a terminal:
 claude
-/plugin marketplace add hllrm/g-team
-/plugin install g-team
+/plugin marketplace add hllrm/g-forge
+/plugin install g-forge
 ```
 
 Then open the desktop app or IDE extension as normal — the agents and skills will be available.
@@ -111,14 +111,14 @@ Run `/g-update` inside any project that uses G-Forge. It does everything in one 
 G-Forge also checks for updates automatically. The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
 
 ```
-⚡ g-team update available: 0.4.4 → 0.5.0 — run /g-update to pull and sync
+⚡ G-Forge update available: 0.4.4 → 0.5.0 — run /g-update to pull and sync
 ```
 
 If `/g-update`'s git pull fails (cache is not a git clone), it will tell you to reinstall manually:
 
 ```bash
-/plugin marketplace add hllrm/g-team
-/plugin install g-team
+/plugin marketplace add hllrm/g-forge
+/plugin install g-forge
 ```
 
 #### Load per-session (without installing)
@@ -126,8 +126,8 @@ If `/g-update`'s git pull fails (cache is not a git clone), it will tell you to 
 For development or one-off use, load directly via the `--plugin-dir` flag:
 
 ```bash
-git clone https://github.com/hllrm/g-team.git
-claude --plugin-dir ./g-team
+git clone https://github.com/hllrm/g-forge.git
+claude --plugin-dir ./g-forge
 ```
 
 This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, or use the CLI install above for permanent access.
@@ -169,7 +169,7 @@ Or skip onboard if you already know your scope and don't need a project_brief.md
 ### Uninstall
 
 ```bash
-/plugin uninstall g-team
+/plugin uninstall g-forge
 ```
 
 Removes the plugin globally. Per-project commit hooks (installed in `.claude/hooks/` and registered in `.claude/settings.json`) must be removed manually from each project.
@@ -287,10 +287,10 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-plan` | QA scope prerequisite (compile docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
-| `/g-update` | Pull latest plugin from GitHub, then realign all g-team-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
+| `/g-update` | Pull latest plugin from GitHub, then realign all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
 | `/g-afk` | Autonomous milestone executor — runs all pending waves + review unattended. Requires approved plan. Safety net blocks remote push, recursive delete, and publish commands. Structured cycle-break report on any stop. |
 | `/g-listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
-| `/g-skill-design` | Design a new g-team skill from scratch — requirements gathering, step drafting, SKILL.md + command file + router wiring |
+| `/g-skill-design` | Design a new G-Forge skill from scratch — requirements gathering, step drafting, SKILL.md + command file + router wiring |
 | `/g-skill-validate [name]` | Validate a skill or agent against structural rules — ✓/✗ checklist, VALID or NEEDS FIXES verdict |
 | `/g-audit [path]` | Full-codebase or targeted code quality audit — SOLID violations, code smells, architectural drift, dead code, test coverage gaps. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
 | `/g-optimize [path]` | Full-codebase or targeted performance audit — algorithmic complexity, N+1 queries, re-render waste, resource leaks, caching opportunities. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
