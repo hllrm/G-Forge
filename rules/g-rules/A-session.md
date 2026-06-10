@@ -1,6 +1,6 @@
 ## A · Session Rules
 
-**A1 Model** — Haiku: explore / reads / search / format · Sonnet: implement / write · Opus: only after 2 fails on same task. Never default Opus because a task "feels hard."
+**A1 Model** — Haiku: explore / reads / search / format · Sonnet: implement / write · top tier (Opus, or any newer model above it such as Fable): only after 2 fails on same task. Never default to the top tier because a task "feels hard." If the session itself runs a top-tier model, the rule still applies to dispatched agents — delegation tiers are pinned per-agent, not inherited from the session.
 
 **A2 Plan** — Atomic verifiable tasks before touching files. Log in `todo.md`. Identify Wave 1 (no blockers). Vague goals ("make it work") → ask before starting.
 
