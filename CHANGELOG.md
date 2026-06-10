@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Top-tier model handling — newer-than-Opus models no longer treated as a downgrade** — `/g-afk`'s model check now accepts any Opus-class *or better* session model (e.g. Fable) and only prompts a switch when the session runs a Haiku- or Sonnet-class model; unrecognised non-Haiku/non-Sonnet model names are treated as top-tier instead of triggering a "switch to Opus" warning. G-RULES §A1 and `docs/agents.md` updated to define the escalation target as the top tier rather than literally Opus.
+- **Review agents `effort: max` → `effort: xhigh`** — `code-reviewer`, `code-lead`, `architecture-enforcer`, and `security-auditor`. On Opus 4.7+ and newer top-tier model families, `max` effort is prone to overthinking with diminishing returns, making the review gate a latency bottleneck; `xhigh` is the recommended depth for coding/agentic review work.
+- **`/g-skill-validate` model field check** — accepts newer top-tier aliases (e.g. `fable`) and full `claude-*` model ids; warns instead of failing on unrecognised bare aliases so new model families don't break agent validation.
+
 ## [1.5.0] — 2026-05-24
 
 ### Added

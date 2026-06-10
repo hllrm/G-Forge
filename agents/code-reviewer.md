@@ -4,7 +4,7 @@ description: Use proactively after any code change and before every merge. Revie
 model: opus
 tools: Read, Glob, Grep
 color: red
-effort: max
+effort: xhigh
 memory: project
 ---
 

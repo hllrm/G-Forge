@@ -4,7 +4,7 @@ description: Use proactively before any merge, especially those touching auth or
 model: opus
 tools: Read, Glob, Grep
 color: yellow
-effort: max
+effort: xhigh
 memory: project
 background: true
 ---

@@ -61,7 +61,7 @@ If present, check and record ✓ or ✗:
 **Frontmatter checks:**
 - `name:` field present
 - `description:` field present
-- `model:` field present (must be `haiku`, `sonnet`, or `opus`)
+- `model:` field present (must be a model alias Claude Code accepts — `haiku`, `sonnet`, `opus`, or a newer top-tier alias such as `fable` — or a full `claude-*` model id. Warn rather than fail on an unrecognised bare alias: new model families ship ahead of this list)
 - `tools:` field present
 
 **Body checks:**
