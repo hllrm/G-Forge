@@ -1,6 +1,6 @@
 ---
 name: g-afk
-description: Autonomous milestone executor. Requires an approved plan. Runs all pending waves and auto-review with no between-step check-ins. Uses Opus for orchestration. Ends with a structured handoff telling the user what to test and review.
+description: Autonomous milestone executor. Requires an approved plan. Runs all pending waves and auto-review with no between-step check-ins. Uses an Opus-class or newer top-tier model for orchestration. Ends with a structured handoff telling the user what to test and review.
 ---
 
 **Announce:** "Using g-afk — entering autonomous execution mode."
@@ -71,22 +71,24 @@ If settings cannot be written, **stop AFK entirely**:
 
 ## Step 1 — Model check
 
-Identify the model currently running this session. If it is not Opus, surface this before proceeding:
+Identify the model currently running this session. AFK orchestration requires an **Opus-class model or better** — any Opus model, or any newer top-tier model released above the Opus tier (e.g. Fable). If the session model is not a Haiku or Sonnet variant and you don't recognise the name, treat it as top-tier and proceed: model families newer than this skill's vocabulary sit above Opus, and a more capable model never warrants a downgrade prompt.
+
+Only if the session is running a Haiku- or Sonnet-class model, surface this before proceeding:
 
 ```
-⚠ AFK mode is designed for Opus orchestration — current model is [model name].
+⚠ AFK mode is designed for top-tier orchestration — current model is [model name].
 
-Opus gives significantly better judgment on multi-wave autonomous runs.
-To switch:  type /model  and select an Opus model, then re-run /g-afk.
+An Opus-class or newer top-tier model gives significantly better judgment on multi-wave autonomous runs.
+To switch:  type /model  and select an Opus-class or better model, then re-run /g-afk.
 
 Options:
-  (a) Switch to Opus now — type /model, then re-run /g-afk
+  (a) Switch now — type /model, then re-run /g-afk
   (b) Proceed with [current model] — will work but orchestration quality is lower
 ```
 
 Wait for the developer's choice. On (a) — stop, let them switch. On (b) — continue to Step 2.
 
-If already on Opus: continue to Step 2 immediately, no message needed.
+If already on an Opus-class or better model: continue to Step 2 immediately, no message needed.
 
 ## Step 2 — AFK briefing
 
@@ -97,11 +99,11 @@ AFK Mode — Autonomous Milestone Executor
 
   Plan:        [plan filename]
   Waves left:  [list of pending wave numbers and their task names]
-  Model:       Opus (orchestration) · Sonnet (implementation) · Haiku (reads)
+  Model:       [session model] (orchestration) · Sonnet (implementation) · Haiku (reads)
   Auto-stops:  BLOCKED tasks only — everything else runs through
 
   Before you confirm — set up for fully unattended execution (order matters):
-    1. Switch to Opus first if you haven't already: type /model and select Opus.
+    1. Switch to an Opus-class or better model first if you haven't already: type /model.
        Switching model after auto-approve resets the permission mode.
     2. Then press Shift+Tab to cycle permission mode to "Auto-approve"
        (bottom of the screen — cycles: Normal → Auto-approve → Plan)
@@ -237,4 +239,4 @@ No further autonomous actions will be taken this session.
 - BLOCKED and safety violations are the only valid autonomous stops.
 - Never attempt to fix HOLD findings autonomously — surface them for the developer.
 - Always leave `.claude/settings.json` in a valid state — never corrupt it.
-- Opus orchestrates. Dispatch implementation agents at Sonnet; reads/search at Haiku.
+- The top-tier session model orchestrates — never implements. Dispatch implementation agents at Sonnet; reads/search at Haiku.

@@ -4,7 +4,7 @@ description: Use proactively when files in layer-boundary directories change. Va
 model: opus
 tools: Read, Glob, Grep
 color: red
-effort: max
+effort: xhigh
 memory: project
 ---
 

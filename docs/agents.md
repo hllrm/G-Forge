@@ -2,6 +2,12 @@
 
 All 16 agents ship with every install. Stack-specific architect agents are installed per-project by `/g-specialize` and are not listed here.
 
+## Model tiers
+
+Agent `model:` fields use family aliases (`haiku`, `sonnet`, `opus`), which Claude Code resolves to the latest model in each family — the tier strategy needs no update when a new Opus, Sonnet, or Haiku ships. Models released *above* the Opus tier (e.g. Fable) are a separate case: they satisfy any "Opus" requirement in skills and rules (an orchestration check must never ask the user to downgrade from one), and dispatched agents keep their pinned tier regardless of which model runs the main session.
+
+Review agents run at `effort: xhigh` — the recommended depth for review work on current top-tier models. `max` is intentionally not used: on Opus 4.7+ and newer families it trades significant latency for diminishing returns and is prone to overthinking, which turns the review gate into a bottleneck.
+
 ---
 
 ## Orchestration
