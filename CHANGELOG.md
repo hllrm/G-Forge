@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.4] — 2026-06-16
+
+### Changed
+
+- **Umbrella command renamed `/g-team` → `/g-forge`** — the router file moved to `commands/g-forge.md`; internal references in `/g-skill-design`, `/g-skill-validate`, and `ROADMAP.md` now point at it. `/g-team` is preserved as a **deprecated alias** that still routes every subcommand (it delegates to the `g-forge` router), so existing usage keeps working; it will be removed in a future major version.
+
 ## [1.5.3] — 2026-06-16
 
 ### Fixed
