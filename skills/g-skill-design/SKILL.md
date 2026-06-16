@@ -1,6 +1,6 @@
 ---
 name: g-skill-design
-description: Design a new g-team skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, creates the companion command file, and adds it to the g-team router.
+description: Design a new G-Forge skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, creates the companion command file, and adds it to the g-team router.
 ---
 
 **Announce:** "Using g-skill-design to design the new skill."
@@ -42,15 +42,15 @@ Wait for approval or revision before writing anything.
 
 ## Step 4 — Write the SKILL.md
 
-Write `skills/g-team-[name]/SKILL.md` with this structure:
+Write `skills/g-[name]/SKILL.md` with this structure:
 
 ```
 ---
-name: g-team-[name]
+name: g-[name]
 description: [One sentence: what it does and when to use it.]
 ---
 
-**Announce:** "Using g-team-[name] to [purpose]."
+**Announce:** "Using g-[name] to [purpose]."
 
 [Intro sentence describing what this skill does.]
 
@@ -78,14 +78,14 @@ description: [One sentence: what it does and when to use it.]
 
 ## Step 5 — Write the command file
 
-Write `commands/g-team-[name].md` with this content:
+Write `commands/g-[name].md` with this content:
 
 ```
 ---
 description: [Same one-sentence description as in SKILL.md.]
 ---
 
-Use Glob to find `skills/g-team-[name]/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
+Use Glob to find `skills/g-[name]/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.
 ```
 
 ## Step 6 — Add to the g-team router
@@ -93,7 +93,7 @@ Use Glob to find `skills/g-team-[name]/SKILL.md` inside `~/.claude/plugins/cache
 Read `commands/g-team.md`. Make three additions:
 
 1. In the `argument-hint` value: append `|[name]` to the pipe-separated list
-2. In the routing table: add a new line `- \`[name]\`       → \`skills/g-team-[name]/SKILL.md\``
+2. In the routing table: add a new line `- \`[name]\`       → \`skills/g-[name]/SKILL.md\``
 3. In the subcommand description list at the bottom: add `- \`[name]\` — [one-line description]`
 
 Write the updated file.
@@ -103,8 +103,8 @@ Write the updated file.
 ```
 Skill created ✓
 
-  ✓ skills/g-team-[name]/SKILL.md — skill workflow written
-  ✓ commands/g-team-[name].md    — command routing file written
+  ✓ skills/g-[name]/SKILL.md — skill workflow written
+  ✓ commands/g-[name].md    — command routing file written
   ✓ commands/g-team.md           — router updated
 
 Run /g-skill-validate [name] to validate the new skill's structure.

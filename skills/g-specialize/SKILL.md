@@ -232,10 +232,10 @@ If found, use these local files — this is the correct path when working inside
 
 **If not found locally**, use Glob to find the plugin root in the cache:
 ```
-~/.claude/plugins/cache/g-team/g-team/*/skills/g-init/SKILL.md
+~/.claude/plugins/cache/g-forge/g-forge/*/skills/g-init/SKILL.md
 ```
 
-The parent of the `skills/` directory is the plugin root. For example, if Glob returns `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/skills/g-init/SKILL.md`, the plugin root is `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/g-team/g-team/0.3.3/profiles/vue-pinia/`.
+The parent of the `skills/` directory is the plugin root. For example, if Glob returns `/home/user/.claude/plugins/cache/g-forge/g-forge/0.3.3/skills/g-init/SKILL.md`, the plugin root is `/home/user/.claude/plugins/cache/g-forge/g-forge/0.3.3/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/g-forge/g-forge/0.3.3/profiles/vue-pinia/`.
 
 If neither the local directory nor the plugin cache contain the profile, tell the developer: "Could not find the profile files for '[stack]'. If this is a new profile, ensure it exists under profiles/<stack>/. Otherwise run `/plugin update g-team` to refresh the cache." and stop.
 

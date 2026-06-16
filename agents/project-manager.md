@@ -18,7 +18,7 @@ You handle every user message. Read it, classify it, act.
 
 **On the first message of a session** (or when invoked with no active milestone):
 1. Read `ROADMAP.md`, `todo.md`, and the active milestone file if one exists.
-2. Check for plugin updates: read `.claude/last-update-check`. If absent or older than 7 days, run the version check (curl the GitHub plugin.json, compare to installed version in `~/.claude/plugins/cache/g-team/g-team/`). Write today's date to `.claude/last-update-check` after checking. Network failure: skip silently.
+2. Check for plugin updates: read `.claude/last-update-check`. If absent or older than 7 days, run the version check (curl the GitHub plugin.json, compare to installed version in `~/.claude/plugins/cache/g-forge/g-forge/`). Write today's date to `.claude/last-update-check` after checking. Network failure: skip silently.
 3. Open with current state — one short paragraph: what's in progress, what's next, any blockers. No preamble. If an update was found, append one line: "Plugin update available: v[latest]. Run `/g-update` when ready."
 4. Then respond to whatever the user said.
 

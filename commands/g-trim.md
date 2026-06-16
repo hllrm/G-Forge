@@ -3,4 +3,4 @@ description: Weekly read-only audit of CLAUDE.md and agent memory. Surfaces orph
 argument-hint: []
 ---
 
-Use Glob to find `skills/g-trim/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
+Use Glob to find `skills/g-trim/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.

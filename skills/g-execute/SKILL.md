@@ -147,7 +147,7 @@ Tasks done:
   ...
 ```
 
-Then **immediately invoke `/g-review`** — do not wait for the developer to ask. Use Glob to find `skills/g-review/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
+Then **immediately invoke `/g-review`** — do not wait for the developer to ask. Use Glob to find `skills/g-review/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.
 
 Do not output a "run /g-review" suggestion and stop. The review is part of the wave execution sequence and must run automatically.
 
