@@ -85,7 +85,7 @@ Write `commands/g-team-[name].md` with this content:
 description: [Same one-sentence description as in SKILL.md.]
 ---
 
-Use Glob to find `skills/g-team-[name]/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
+Use Glob to find `skills/g-team-[name]/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.
 ```
 
 ## Step 6 — Add to the g-team router

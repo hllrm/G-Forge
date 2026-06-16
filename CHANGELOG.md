@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.2] — 2026-06-16
+
+### Fixed
+
+- **Stale plugin cache path broke every command — "SKILL.md missing" errors** — after the `g-team` → `g-forge` rename, the plugin installs to `~/.claude/plugins/cache/g-forge/g-forge/`, but all command routers and several skills still pointed their Glob at the old `~/.claude/plugins/cache/g-team/g-team/` path. The Glob matched nothing, so every `/g-*` command reported its SKILL.md as missing. Updated all 51 references across commands, skills, the workflow-checkpoint self-update check, and agent docs to the correct `g-forge/g-forge` cache path.
+
 ## [1.5.1] — 2026-06-10
 
 ### Changed

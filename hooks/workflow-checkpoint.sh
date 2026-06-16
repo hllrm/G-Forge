@@ -188,7 +188,7 @@ fi
 
 # Self-update check — background curl once per day, zero blocking latency
 CLAUDE_DIR="$HOME/.claude"
-INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-team/g-team/.claude-plugin/plugin.json"
+INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-forge/g-forge/.claude-plugin/plugin.json"
 VERSION_CACHE="$CLAUDE_DIR/g-team-latest-version"
 CHECK_STAMP="$CLAUDE_DIR/g-team-check-stamp"
 
