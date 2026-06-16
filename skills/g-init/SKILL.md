@@ -1,6 +1,6 @@
 ---
 name: g-init
-description: Scaffold a new project with CLAUDE.md (compact G-rules injected), ROADMAP.md, milestones/, todo.md, and commit enforcement hooks. Run once in a new project after installing g-team.
+description: Scaffold a new project with CLAUDE.md (compact G-rules injected), ROADMAP.md, milestones/, todo.md, and commit enforcement hooks. Run once in a new project after installing G-Forge.
 ---
 
 **Announce:** "Using g-init to scaffold the project."
@@ -37,11 +37,11 @@ Report: `✓ CLAUDE.md — verified`
 
 The plugin root is `~/.claude/plugins/cache/g-forge/g-forge/` (use Glob to confirm the exact path).
 
-1. Copy `[plugin-root]/G-RULES.md` to the project root as `G-RULES.md`. Overwrite if it exists — g-team managed.
+1. Copy `[plugin-root]/G-RULES.md` to the project root as `G-RULES.md`. Overwrite if it exists — G-Forge managed.
 
 2. Create `.claude/rules/` directory if it does not exist.
 
-3. For each file in `[plugin-root]/rules/g-rules/`, copy it to `.claude/rules/` prefixed with `g-rules-`. Overwrite if it exists — g-team managed.
+3. For each file in `[plugin-root]/rules/g-rules/`, copy it to `.claude/rules/` prefixed with `g-rules-`. Overwrite if it exists — G-Forge managed.
 
    | Source | Destination |
    |--------|-------------|
@@ -161,7 +161,7 @@ Report:
 If the plugin cache does not contain any of the five scripts, stop and report:
 ```
 ✗ Plugin cache missing hook file: <plugin-hooks>/<filename>
-  Reinstall the plugin: /plugin install g-team
+  Reinstall the plugin: /plugin install g-forge
 ```
 
 ## Step 7 — Register hooks in .claude/settings.json

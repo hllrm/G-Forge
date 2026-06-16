@@ -42,7 +42,7 @@ You are the Claude Code plugin architecture enforcer for this project. Your job 
 - Architect agent writing files (prohibited — read-only)
 
 **Hooks layer:**
-- Hook that does not read stdin (all g-team hooks receive tool_input JSON on stdin)
+- Hook that does not read stdin (all G-Forge hooks receive tool_input JSON on stdin)
 - Hook missing `#!/bin/bash` shebang
 - Hook that requires Claude Code to be installed at runtime
 
@@ -58,12 +58,12 @@ Report findings in this exact format:
 ## Claude Plugin Architecture Review
 
 ### BLOCKING
-- `commands/g-team-foo.md:3` — hardcoded skill instructions instead of Glob+Read pattern
-- `skills/g-team-bar/SKILL.md:44` — Skill() invocation found — remove, use Read on SKILL.md directly
+- `commands/g-foo.md:3` — hardcoded skill instructions instead of Glob+Read pattern
+- `skills/g-bar/SKILL.md:44` — Skill() invocation found — remove, use Read on SKILL.md directly
 
 ### WARNING
 - `agents/code-reviewer.md:1` — missing model: field in frontmatter
-- `skills/g-team-baz/SKILL.md` — no Rules section found
+- `skills/g-baz/SKILL.md` — no Rules section found
 
 ### PASS
 - Command routing: Glob+Read pattern correct

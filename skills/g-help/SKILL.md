@@ -17,7 +17,7 @@ Attempt to read each of the following files from the current working directory. 
 1. `todo.md` — current tasks and handoff block
 2. `docs/plans/` — use Glob to find the most recent plan file (e.g. `docs/plans/*.md`); if multiple exist, use the one with the latest modification time or highest sort order
 3. `ROADMAP.md` — current milestone and status
-4. `.claude/g-team-approved` — presence indicates the commit gate is open
+4. `.claude/g-forge-approved` — presence indicates the commit gate is open
 5. `.claude/hooks/workflow-checkpoint.sh` — presence indicates workflow hooks are installed
 6. `project_brief.md` — presence indicates the project has been onboarded or kicked off
 7. Current git branch — run `git branch --show-current` via Bash (skip gracefully if git is unavailable)
@@ -42,10 +42,10 @@ Apply the following rules in order (first match wins):
 | `project_brief.md` is missing | Not initialized |
 | `CLAUDE.md` exists but has no G-Forge Rules block | Not initialized |
 | G-Forge Rules block exists, no plan file found in `docs/plans/` | Initialized |
-| Plan file exists AND `.claude/g-team-approved` is absent AND `todo.md` shows tasks remaining | Execution in progress |
-| Plan file exists AND `.claude/g-team-approved` is absent AND `todo.md` shows all tasks done | Review pending |
-| Plan file exists AND `.claude/g-team-approved` is absent | Active plan |
-| `.claude/g-team-approved` exists | Ready to merge |
+| Plan file exists AND `.claude/g-forge-approved` is absent AND `todo.md` shows tasks remaining | Execution in progress |
+| Plan file exists AND `.claude/g-forge-approved` is absent AND `todo.md` shows all tasks done | Review pending |
+| Plan file exists AND `.claude/g-forge-approved` is absent | Active plan |
+| `.claude/g-forge-approved` exists | Ready to merge |
 
 Default to "Initialized" if none of the above conditions clearly match and the project appears set up.
 
@@ -135,7 +135,7 @@ All commands (grouped by purpose):
     /g-docs        — documentation audit and generation
 
   Skill development:
-    /g-skill-design   — design a new g-team skill from scratch
+    /g-skill-design   — design a new G-Forge skill from scratch
     /g-skill-validate — validate a skill or agent against structural rules
 ```
 

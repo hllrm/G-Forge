@@ -9,11 +9,11 @@ You are validating a G-Forge skill or agent against structural rules. Run all ch
 
 ## Step 1 — Identify what to validate
 
-If a skill name was provided as an argument (e.g. the user typed `/g-skill-validate g-team-foo`), use that name.
+If a skill name was provided as an argument (e.g. the user typed `/g-skill-validate g-foo`), use that name.
 
 If no argument was provided, ask:
 
-> "Which skill or agent do you want to validate? Provide the skill name (e.g. `g-team-foo`) or agent filename (e.g. `code-reviewer.md`)."
+> "Which skill or agent do you want to validate? Provide the skill name (e.g. `g-foo`) or agent filename (e.g. `code-reviewer.md`)."
 
 Wait for input.
 

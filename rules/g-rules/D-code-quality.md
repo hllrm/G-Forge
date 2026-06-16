@@ -51,7 +51,7 @@ Composable export matches filename: `useFoo.ts` → `export function useFoo`.
 
 **Branch discipline**
 - Non-trivial work (≥3 files, new feature, layer-boundary change, unclear bug, public API change) → create a feature branch before the first file change: `git checkout -b feat/<slug>`, `fix/<slug>`, or `refactor/<slug>`
-- All work subject to the commit gate (`.claude/g-team-approved` required) regardless of branch
+- All work subject to the commit gate (`.claude/g-forge-approved` required) regardless of branch
 - MERGE READY verdict on a feature branch → HQ merges to main (`git merge --no-ff`) or opens a PR. Never force-push to main.
 - MERGE READY on main is only acceptable for: hotfixes (single-file bug fix), doc-only changes (README, CHANGELOG, comments), or version bumps. Everything else requires a branch.
 - Branch naming: `feat/<slug>` for new features, `fix/<slug>` for bug fixes, `refactor/<slug>` for refactors, `chore/<slug>` for housekeeping

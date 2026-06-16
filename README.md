@@ -42,7 +42,7 @@ A **wave** is a batch of tasks that can run in parallel without depending on eac
 
 ### 3. The commit gate
 
-Every `git commit` in a G-Forge project is blocked by a pre-commit hook. The hook checks for `.claude/g-team-approved`. That file is written only when `/g-review` issues a **MERGE READY** verdict after the full review pipeline passes. No other path writes it.
+Every `git commit` in a G-Forge project is blocked by a pre-commit hook. The hook checks for `.claude/g-forge-approved`. That file is written only when `/g-review` issues a **MERGE READY** verdict after the full review pipeline passes. No other path writes it.
 
 The sentinel is consumed (deleted) on every successful commit, so each commit cycle requires a fresh review.
 
@@ -255,9 +255,9 @@ Context depth uses mode-aware thresholds. Sessions are classified as `implementa
 
 At amber, Claude runs `/context`, checks remaining window, and warns the user directly: *"Context is getting full — finish what's in flight then /g-retro before anything new."* At red, it's enforced: no new scope, `/g-retro` auto-triggers when the current task finishes, user is told to open a fresh session.
 
-**`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-team-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
+**`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-forge-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
 
-**`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-team-approved` after a successful commit.
+**`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-forge-approved` after a successful commit.
 
 **`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and handoff block from `todo.md`.
 

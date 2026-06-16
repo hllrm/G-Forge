@@ -44,7 +44,7 @@ Before reviewing any code, verify the test suite passes.
 - Continue to Step 2
 
 **If any tests fail:**
-- Do NOT write `.claude/g-team-approved`
+- Do NOT write `.claude/g-forge-approved`
 - Report the failing tests verbatim
 - Dispatch `error-detective` with the full test output and the current diff (`git diff main...HEAD`). Ask it to identify the root cause of each failure — file, line, pattern.
 - After error-detective returns, dispatch `debugger` with error-detective's findings and the relevant source files. Ask for a concrete fix strategy.
@@ -132,7 +132,7 @@ Present code-lead's verdict to the developer verbatim.
 
 **If verdict is MERGE READY:**
 - Create `.claude/` directory if it does not exist
-- Write `.claude/g-team-approved` with content: `approved`
+- Write `.claude/g-forge-approved` with content: `approved`
 - Tell the developer: "MERGE READY. Commit gate unlocked — you can now run git commit and merge."
 - Ask once: "Would you like a PR description? (yes/no)" — if yes, dispatch `pr-writer` with the full diff from Step 2 and the done conditions from Step 3. Present the PR description. If no, continue silently.
 
@@ -166,16 +166,16 @@ Present code-lead's verdict to the developer verbatim.
    - Report: `✓ [N] milestone tasks checked off — [M] remaining`
 
 **If verdict is HOLD — FIX REQUIRED:**
-- Do NOT write `.claude/g-team-approved`
+- Do NOT write `.claude/g-forge-approved`
 - Tell the developer: "HOLD. Fix all blocking items listed above, then re-run /g-review."
 
 **If verdict is ESCALATE:**
-- Do NOT write `.claude/g-team-approved`
+- Do NOT write `.claude/g-forge-approved`
 - Present the escalation details and ask the developer for guidance before proceeding.
 
 ## Rules
 - Never modify code-lead's verdict — present it exactly.
-- Never write `.claude/g-team-approved` for anything other than MERGE READY.
+- Never write `.claude/g-forge-approved` for anything other than MERGE READY.
 - Never skip Step 5 (Tier 3 smoke test) on a MERGE READY verdict — the sentinel must not be written until at least one clean smoke-test round completes.
 - If code-lead is blocked by missing information, gather it and re-dispatch — do not guess.
 - The sentinel is automatically cleared after the next `git commit` by the commit hook.
