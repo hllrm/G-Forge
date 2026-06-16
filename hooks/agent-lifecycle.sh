@@ -1,13 +1,13 @@
 #!/bin/bash
 # G-Team agent lifecycle logger.
 # Wired to SubagentStart and SubagentStop hooks in hooks.json.
-# Logs to .claude/g-team-agent-log.jsonl and echoes a status note to Claude.
+# Logs to .claude/g-forge-agent-log.jsonl and echoes a status note to Claude.
 #
 # Usage: bash hooks/agent-lifecycle.sh start|stop
 
 EVENT="${1:-unknown}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-LOG_FILE=".claude/g-team-agent-log.jsonl"
+LOG_FILE=".claude/g-forge-agent-log.jsonl"
 
 mkdir -p .claude
 

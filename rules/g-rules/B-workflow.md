@@ -9,7 +9,7 @@
 /g-specialize → detect stack, install architect agent + rules profile
 ```
 
-For an existing project without g-team: run `/g-onboard` instead of the above sequence.
+For an existing project without G-Forge: run `/g-onboard` instead of the above sequence.
 
 ### Per-task loop — auto-triggered, Claude initiates without being asked
 
@@ -53,7 +53,7 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 
 | Skill | Purpose |
 |-------|---------|
-| `/g-update` | Pull latest plugin from GitHub, realign all g-team-managed project files |
+| `/g-update` | Pull latest plugin from GitHub, realign all G-Forge-managed project files |
 | `/g-brief` | Refresh `project_brief.md` from the current conversation |
 | `/g-status` | One-shot snapshot: branch, active milestone, next task |
 | `/g-help` | Context-aware help — reads project state and detects workflow phase |
@@ -66,7 +66,7 @@ Run `/g-help` for the full skill reference including deep-analysis, learning, an
 
 ### Hard stops
 
-- Never commit without `.claude/g-team-approved` — the commit gate will block it
+- Never commit without `.claude/g-forge-approved` — the commit gate will block it
 - Never skip `/g-plan` for non-trivial tasks — "it's quick" is not an exception
 - `code-lead` HOLD = fix everything listed, re-review. No partial merges.
 - `git commit` is HQ-only, after MERGE READY. Never instruct subagents to commit — they implement and return results only.

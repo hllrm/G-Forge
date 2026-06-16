@@ -163,7 +163,7 @@ Waves completed:
   [list each wave with task count and status]
 
 [If MERGE READY:]
-  Commit gate:  open — .claude/g-team-approved written
+  Commit gate:  open — .claude/g-forge-approved written
   Next:         review the diff, then commit
 
 [If HOLD:]

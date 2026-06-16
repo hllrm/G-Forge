@@ -12,7 +12,7 @@ Produce a single structured status block. Fast — no interviews, no back-and-fo
 - `ROADMAP.md` — extract the current milestone name and its status (in progress / done)
 - `docs/plans/` — find the most recently modified `.md` file; extract wave count and task list if present
 - `todo.md` — extract the Handoff block (first section), specifically the first "Next up" line
-- `.claude/g-team-approved` — note whether this file exists
+- `.claude/g-forge-approved` — note whether this file exists
 
 **Step 3.** Output exactly this block, filling each field or writing "—" if the information is unavailable:
 
@@ -29,6 +29,6 @@ Handoff:      [first "Next up" line from todo.md / —]
 
 **Rules:**
 - Output only the status block — no extra explanation unless a critical misconfiguration is detected (e.g. hooks not installed)
-- If `.claude/g-team-approved` exists → review gate is "open (MERGE READY)"; otherwise → "locked"
+- If `.claude/g-forge-approved` exists → review gate is "open (MERGE READY)"; otherwise → "locked"
 - If a plan file exists → show its filename and wave info if parseable; otherwise → "none"
 - Never error out on missing files — skip them silently and fill the field with "—"

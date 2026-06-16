@@ -40,7 +40,7 @@ All hooks fire. Every workflow auto-triggers per the rules. Telemetry, forecast,
 Hooks still report state — but they never auto-trigger workflows. Skills exist and are invocable; you decide when. The commit gate is still active (you can't accidentally commit without `/g-review`), but `/g-plan` and `/g-execute` only run when you call them.
 
 **What still auto-triggers:**
-- Commit gate (`.claude/g-team-approved` required for any git commit)
+- Commit gate (`.claude/g-forge-approved` required for any git commit)
 - `workflow-checkpoint.sh` reports state on every prompt
 - `/g-review` Step 0 still reads the telemetry profile
 - `/g-execute` Step 0 still reads the telemetry profile

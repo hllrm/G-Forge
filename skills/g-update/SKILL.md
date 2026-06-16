@@ -1,11 +1,11 @@
 ---
 name: g-update
-description: Realign all g-team-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and commit hooks. Safe — only touches content between g-team markers.
+description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and commit hooks. Safe — only touches content between G-Forge markers.
 ---
 
 **Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
 
-You are first updating the plugin cache from GitHub, then syncing g-team-managed content in this project against it. You only touch content that g-team originally injected — never user-written content.
+You are first updating the plugin cache from GitHub, then syncing G-Forge-managed content in this project against it. You only touch content that G-Forge originally injected — never user-written content.
 
 ---
 
@@ -13,7 +13,7 @@ You are first updating the plugin cache from GitHub, then syncing g-team-managed
 
 1. Fetch the latest version from GitHub:
    ```bash
-   curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/g-team/main/.claude-plugin/plugin.json | grep '"version"'
+   curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
    ```
    If curl fails (no network, timeout), report: "⚠ Could not reach GitHub — skipping version check, syncing from installed cache." and continue to Step 1.
 
@@ -26,7 +26,7 @@ You are first updating the plugin cache from GitHub, then syncing g-team-managed
    ⚠ Plugin is at v[installed] — v[latest] is available.
 
    Update it first:
-     /plugin  →  Installed  →  g-team  →  Update now
+     /plugin  →  Installed  →  g-forge  →  Update now
 
    Then re-run /g-update to sync your project files.
    ```
@@ -43,7 +43,7 @@ Use Glob to find the plugin's skill files:
 
 The parent of the `skills/` directory is the plugin root. Store this path — you will need it throughout.
 
-If not found, tell the developer: "Could not find the g-team plugin in ~/.claude/plugins/cache/. Run `/plugin update g-team` first." and stop.
+If not found, tell the developer: "Could not find the G-Forge plugin in ~/.claude/plugins/cache/. Run `/plugin update g-forge` first." and stop.
 
 ---
 
@@ -57,7 +57,7 @@ Read and record:
 
 **.claude/agents/:**
 - List all `.md` files. For each, read the `name:` field from frontmatter.
-- Flag any whose name matches a known g-team architect pattern: `*-architect` or `node-architect`.
+- Flag any whose name matches a known G-Forge architect pattern: `*-architect` or `node-architect`.
 
 **.claude/rules/:**
 - List all `.md` files if directory exists.
@@ -73,7 +73,7 @@ Read and record:
 
 Present a summary:
 ```
-Installed g-team content:
+Installed G-Forge content:
 
   CLAUDE.md:
     G-Forge Rules block:  [present / not found]
@@ -150,7 +150,7 @@ If a stack's profile no longer exists in the plugin (removed), tell the develope
 
 ## Step 5 — Update architect agents in .claude/agents/
 
-For each g-team architect agent file found in Step 2:
+For each G-Forge architect agent file found in Step 2:
 
 1. Determine which profile it came from by matching the `name:` frontmatter field against the plugin's profile agent filenames:
    - Read each file in `[plugin-root]/profiles/*/agents/*.md`
@@ -169,7 +169,7 @@ For each file in `.claude/rules/`:
 
 1. Try to match it to a profile rules file in `[plugin-root]/profiles/*/rules/architecture.md` by reading the file content and comparing stack signatures (first heading or content keywords).
 2. If matched, replace with the current plugin version.
-3. If not matched (user-created rule file), skip it and report: "Skipping `.claude/rules/[filename]` — does not appear to be g-team managed."
+3. If not matched (user-created rule file), skip it and report: "Skipping `.claude/rules/[filename]` — does not appear to be G-Forge managed."
 
 Report: `✓ .claude/rules/[filename] — updated` for each updated file.
 
@@ -203,7 +203,7 @@ Read `[plugin-root]/skills/g-init/SKILL.md` once. Extract each hook script's con
 ## Step 8 — Report
 
 ```
-g-team update complete ✓
+g-forge update complete ✓
 
   ✓ CLAUDE.md — G-Forge Rules realigned
   ✓ G-RULES.md — realigned
@@ -211,19 +211,19 @@ g-team update complete ✓
   ✓ .claude/agents/vue-architect.md — realigned
   ✓ .claude/hooks/check-commit.sh — realigned
   ✓ .claude/hooks/workflow-checkpoint.sh — realigned
-  [skipped] .claude/rules/my-custom-rules.md — not g-team managed
+  [skipped] .claude/rules/my-custom-rules.md — not G-Forge managed
 
-All g-team-managed content is now at plugin version [read version from plugin-root/.claude-plugin/plugin.json].
+All G-Forge-managed content is now at plugin version [read version from plugin-root/.claude-plugin/plugin.json].
 ```
 
-If nothing needed updating (all content already matched): "All g-team-managed content is already up to date."
+If nothing needed updating (all content already matched): "All G-Forge-managed content is already up to date."
 
 ---
 
 ## Rules
 
-- Never modify content outside g-team markers in CLAUDE.md.
-- Never delete or overwrite files not identified as g-team-managed.
+- Never modify content outside G-Forge markers in CLAUDE.md.
+- Never delete or overwrite files not identified as G-Forge-managed.
 - Never run without developer confirmation from Step 2.
 - If the plugin root cannot be found, stop and tell the developer.
 - Read the plugin files fresh each time — never use cached or assumed content.

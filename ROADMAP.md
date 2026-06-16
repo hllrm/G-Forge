@@ -70,9 +70,9 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 ### M8 — Deploy & Use
 **Status:** ✅ Complete
 **Version:** v0.9.0
-**Goal:** Self-host g-team on this repo; add claude-plugin profile; add skill-design and skill-validate vibecoding skills
+**Goal:** Self-host G-Forge on this repo; add claude-plugin profile; add skill-design and skill-validate vibecoding skills
 **Scope:**
-- Install g-team into this repo (CLAUDE.md, hooks, settings.json, milestone files)
+- Install G-Forge into this repo (CLAUDE.md, hooks, settings.json, milestone files)
 - Create milestones/M6, milestones/M7 files (retroactive)
 - claude-plugin stack profile — architect agent + architecture rules
 - /g-skill-design skill — guided workflow for designing new skills/agents

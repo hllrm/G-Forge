@@ -1,6 +1,6 @@
 #!/bin/bash
 # G-Team commit gate — PreToolUse hook.
-# Blocks git commit if .claude/g-team-approved does not exist.
+# Blocks git commit if .claude/g-forge-approved does not exist.
 # Input: Claude Code PreToolUse JSON on stdin.
 
 INPUT=$(cat)
@@ -30,7 +30,7 @@ if echo "$CMD" | grep -q "git commit"; then
         exit 0
     fi
 
-    if [ ! -f ".claude/g-team-approved" ]; then
+    if [ ! -f ".claude/g-forge-approved" ]; then
         echo "G-Forge: No code-lead sign-off. Run /g-review and wait for MERGE READY before committing." >&2
         echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
         exit 1
