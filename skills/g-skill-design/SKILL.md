@@ -1,6 +1,6 @@
 ---
 name: g-skill-design
-description: Design a new G-Forge skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, creates the companion command file, and adds it to the g-team router.
+description: Design a new G-Forge skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, creates the companion command file, and adds it to the g-forge router.
 ---
 
 **Announce:** "Using g-skill-design to design the new skill."
@@ -88,9 +88,9 @@ description: [Same one-sentence description as in SKILL.md.]
 Use Glob to find `skills/g-[name]/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.
 ```
 
-## Step 6 — Add to the g-team router
+## Step 6 — Add to the g-forge router
 
-Read `commands/g-team.md`. Make three additions:
+Read `commands/g-forge.md`. Make three additions:
 
 1. In the `argument-hint` value: append `|[name]` to the pipe-separated list
 2. In the routing table: add a new line `- \`[name]\`       → \`skills/g-[name]/SKILL.md\``
@@ -105,7 +105,7 @@ Skill created ✓
 
   ✓ skills/g-[name]/SKILL.md — skill workflow written
   ✓ commands/g-[name].md    — command routing file written
-  ✓ commands/g-team.md           — router updated
+  ✓ commands/g-forge.md          — router updated
 
 Run /g-skill-validate [name] to validate the new skill's structure.
 ```

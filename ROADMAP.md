@@ -77,7 +77,7 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 - claude-plugin stack profile — architect agent + architecture rules
 - /g-skill-design skill — guided workflow for designing new skills/agents
 - /g-skill-validate skill — validates SKILL.md and agent files against quality criteria
-- Register skill-design and skill-validate in commands/g-team.md router
+- Register skill-design and skill-validate in commands/g-forge.md router
 
 **Depends on:** —
 
