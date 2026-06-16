@@ -17,7 +17,7 @@ You are first updating the plugin cache from GitHub, then syncing g-team-managed
    ```
    If curl fails (no network, timeout), report: "⚠ Could not reach GitHub — skipping version check, syncing from installed cache." and continue to Step 1.
 
-2. Find the installed version: Glob `~/.claude/plugins/cache/g-team/g-team/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract the version. If nothing found, continue to Step 1.
+2. Find the installed version: Glob `~/.claude/plugins/cache/g-forge/g-forge/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract the version. If nothing found, continue to Step 1.
 
 3. If versions match: report `✓ Plugin already at latest (v[version]) — proceeding with project sync.` and continue to Step 1.
 
@@ -38,7 +38,7 @@ You are first updating the plugin cache from GitHub, then syncing g-team-managed
 
 Use Glob to find the plugin's skill files:
 ```
-~/.claude/plugins/cache/g-team/g-team/*/skills/g-init/SKILL.md
+~/.claude/plugins/cache/g-forge/g-forge/*/skills/g-init/SKILL.md
 ```
 
 The parent of the `skills/` directory is the plugin root. Store this path — you will need it throughout.

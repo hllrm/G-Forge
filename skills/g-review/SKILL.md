@@ -155,12 +155,12 @@ Present code-lead's verdict to the developer verbatim.
        Run /g-update after bumping to sync project files.
      ```
    - Do not bump the version automatically — the developer decides and commits it separately.
-   - **Auto-retro:** Immediately run `/g-retro` — use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions. Use the milestone name as the topic slug (e.g. `M3-auth-refactor`). Do not wait for the developer to trigger it.
+   - **Auto-retro:** Immediately run `/g-retro` — use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. Use the milestone name as the topic slug (e.g. `M3-auth-refactor`). Do not wait for the developer to trigger it.
    - **Milestone close swarm:** Once the retro is written, dispatch the following concurrently — they are all read-only analysis and can run in parallel:
      - `/g-patterns` — mines the retro just written alongside previous retros. Use Glob to find `skills/g-patterns/SKILL.md` and follow its instructions.
      - `/g-telemetry` — refreshes reliability metrics now that the milestone is in the corpus. Use Glob to find `skills/g-telemetry/SKILL.md` and follow its instructions.
      - **ADR prompt** — ask the developer once: "Were any significant architectural decisions made during this milestone that should be recorded as an ADR? (e.g. a new pattern adopted, a library chosen, a structural constraint introduced) — yes/no." If yes, run `/g-adr`. If no, continue.
-   - **Every-other-milestone health check:** Read `.claude/milestone-count` if it exists (contains an integer, default 0 if absent). Increment by 1. If the result is odd, run `/g-doctor` after the close swarm — use Glob to find `skills/g-doctor/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions. Write the new count back to `.claude/milestone-count`.
+   - **Every-other-milestone health check:** Read `.claude/milestone-count` if it exists (contains an integer, default 0 if absent). Increment by 1. If the result is odd, run `/g-doctor` after the close swarm — use Glob to find `skills/g-doctor/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. Write the new count back to `.claude/milestone-count`.
 6. If only some tasks are done:
    - Save the partial updates to the milestone file
    - Report: `✓ [N] milestone tasks checked off — [M] remaining`

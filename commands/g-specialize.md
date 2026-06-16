@@ -3,4 +3,4 @@ description: Auto-detect stack from project brief and dependencies, or apply a n
 argument-hint: [stack]
 ---
 
-Use Glob to find `skills/g-specialize/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly. The user's argument (if any) is: $ARGUMENTS
+Use Glob to find `skills/g-specialize/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly. The user's argument (if any) is: $ARGUMENTS

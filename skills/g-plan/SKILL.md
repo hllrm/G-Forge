@@ -121,7 +121,7 @@ Read `.claude/session-prompt-count` for the current depth. Once a plan is execut
 
 **If the developer chooses option 1:**
 
-Use Glob to find `skills/g-roadmap/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it. Run `/g-roadmap` with the following framing passed as context:
+Use Glob to find `skills/g-roadmap/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it. Run `/g-roadmap` with the following framing passed as context:
 
 > "The current milestone task list is [task list]. The session context budget is ~[M] exchanges per sub-milestone. Split this milestone into sub-milestones where each sub-milestone's estimated cost (base 5 + waves×3 + agents×2 + tasks×1) does not exceed [floor(M × 0.7)] exchanges. Produce a revised ROADMAP.md with the sub-milestones sequenced in dependency order."
 
@@ -197,7 +197,7 @@ Delete `docs/plans/.pending-forecast.md` at the end of Step 4 — whether the de
 
 ## Step 3b — Run `/g-forecast` for scope-realism and premortem
 
-Use Glob to find `skills/g-forecast/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions. `/g-forecast` will pick up `docs/plans/.pending-forecast.md` per its Step 1 case 1.
+Use Glob to find `skills/g-forecast/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. `/g-forecast` will pick up `docs/plans/.pending-forecast.md` per its Step 1 case 1.
 
 The forecast returns: a complexity score (0–10), a miss-risk percentage with risk tag, and a ranked top-5 premortem of likely failure scenarios with mitigations. It is **advisory** — it never blocks the approval gate. Its job is to surface risk so the developer can decide whether to proceed, mitigate, or re-scope.
 
@@ -250,7 +250,7 @@ Once the developer approves, immediately write the plan to `docs/plans/<feature-
 
 ## Step 5 — On approval
 
-Once the developer approves, use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions to run the waves.
+Once the developer approves, use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions to run the waves.
 
 ## Plan File Format
 

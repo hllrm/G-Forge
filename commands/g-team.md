@@ -5,7 +5,7 @@ argument-hint: <help|status|doctor|init|kickoff|onboard|brief|roadmap|plan|execu
 
 Route to the correct skill file based on the subcommand in $ARGUMENTS.
 
-For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.claude/plugins/cache/g-team/g-team/` and read it, then follow its instructions exactly.
+For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.
 
 - `help`       → `skills/g-help/SKILL.md`
 - `status`     → `skills/g-status/SKILL.md`

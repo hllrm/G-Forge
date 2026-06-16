@@ -16,7 +16,7 @@ The project root is the current working directory. If uncertain, ask the develop
 Check if `CLAUDE.md` exists at the project root.
 
 **If it does not exist:**
-1. Glob the plugin cache for `templates/CLAUDE.md` — pattern: `~/.claude/plugins/cache/g-team/g-team/*/templates/CLAUDE.md`. Use the highest version found.
+1. Glob the plugin cache for `templates/CLAUDE.md` — pattern: `~/.claude/plugins/cache/g-forge/g-forge/*/templates/CLAUDE.md`. Use the highest version found.
 2. Read the template file.
 3. Replace `[Project Name]` with the actual project name (use the directory name, or ask if unclear).
 4. Write the result to `CLAUDE.md` at the project root.
@@ -35,7 +35,7 @@ Report: `✓ CLAUDE.md — verified`
 
 ## Step 2a — Install G-RULES.md and rule section files
 
-The plugin root is `~/.claude/plugins/cache/g-team/g-team/` (use Glob to confirm the exact path).
+The plugin root is `~/.claude/plugins/cache/g-forge/g-forge/` (use Glob to confirm the exact path).
 
 1. Copy `[plugin-root]/G-RULES.md` to the project root as `G-RULES.md`. Overwrite if it exists — g-team managed.
 
@@ -135,7 +135,7 @@ Create `.claude/hooks/` directory if it does not exist.
 
 All four hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
 
-Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-team/g-team/*/hooks/`. Call this `<plugin-hooks>`.
+Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`. Call this `<plugin-hooks>`.
 
 For each of the following five hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
 

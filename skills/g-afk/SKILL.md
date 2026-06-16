@@ -125,7 +125,7 @@ Wait for confirmation. On `n` — stop cleanly. On `y` — proceed immediately, 
 
 ## Step 3 — Execute all pending waves
 
-Use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and read it.
+Use Glob to find `skills/g-execute/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it.
 
 For each wave marked `pending` or `in progress` in the Progress table, execute it by following g-execute's instructions exactly. The key AFK-mode rules:
 
@@ -141,7 +141,7 @@ Update the Progress table after each wave: `pending` → `in progress` → `comp
 
 Once all waves are `complete`, immediately run `/g-review` without asking.
 
-Use Glob to find `skills/g-review/SKILL.md` inside `~/.claude/plugins/cache/g-team/g-team/` and follow its instructions.
+Use Glob to find `skills/g-review/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow its instructions.
 
 - **MERGE READY** → continue to Step 5.
 - **HOLD** → surface the fix list in the handoff (do not attempt fixes autonomously — the developer reviews HOLD findings).
