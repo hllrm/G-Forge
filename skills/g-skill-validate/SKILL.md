@@ -48,7 +48,7 @@ If present, check and record ✓ or ✗:
 
 ## Step 4 — Validate router registration (skills only)
 
-Read `commands/g-team.md`. Check and record ✓ or ✗:
+Read `commands/g-forge.md`. Check and record ✓ or ✗:
 - Subcommand name appears in the routing table (the `- \`[name]\`` lines)
 - Subcommand name appears in the description list at the bottom
 
@@ -91,7 +91,7 @@ Output the full checklist, then issue the verdict:
 ✓ Glob+Read pattern used
 ✓ No Skill() invocations
 
-### Router (commands/g-team.md)
+### Router (commands/g-forge.md)
 ✓ Routing table entry present
 ✗ Description list entry missing
 
