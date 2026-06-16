@@ -17,8 +17,8 @@
 
 Three hook scripts installed by `/g-init` under `.claude/hooks/`:
 
-- **`check-commit.sh`** (PreToolUse) — blocks `git commit` if `.claude/g-team-approved` is absent. `/g-review` writes the sentinel after issuing MERGE READY.
-- **`post-commit-cleanup.sh`** (PostToolUse) — deletes `.claude/g-team-approved` after each successful commit. The gate resets automatically.
+- **`check-commit.sh`** (PreToolUse) — blocks `git commit` if `.claude/g-forge-approved` is absent. `/g-review` writes the sentinel after issuing MERGE READY.
+- **`post-commit-cleanup.sh`** (PostToolUse) — deletes `.claude/g-forge-approved` after each successful commit. The gate resets automatically.
 - **`workflow-checkpoint.sh`** (UserPromptSubmit) — reads branch, milestone, review state, and Tier 3 listen mode on every prompt. Output appears as a system reminder at the top of each turn.
 
 Never bypass the commit gate with `--no-verify` or by manually writing the sentinel.

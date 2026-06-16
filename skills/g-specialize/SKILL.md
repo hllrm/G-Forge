@@ -237,7 +237,7 @@ If found, use these local files — this is the correct path when working inside
 
 The parent of the `skills/` directory is the plugin root. For example, if Glob returns `/home/user/.claude/plugins/cache/g-forge/g-forge/0.3.3/skills/g-init/SKILL.md`, the plugin root is `/home/user/.claude/plugins/cache/g-forge/g-forge/0.3.3/` and the vue-pinia profile is at `/home/user/.claude/plugins/cache/g-forge/g-forge/0.3.3/profiles/vue-pinia/`.
 
-If neither the local directory nor the plugin cache contain the profile, tell the developer: "Could not find the profile files for '[stack]'. If this is a new profile, ensure it exists under profiles/<stack>/. Otherwise run `/plugin update g-team` to refresh the cache." and stop.
+If neither the local directory nor the plugin cache contain the profile, tell the developer: "Could not find the profile files for '[stack]'. If this is a new profile, ensure it exists under profiles/<stack>/. Otherwise run `/plugin update g-forge` to refresh the cache." and stop.
 
 Stack → file mapping (agent file + rules file):
 - `angular`         → `profiles/angular/agents/angular-architect.md`               + `profiles/angular/rules/architecture.md`
@@ -364,7 +364,7 @@ Read `CLAUDE.md` in the current project root. If it does not exist, create it wi
 
 **For each profile in the install list:**
 
-1. Copy `profiles/[stack]/rules/architecture.md` from the plugin to `.claude/rules/architecture-[stack].md` in the project. Overwrite if it already exists — rules files are g-team managed.
+1. Copy `profiles/[stack]/rules/architecture.md` from the plugin to `.claude/rules/architecture-[stack].md` in the project. Overwrite if it already exists — rules files are G-Forge managed.
 
 2. Check if `<!-- G-Forge [stack] Architecture Rules` is already present in CLAUDE.md.
    - If found: skip (already registered).

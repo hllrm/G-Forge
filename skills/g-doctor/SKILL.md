@@ -1,6 +1,6 @@
 ---
 name: g-doctor
-description: Health check for g-team project setup. Verifies all 4 hooks installed, all hooks registered in settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
+description: Health check for G-Forge project setup. Verifies all 4 hooks installed, all hooks registered in settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
 ---
 
 Announce: "Using g-doctor to check project health."
@@ -58,10 +58,10 @@ Read `CLAUDE.md` and check if it contains `@G-RULES.md`.
   → Run `/g-init` or `/g-update` to add the @G-RULES.md reference.
 
 **9. No stale sentinel**
-Check if `.claude/g-team-approved` exists. It should NOT exist (it is auto-cleared after each commit).
+Check if `.claude/g-forge-approved` exists. It should NOT exist (it is auto-cleared after each commit).
 - Pass (file absent): ✓ No stale approval sentinel
 - Fail (file present): ✗ Stale approval sentinel found
-  → A stale approval sentinel exists. Delete it: `rm .claude/g-team-approved`
+  → A stale approval sentinel exists. Delete it: `rm .claude/g-forge-approved`
 
 **10. PreCompact hook installed and registered**
 Check if `.claude/hooks/pre-compact.sh` exists AND `.claude/settings.json` contains a `PreCompact` hook entry pointing to `pre-compact.sh`.

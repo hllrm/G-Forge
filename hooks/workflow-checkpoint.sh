@@ -35,7 +35,7 @@ if [ -f "ROADMAP.md" ]; then
 fi
 
 REVIEW_APPROVED=false
-[ -f ".claude/g-team-approved" ] && REVIEW_APPROVED=true
+[ -f ".claude/g-forge-approved" ] && REVIEW_APPROVED=true
 
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 
@@ -189,8 +189,8 @@ fi
 # Self-update check — background curl once per day, zero blocking latency
 CLAUDE_DIR="$HOME/.claude"
 INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-forge/g-forge/.claude-plugin/plugin.json"
-VERSION_CACHE="$CLAUDE_DIR/g-team-latest-version"
-CHECK_STAMP="$CLAUDE_DIR/g-team-check-stamp"
+VERSION_CACHE="$CLAUDE_DIR/g-forge-latest-version"
+CHECK_STAMP="$CLAUDE_DIR/g-forge-check-stamp"
 
 if [ -f "$INSTALLED_MANIFEST" ]; then
     INSTALLED_VER=$(grep '"version"' "$INSTALLED_MANIFEST" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?[a-zA-Z0-9]*' | head -1)
@@ -210,7 +210,7 @@ if [ -f "$INSTALLED_MANIFEST" ]; then
     if [ -f "$VERSION_CACHE" ]; then
         LATEST_VER=$(cat "$VERSION_CACHE")
         if [ -n "$LATEST_VER" ] && [ "$LATEST_VER" != "$INSTALLED_VER" ]; then
-            echo "  ⚡ g-team update available: $INSTALLED_VER → $LATEST_VER — run /g-update to pull and sync"
+            echo "  ⚡ g-forge update available: $INSTALLED_VER → $LATEST_VER — run /g-update to pull and sync"
         fi
     fi
 fi

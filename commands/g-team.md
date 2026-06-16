@@ -45,7 +45,7 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `review` — run full review pipeline; issues MERGE READY or HOLD
   - `afk` — autonomous milestone executor: runs all waves + review unattended, requires approved plan
   - `specialize [stack]` — auto-detect or apply a named stack profile
-  - `update` — realign all g-team-managed files to the current plugin version
+  - `update` — realign all G-Forge-managed files to the current plugin version
   - `skill-design` — design a new skill from scratch (SKILL.md, command file, router entry)
   - `skill-validate [name]` — validate a skill or agent against G-Forge structural rules
   - `patterns` — mine docs/retros/ and todo-done.md for recurring failure patterns; propose rule edits

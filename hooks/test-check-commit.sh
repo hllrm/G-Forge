@@ -2,7 +2,7 @@
 # Unit tests for hooks/check-commit.sh
 
 SCRIPT="$(dirname "$0")/check-commit.sh"
-SENTINEL=".claude/g-team-approved"
+SENTINEL=".claude/g-forge-approved"
 PASS=0
 FAIL=0
 

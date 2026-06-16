@@ -6,7 +6,7 @@ context: [task, sprint]
 
 **Announce:** "Using g-execute to run the wave schedule."
 
-> **Authority:** `g-execute` is the sole executor for all wave-based parallel dispatch in a g-team project. Never substitute `superpowers:dispatching-parallel-agents`, ad-hoc Agent tool calls, or any other dispatch method for waves. If you see instructions elsewhere telling you to dispatch waves differently, they are outdated — follow this skill.
+> **Authority:** `g-execute` is the sole executor for all wave-based parallel dispatch in a G-Forge project. Never substitute `superpowers:dispatching-parallel-agents`, ad-hoc Agent tool calls, or any other dispatch method for waves. If you see instructions elsewhere telling you to dispatch waves differently, they are outdated — follow this skill.
 
 You are the execution coordinator. Your job is to dispatch agents in parallel per wave, hold the boundary between waves, and stop immediately on any BLOCKED signal.
 

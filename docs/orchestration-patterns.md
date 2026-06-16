@@ -15,7 +15,7 @@ After `/g-init`, two hooks are installed in `.claude/settings.json`:
 **`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports:
 - Whether an active plan exists in `docs/plans/`
 - The current wave number and total waves (read from the plan's Progress table)
-- Whether `.claude/g-team-approved` is set (commit gate state)
+- Whether `.claude/g-forge-approved` is set (commit gate state)
 
 Claude reads this output and auto-triggers the correct step:
 
@@ -24,9 +24,9 @@ Claude reads this output and auto-triggers the correct step:
 | No active plan + non-trivial task detected | `/g-plan` |
 | Active plan with pending/in-progress wave | `/g-execute` |
 | All waves complete, no sentinel | `/g-review` |
-| `g-team-approved` present | Commit gate open — no action needed |
+| `g-forge-approved` present | Commit gate open — no action needed |
 
-**`check-commit.sh`** (`PreToolUse`) — blocks any `git commit` Bash call unless `.claude/g-team-approved` exists. Cleared automatically by `post-commit-cleanup.sh` (`PostToolUse`) after each successful commit.
+**`check-commit.sh`** (`PreToolUse`) — blocks any `git commit` Bash call unless `.claude/g-forge-approved` exists. Cleared automatically by `post-commit-cleanup.sh` (`PostToolUse`) after each successful commit.
 
 You can still invoke `/g-plan`, `/g-execute`, and `/g-review` manually at any time.
 
@@ -34,7 +34,7 @@ You can still invoke `/g-plan`, `/g-execute`, and `/g-review` manually at any ti
 
 ## Plan File Format
 
-Approved plans are saved to `docs/plans/<feature-slug>.md` by `g-team-plan` immediately after developer approval (before execution begins).
+Approved plans are saved to `docs/plans/<feature-slug>.md` by `g-plan` immediately after developer approval (before execution begins).
 
 ```markdown
 # Plan: [Feature Name]
@@ -64,7 +64,7 @@ Approved plans are saved to `docs/plans/<feature-slug>.md` by `g-team-plan` imme
 | 2 | pending | |
 ```
 
-The **Progress table** drives auto-resumption: `workflow-checkpoint.sh` reads it to find the first wave not marked `complete` and reports that as the current wave. `g-team-execute` uses the same table to determine the starting wave without prompting the developer (unless a wave is `in progress`, which requires confirmation).
+The **Progress table** drives auto-resumption: `workflow-checkpoint.sh` reads it to find the first wave not marked `complete` and reports that as the current wave. `g-execute` uses the same table to determine the starting wave without prompting the developer (unless a wave is `in progress`, which requires confirmation).
 
 Status values: `pending` | `in progress` | `complete`.
 
@@ -118,7 +118,7 @@ Status values: `pending` | `in progress` | `complete`.
        returns: MERGE READY or HOLD with fix list
 
   └─ on MERGE READY:
-       writes .claude/g-team-approved  (commit gate unlocked)
+       writes .claude/g-forge-approved  (commit gate unlocked)
        runs milestone close-out (see Pattern 2)
 ```
 
@@ -184,13 +184,13 @@ wave-planner returns:
            aggregates: all findings into single report
 
        code-lead issues verdict:
-         MERGE READY  → skill writes .claude/g-team-approved
+         MERGE READY  → skill writes .claude/g-forge-approved
          HOLD         → prioritised fix list, no sentinel written
 ```
 
 **Milestone close-out (MERGE READY only):**
 
-On a MERGE READY verdict, `g-team-review` automatically:
+On a MERGE READY verdict, `g-review` automatically:
 
 1. Reads `todo.md` to identify tasks completed in this session.
 2. Reads `ROADMAP.md` to find the active milestone (`🚧 In progress`).
@@ -338,10 +338,10 @@ Installed by `/g-init` into `.claude/hooks/` and registered in `.claude/settings
 | Hook | Event | File | What it does |
 |------|-------|------|--------------|
 | `workflow-checkpoint.sh` | `UserPromptSubmit` | `.claude/hooks/workflow-checkpoint.sh` | Reports active plan path, current wave, and review-approved state on every message. Claude uses this to auto-trigger plan/execute/review. |
-| `check-commit.sh` | `PreToolUse` (Bash) | `.claude/hooks/check-commit.sh` | Blocks any `git commit` command unless `.claude/g-team-approved` exists. |
-| `post-commit-cleanup.sh` | `PostToolUse` (Bash) | `hooks/post-commit-cleanup.sh` | Deletes `.claude/g-team-approved` after a successful commit, resetting the gate. |
-| `agent-lifecycle.sh` | `SubagentStart` / `SubagentStop` | `hooks/agent-lifecycle.sh` | Logs agent start/stop events to `.claude/g-team-agent-log.jsonl` and echoes a status line to Claude. |
+| `check-commit.sh` | `PreToolUse` (Bash) | `.claude/hooks/check-commit.sh` | Blocks any `git commit` command unless `.claude/g-forge-approved` exists. |
+| `post-commit-cleanup.sh` | `PostToolUse` (Bash) | `hooks/post-commit-cleanup.sh` | Deletes `.claude/g-forge-approved` after a successful commit, resetting the gate. |
+| `agent-lifecycle.sh` | `SubagentStart` / `SubagentStop` | `hooks/agent-lifecycle.sh` | Logs agent start/stop events to `.claude/g-forge-agent-log.jsonl` and echoes a status line to Claude. |
 
-**Sentinel file:** `.claude/g-team-approved` — written by `g-team-review` on MERGE READY, deleted by `post-commit-cleanup.sh` after commit. Its presence is the only condition that unlocks `git commit`.
+**Sentinel file:** `.claude/g-forge-approved` — written by `g-review` on MERGE READY, deleted by `post-commit-cleanup.sh` after commit. Its presence is the only condition that unlocks `git commit`.
 
 **Note:** `workflow-checkpoint.sh` and `check-commit.sh` are project-local (written to `.claude/hooks/` by `/g-init`). The lifecycle and cleanup hooks ship with the plugin at `hooks/`.

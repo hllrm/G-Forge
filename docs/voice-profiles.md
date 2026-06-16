@@ -46,7 +46,7 @@ MERGE READY — the merge gate is open and you can commit now.
   Tests:        PASS (attested — no test suite, developer override)
   code-lead:    PASS — verified all milestone done conditions
   Reviewers:    code-reviewer ✓ · architect ✓ — no blocking findings
-  Sentinel:     .claude/g-team-approved written (auto-cleared after next commit)
+  Sentinel:     .claude/g-forge-approved written (auto-cleared after next commit)
   Next:         run `git commit`
 ```
 
