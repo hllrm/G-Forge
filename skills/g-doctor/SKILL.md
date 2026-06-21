@@ -5,7 +5,7 @@ description: Health check for G-Forge project setup. Verifies all 4 hooks instal
 
 Announce: "Using g-doctor to check project health."
 
-Run all 13 checks below against the current working directory, then output the report in the exact format specified. Checks 1–11 are required (✓/✗). Checks 12–13 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
+Run all 14 checks below against the current working directory, then output the report in the exact format specified. Checks 1–11 are required (✓/✗). Checks 12–14 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
 
 ## Checks
 
@@ -91,6 +91,14 @@ Count the total lines in `CLAUDE.md`.
 - Advisory (>150 lines): ⚠ CLAUDE.md is [N] lines — may contain inline rules content
   → Run `/g-update` to migrate inline rules to `.claude/rules/` files.
 
+**14. context.md glossary present and referenced** (advisory)
+Check if `context.md` exists at the project root AND `CLAUDE.md` contains `@context.md`.
+- Pass: ✓ context.md present and referenced
+- Advisory (file missing): ⚠ context.md not found — no ubiquitous-language glossary
+  → Run `/g-init` (new project) or `/g-onboard` (existing) to create the domain glossary.
+- Advisory (present but unreferenced): ⚠ context.md present but `@context.md` missing from CLAUDE.md
+  → Add `@context.md` under `@G-RULES.md` in CLAUDE.md so it loads every session.
+
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook and rules infrastructure only.
 
 ## Output format
@@ -123,6 +131,8 @@ G-Forge Doctor ─────────────────────�
   [✓/⚠ line for check 12]
     [→ fix instruction if advisory]
   [✓/⚠ line for check 13]
+    [→ fix instruction if advisory]
+  [✓/⚠ line for check 14]
     [→ fix instruction if advisory]
 ────────────────────────────────────────────────
 [N/11 required checks passed]

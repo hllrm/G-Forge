@@ -93,9 +93,13 @@ Output file: docs/agent-output/wave-[N]/[task-slug].md
 Constraint: touch only files in your task scope.
 [if defensive or recovery: telemetry clause from Step 0]
 
-1. Implement the task.
+1. Test-first (TDD loop) — if the done condition asserts testable behaviour:
+   a. Write or extend a test that encodes the done condition. Run it and confirm it FAILS for the right reason (real behaviour missing, not an import/syntax error).
+   b. Implement the minimum needed to make that test pass.
+   c. Re-run the test and confirm it is GREEN. Refactor if needed, keeping it green.
+   If the task has no testable behaviour (pure config, scaffolding, docs, styling), skip the test and implement directly — do not write a trivially-true test.
 2. For any file with public interfaces or exported functions, dispatch doc-writer (files changed + design intent).
-3. Write a complete implementation summary to the output file above.
+3. Write a complete implementation summary to the output file above. In it, state whether the TDD loop ran and the test's red→green transition (or why the task was exempt).
 4. Return ONLY this block — no other prose:
 
 RESULT: DONE|BLOCKED

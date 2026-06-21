@@ -227,6 +227,13 @@ Once the developer approves (or amends and approves), write `project_brief.md` a
 ## Non-goals (explicitly out of scope)
 - [What we are NOT building, and why]
 
+## Ubiquitous language
+[The core domain terms that came up during the interview — the words the developer uses for the things this project deals with. One word per concept. This seeds context.md at /g-init. Capture only terms the developer actually used; do not invent vocabulary.]
+
+| Term | Means | Avoid calling it |
+|------|-------|------------------|
+| [Term] | [definition in the developer's own words] | [synonym to avoid] |
+
 ## MVP
 [List of features in the MVP and the MVP done condition]
 
@@ -268,4 +275,5 @@ Tell the developer: "Brief locked. Run /g-init to scaffold the project — it wi
 - The tech decisions table must have a row for every integration dimension asked in Group 4, even if the answer is "None" or "TBD — open question".
 - Present the full proposal (Step 6) before writing anything to disk.
 - Overrides are recorded in the brief — no silent acceptance.
+- Capture the **Ubiquitous language** section from the terms the developer actually used during the interview — it seeds `context.md` when `/g-init` runs. Never invent domain vocabulary the developer didn't use.
 - You give opinions. The developer decides. Never refuse to proceed after a decision is made.

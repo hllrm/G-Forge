@@ -13,6 +13,22 @@ Smoke tests · acceptance · design review · business logic correctness. User e
 
 ---
 
+**Test-first by default (the TDD loop)**
+
+For any task with testable behaviour, the executor writes the test before the implementation. The loop is:
+
+1. **Red** — write or extend a test that encodes the task's done condition. Run it. Confirm it fails for the right reason (asserting real behaviour, not a syntax/import error).
+2. **Green** — implement the minimum needed to make the test pass. Nothing more.
+3. **Refactor** — clean up with the test still green.
+
+Why first, not after: a natural-language done condition is too easy to satisfy superficially. A failing test is an external, mechanical definition of done that the implementation must satisfy — it closes the gap between "looks done" and "is done".
+
+**When test-first does not apply:** pure configuration, scaffolding, documentation, or styling tasks with no asserted behaviour. These keep a file/grep/build done condition and skip the Red/Green loop — never write a trivially-true test just to have one.
+
+This loop runs **inside** wave execution (`/g-execute` instructs each agent accordingly). It does not replace the `/g-review` test-suite gate — Red/Green builds the coverage that the review gate then runs as a Tier 1 blocker.
+
+---
+
 **Tier 3 Instrument — QA Panel or Test Plan**
 
 Tier 3 requires a testing instrument. Which one depends on the project:

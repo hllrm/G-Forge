@@ -1,6 +1,7 @@
 # [Project Name]
 
 @G-RULES.md
+@context.md
 
 [One paragraph: what this project is, who it's for, and the core thing it does. Include any key design constraints or principles that should shape every decision.]
 

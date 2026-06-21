@@ -67,6 +67,44 @@ Report:
 ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
 ```
 
+## Step 2b — Create context.md (ubiquitous language) and reference it
+
+`context.md` is the project's durable domain glossary — the shared language that keeps code, UI labels, filenames, and conversation aligned on one word per concept. It loads into every session via `@context.md` in CLAUDE.md.
+
+1. Ensure `CLAUDE.md` contains `@context.md` directly under the `@G-RULES.md` line (add it if missing — both the freshly-templated and the pre-existing CLAUDE.md paths must end up with this reference).
+
+2. **If `context.md` does not exist** at the project root, create it with this starter content. **If it already exists, leave it untouched — it is developer-authored content, never overwrite it.**
+
+   ```markdown
+   # Project Context — Ubiquitous Language
+
+   > Durable domain glossary, loaded into every session via `@context.md` in CLAUDE.md.
+   > One word per concept. Keep these terms aligned across code, UI labels, filenames, and conversation.
+   > Add a term when a new domain concept enters the project; update one when its meaning shifts.
+
+   ## Glossary
+
+   | Term | Means | Avoid calling it | Appears in |
+   |------|-------|------------------|------------|
+   | [Term] | [one-sentence definition in domain language] | [synonyms that cause confusion] | [code path / UI label / table] |
+
+   ## Domain rules & invariants
+
+   - [A business rule that must always hold, stated in domain language — not implementation terms]
+
+   ## Actors & boundaries
+
+   - [Key user roles and external systems, and the exact name each is referred to by]
+   ```
+
+   If `project_brief.md` exists, read it and pre-fill any obvious domain terms, actors, and rules already stated there — do not invent terms the project hasn't established.
+
+Report:
+```
+✓ context.md — created (ubiquitous-language glossary)   [or: ✓ context.md — already present, left as-is]
+✓ CLAUDE.md — @context.md reference ensured
+```
+
 ## Step 3 — Create ROADMAP.md
 
 Create `ROADMAP.md` if it does not exist:
@@ -281,6 +319,7 @@ G-Forge initialized ✓
   ✓ CLAUDE.md — G-Forge rules injected
   ✓ G-RULES.md — installed
   ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
+  ✓ context.md — ubiquitous-language glossary created (or left as-is)
   ✓ ROADMAP.md — stub created (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
@@ -301,5 +340,6 @@ To install: Claude Code → Settings → MCP Servers, or add to `~/.claude/setti
 
 ## Rules
 - Never create a file that already exists without reading it first.
-- If project_brief.md exists at the project root, use its content to pre-fill ROADMAP.md and milestones/M1.md.
+- If project_brief.md exists at the project root, use its content to pre-fill ROADMAP.md, milestones/M1.md, and context.md.
+- `context.md` is developer-authored — create the starter only if absent, never overwrite an existing one. (`/g-update` leaves it alone for the same reason.)
 - Settings.json merge must never drop existing hooks — read before writing.

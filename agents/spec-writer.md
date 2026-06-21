@@ -68,3 +68,4 @@ DETAIL: [output_file path]
 - No "handle edge cases" or "add appropriate validation" — either specify the edge case or omit it.
 - If a step requires a judgment call, make the judgment in the spec. Never defer it to the executor.
 - Read the codebase before writing the spec if paths or interfaces are unknown.
+- If `context.md` exists at the project root, read it and use its ubiquitous-language terms for domain concepts in the spec — keep naming aligned with the glossary.

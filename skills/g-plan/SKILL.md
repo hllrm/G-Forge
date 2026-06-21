@@ -32,15 +32,14 @@ Do not proceed to Step 1 until a Tier 3 DoD is defined and written down.
 
 **Skip this step entirely if the request is a bug fix or a refactor of existing behaviour (not a new capability) — go straight to Step 2.**
 
-Dispatch the `project-manager` agent with the full feature request as described by the developer.
+Run the `project-manager` Feature Challenge gate. Conduct it **one question at a time**, in PM voice — this is an interactive design conversation, not a batch form. For each of the three questions (problem & evidence → simplest alternative → cost of not building), follow the PM gate protocol: lead with your own recommended answer from project context, surface the hidden decision the question exposes, then wait for the developer's reply before asking the next. If an early answer already settles scope, stop early and skip to the verdict.
 
-Tell project-manager:
-> "A developer wants to build the following: [feature request]. Apply your Feature Challenge gate. Ask the three challenge questions, wait for the developer's answers, then return one of: SCOPE ACCEPTED — [one-line summary], or SCOPE CONCERN — [reason] — DEVELOPER OVERRIDE."
+(For heavy scope evaluation you may dispatch the `project-manager` agent for its read, but the developer-facing grilling stays sequential and interactive — never dump all three questions at once.)
 
-Present project-manager's questions to the developer verbatim. Wait for the developer's answers. Pass the answers back to project-manager to get its verdict.
+After the conversation, issue one verdict:
 
-- **If verdict is SCOPE ACCEPTED:** proceed to Step 2.
-- **If verdict is SCOPE CONCERN — DEVELOPER OVERRIDE:** note the concern in the plan header as a risk, then proceed to Step 2.
+- **SCOPE ACCEPTED:** proceed to Step 2.
+- **SCOPE CONCERN — DEVELOPER OVERRIDE:** note the concern in the plan header as a risk, then proceed to Step 2.
 
 ## Step 2 — Dispatch task-decomposer
 
@@ -49,6 +48,7 @@ Dispatch the `task-decomposer` agent. Provide:
 - Any known file paths or constraints
 - Any done conditions already specified
 - Whether the project has a QA panel (from Step 0) — if yes, instruct task-decomposer that any task adding or changing user-facing surface must include "QA panel updated" as an explicit done condition
+- A reminder to decompose into **vertical slices** (cross-layer, independently testable/visible) rather than horizontal layers, and to phrase testable done conditions as test assertions so the executor can drive them test-first
 
 Wait for the task list before proceeding. Do not proceed if task-decomposer returns any "Clarify:" items — resolve those with the developer first.
 

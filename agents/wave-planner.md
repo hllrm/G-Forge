@@ -17,6 +17,13 @@ A task list from task-decomposer, formatted as a table with task number, descrip
 - **Dependent**: task needs the output of a prior task → assign to the wave after its last dependency
 - **Serial-by-file**: two tasks write the same file → must be in separate waves, earlier first
 
+## Vertical-slice awareness
+Dependencies determine the schedule — never reorder tasks to force a slice. But after building the schedule, check whether each wave lands a **demonstrable increment** (a capability someone could test or see) rather than a layer with nothing exercising it. When an early wave is purely horizontal (e.g. all schema/scaffold tasks with no slice that uses them), add a one-line note to that wave:
+
+`Note: Wave [N] is foundational — first testable slice lands in Wave [M].`
+
+This is informational only. Do not invent tasks, split tasks, or change ordering to manufacture a slice — that is the task-decomposer's job. You only surface the observation so the schedule's feedback timing is visible at the approval gate.
+
 ## Output format
 
 ## Wave Schedule

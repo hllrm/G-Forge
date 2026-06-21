@@ -42,6 +42,9 @@ Look for `tests/`, `test/`, `__tests__/`, `spec/` directories. Note framework an
 **Architecture signals:**
 Look for layer directories: `routes/`, `controllers/`, `services/`, `repositories/`, `models/`, `stores/`, `composables/`, `schemas/`, `middleware/`.
 
+**Domain language signals:**
+Note the recurring domain nouns the codebase already uses — model/entity names, table names, core type names, UI labels, and route segments. These are the project's existing ubiquitous language and seed `context.md` in Step 7a. Also note any `context.md` already present.
+
 ---
 
 ## Step 2 — Assess project maturity
@@ -211,6 +214,13 @@ Ask:
 ### Known risks / existing issues
 [Tech debt, fragile areas, architecture audit findings]
 
+## Ubiquitous language
+[Core domain terms the codebase already uses — mined in Step 1. Mirrors context.md.]
+
+| Term | Means | Avoid calling it |
+|------|-------|------------------|
+| [Term] | [definition] | [synonym to avoid] |
+
 ## Tech decisions
 
 | Component | Choice | Rationale | Risk | Code-lead note |
@@ -222,6 +232,20 @@ Ask:
 ```
 
 If `project_brief.md` already existed, merge — preserve accurate existing content.
+
+---
+
+## Step 7a — Seed context.md (ubiquitous language)
+
+`context.md` is the durable domain glossary loaded into every session via `@context.md` in CLAUDE.md. Onboarding is the right moment to capture it because you have just read the code where the real vocabulary lives.
+
+**If `context.md` already exists:** leave it untouched. Note in the report that it's present. Do not overwrite developer-authored content.
+
+**If `context.md` does not exist:** create it from the domain-language signals observed in Step 1 (model/entity names, table names, core types, UI labels, route segments) plus anything the developer named during the interview. Use the same starter schema `/g-init` uses (Glossary / Domain rules & invariants / Actors & boundaries). Fill it with the project's *actual* terms — do not invent vocabulary. Then ensure `CLAUDE.md` contains `@context.md` directly under `@G-RULES.md` (add the reference if missing; if CLAUDE.md has no `@G-RULES.md` line yet, add `@context.md` near the top after the title).
+
+This makes onboarding self-sufficient: a mature project that won't re-run `/g-init` still gets a glossary. If `/g-init` does run afterward, its Step 2b sees the existing `context.md` and leaves it alone.
+
+Also record the captured terms in `project_brief.md` under a `## Ubiquitous language` section so the two stay consistent.
 
 ---
 
@@ -246,6 +270,7 @@ If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-plan`, con
 ## Rules
 
 - Never write `project_brief.md` before Steps 4 and 5 are complete.
+- Never overwrite an existing `context.md` — create the glossary only when one is absent (Step 7a).
 - Never ask for information already visible in the project files.
 - Never suggest `/g-init` or `/g-specialize` steps that are already done.
 - Never overwrite existing `.claude/agents/` or `.claude/rules/` files without explicit developer permission from Step 4.

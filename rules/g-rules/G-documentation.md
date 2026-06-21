@@ -15,6 +15,11 @@ Undocumented decisions become invisible. Undocumented APIs block adoption. Undoc
 - Run `/g-adr` to capture decisions interactively. Capture immediately, while context is fresh.
 - CLAUDE.md carries architecture *rules*. ADRs carry the *rationale* behind those rules. Both are required.
 
+**Domain level — the project's shared language:**
+- `context.md` at the project root is the **ubiquitous language** glossary — the single agreed word for each domain concept, loaded into every session via `@context.md` in CLAUDE.md. It exists so agents, code, UI labels, filenames, and conversation all use the same term for the same thing instead of rediscovering vocabulary each session.
+- Created by `/g-init` (or `/g-onboard` for existing projects), seeded from `project_brief.md`. It is **developer-authored** — G-Forge creates the starter but never overwrites it, and `/g-update` leaves it alone.
+- Currency: when a task introduces a new domain term, renames a concept, or changes what an existing term means, update `context.md` in the same change. Agents that shape language (`task-decomposer`, `spec-writer`, `code-reviewer`) read it when present and align to it.
+
 **Project level — required for every project:**
 - README must contain: what the project is (one sentence), why someone would use it, installation/setup, quickstart example, configuration reference, and a link to or description of the public API (if one exists).
 - CHANGELOG must have an entry for every release covering: new features, bug fixes, breaking changes, deprecations. Update CHANGELOG in the same PR as the change — never retroactively.

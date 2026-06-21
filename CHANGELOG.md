@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+Workflow-comparison pass against Matt Pocock's "Workflow for AI Coding" — closed four gaps where G-Forge diverged from his loop. (Pull-based kanban deliberately deferred.)
+
+### Added
+
+- **`context.md` — ubiquitous-language glossary.** A durable, developer-authored domain glossary at the project root, wired into every session via `@context.md` in CLAUDE.md. Keeps code, UI labels, filenames, and conversation aligned on one word per concept instead of rediscovering vocabulary each session.
+  - `/g-init` creates the starter (seeded from `project_brief.md`) and ensures the `@context.md` reference — only when absent, never overwriting an existing one. `/g-update` leaves it alone.
+  - `/g-onboard` mines the existing codebase's domain terms and creates `context.md` directly (so mature projects that skip `/g-init` still get one); `/g-kickoff` captures the interview's terms into a new `## Ubiquitous language` brief section.
+  - `task-decomposer`, `spec-writer`, and `code-reviewer` read it when present and align to it; `code-reviewer` flags ubiquitous-language drift as a Minor finding.
+  - New advisory `/g-doctor` check (14) for presence + reference. Documented in G-RULES §G.
+
+### Changed
+
+- **Vertical-slice decomposition.** `task-decomposer` now biases toward vertical slices (cross-layer, independently testable/visible) over horizontal layer-by-layer tasks, so feedback lands earlier. `wave-planner` surfaces (non-blocking) when an early wave is purely foundational with no testable slice. `/g-plan` passes the slicing directive at dispatch.
+- **Test-first (TDD) as the default executor loop.** G-RULES §H now defines the red→green→refactor loop for tasks with testable behaviour; `/g-execute` instructs each wave agent to write the failing test that encodes the done condition before implementing, and `task-decomposer` phrases testable done conditions as test assertions. Config/docs/scaffolding tasks are explicitly exempt. This complements — does not replace — the `/g-review` test-suite gate.
+- **PM Feature Challenge is now grilled one question at a time.** The `project-manager` gate asks its three questions sequentially instead of all at once, leads each with PM's own recommended answer, and names the hidden product/implementation decision each question exposes. One round, one verdict, and the override path are unchanged. `/g-plan` Step 1 and G-RULES §B updated to match.
+
 ## [1.5.4] — 2026-06-16
 
 ### Changed

@@ -43,6 +43,7 @@ A set of changed files or a git diff.
   - *Missing env var documentation*: a new environment variable read anywhere in the changed code with no entry in the project's env var reference (`docs/env-vars.md`, `.env.example`, or README). Flag as Major.
   - *Missing ADR*: the diff introduces a significant architectural decision — new external dependency, new layer, new pattern applied project-wide, replacement of an existing approach — with no `docs/decisions/` entry. Flag as Major. Suggest `/g-adr`.
   - *Redundant documentation*: a comment that only restates the function name or type signature adds noise. Flag as Minor — suggest removing it.
+  - *Ubiquitous-language drift*: if `context.md` exists, the changed code introduces a synonym for a concept the glossary already names (e.g. code says `customer` where the glossary term is `client`), or introduces a new domain term without adding it to `context.md`. Flag as Minor — suggest aligning to the glossary term or updating `context.md`.
 
 
 ## Code Review
@@ -79,4 +80,5 @@ DETAIL: [output_file path]
 - Do not rewrite code. Describe fixes in prose.
 - Do not flag style issues unless they create ambiguity or bugs.
 - Only flag issues in the changed files unless a change directly causes a problem elsewhere.
+- If `context.md` exists at the project root, read it first and use it as the terminology baseline for the ubiquitous-language-drift check.
 - If there are no issues: "No issues found. N files reviewed."

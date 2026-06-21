@@ -50,6 +50,8 @@ The sentinel is consumed (deleted) on every successful commit, so each commit cy
 
 `/g-init` installs `G-RULES.md` at the project root and wires it into `CLAUDE.md` via `@G-RULES.md`. Every session loads it. It governs model selection, planning discipline, the wave model, review requirements, code quality rules, architecture constraints, testing protocol, and memory management — ten sections in total. Claude follows it without prompting.
 
+`/g-init` also installs `context.md` — the project's **ubiquitous-language glossary**, wired in via `@context.md`. It's the single agreed word for each domain concept, loaded every session so agents, code, UI labels, and conversation stay aligned instead of rediscovering vocabulary each time. It's seeded from `project_brief.md` (or mined from the codebase during `/g-onboard`), and it's developer-authored — G-Forge creates the starter but never overwrites it.
+
 You don't configure G-Forge per session. You configure it once via G-RULES.md and it stays consistent.
 
 ### 5. Hooks
@@ -191,7 +193,7 @@ G-RULES.md has ten sections, each stored as a separate `@`-referenced file in `.
 | **E — Architecture Gate** | Mandatory plan-first sequence for non-trivial changes; import direction validation; state ownership; hard stops |
 | **F — Design Patterns** | Universal principles and anti-patterns (see below) |
 | **G — Documentation** | What must be documented, currency rule, documentation ownership model |
-| **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
+| **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); test-first (TDD red→green→refactor) as the default executor loop for testable tasks; QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
 | **I — Project Tracking** | File hierarchy, commit gate infrastructure, todo.md structure |
 | **J — Memory** | Six-tier memory layer taxonomy |
 
@@ -316,7 +318,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 | Agent | Tier | Role |
 |-------|------|------|
-| `task-decomposer` | Sonnet | Atomic task breakdown with done conditions |
+| `task-decomposer` | Sonnet | Atomic task breakdown with done conditions — biased toward vertical slices (cross-layer, independently testable) over horizontal layers |
 | `wave-planner` | Sonnet | Parallel wave schedule from task list |
 | `spec-writer` | Sonnet | Precise implementation specs for executor agents |
 | `code-reviewer` | Opus | Code quality, logic errors, DRY violations |
@@ -532,9 +534,11 @@ You can still invoke them manually if needed:
 ```
 /g-plan         Step 0: QA scope prerequisite — confirm or compile
                        docs/qa-scope/<milestone>.md (Tier 3 DoD for the milestone)
-                     Step 1: project-manager challenges the feature request (3 questions,
-                       one verdict — bug fixes and refactors skip this gate)
-                     Dispatches task-decomposer → wave-planner
+                     Step 1: project-manager challenges the feature request —
+                       grilled one question at a time, each led with PM's
+                       recommended answer; one verdict (bug fixes and refactors
+                       skip this gate)
+                     Dispatches task-decomposer (vertical-slice bias) → wave-planner
                      Step 3c: context budget check — estimates execution cost
                        (5 + waves×3 + agents×2 + tasks×1 exchanges) vs remaining
                        session budget; offers /g-roadmap split if over limit

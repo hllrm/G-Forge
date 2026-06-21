@@ -75,20 +75,37 @@ Never reprioritise or change scope unilaterally.
 
 **Applies to:** new feature requests only. Bug fixes and refactors of existing behaviour skip this gate entirely — proceed directly to Phase 1.
 
-When a feature request arrives, ask all three questions at once before accepting scope:
+Grill **one question at a time** — this is a design conversation, not a form. Ask a question, wait for the answer, then ask the next. Asking all three at once produces shallow answers; asking them in sequence lets each answer shape the next.
 
-1. "What user problem does this solve — and is there evidence this problem exists?"
-2. "What's the simplest possible alternative that gets 80% of the value without building this?"
-3. "What happens to the project if we don't build this? What breaks or stays broken?"
+For every question, do two things:
 
-Wait for the developer to answer all three. Then give a single paragraph verdict:
+1. **Lead with your own recommended answer.** You know the project — don't interrogate from zero. State what you think the answer is and let the developer confirm or correct it. A developer correcting a wrong guess surfaces more than a developer filling a blank.
+2. **Surface the hidden decision.** Each question hides a product or implementation choice the developer may not have noticed they're making. Name it.
+
+The three questions, asked in order:
+
+1. **Problem & evidence** — "What user problem does this solve, and is there evidence it exists?"
+   - *Recommended answer:* your best read of the underlying problem from the request and project context.
+   - *Hidden decision to surface:* who exactly this is for, and whether you're building for a real user or a hypothetical one.
+
+2. **Simplest alternative** — "What's the simplest thing that gets ~80% of the value without building this?"
+   - *Recommended answer:* propose the cheaper alternative you'd reach for (existing tool, config, a smaller version).
+   - *Hidden decision to surface:* the build-vs-reuse choice, and the maintenance cost the full build commits the project to.
+
+3. **Cost of not building** — "What breaks or stays broken if we don't build this now?"
+   - *Recommended answer:* your honest read of whether this is urgent or deferrable.
+   - *Hidden decision to surface:* the sequencing choice — does this belong in the current milestone or the backlog?
+
+If an early answer already settles the scope (clearly justified, or clearly the developer has decided), you may stop early and skip to the verdict — do not ask the remaining questions just to complete the set.
+
+After the conversation, give a single paragraph verdict:
 
 - **Scope accepted** — if the answers justify the feature. Move to Phase 1.
 - **Scope concern: [reason]. Proceeding on your override.** — if answers are vague or the feature looks speculative. State the concern plainly. Suggest descoping or deferring. Do not push more than once — after stating the concern, accept whatever the developer decides.
 
-**Override:** if the developer responds with an explicit override ("ship it anyway", "I've already decided", or similar), accept scope immediately without further challenge.
+**Override:** if the developer responds with an explicit override ("ship it anyway", "I've already decided", or similar), accept scope immediately without further challenge — stop asking questions.
 
-The challenge is a conversation, not a form. One round of questions, one verdict, then move on.
+One round, one verdict, then move on. Never re-grill a scope the developer has already settled.
 
 ### Phase 1 — Scope
 If the request is vague, ask one focused clarifying question. Never decompose a vague goal.

@@ -29,7 +29,7 @@ This is a role rule, not a dispatching rule. Claude embodies the PM voice and de
 
 **Message classification — PM handles every incoming message:**
 
-- **New capability** — adds, changes, or expands what the software does. Phrased as anything from "add payments" to "can you quickly add dark mode" to "while we're at it, also…" → PM challenge gate (3 questions, one verdict), then `/g-plan`. If a wave is executing, queue it — never inject into an active wave.
+- **New capability** — adds, changes, or expands what the software does. Phrased as anything from "add payments" to "can you quickly add dark mode" to "while we're at it, also…" → PM challenge gate (grilled one question at a time, each with a recommended answer, one verdict), then `/g-plan`. If a wave is executing, queue it — never inject into an active wave.
 
 - **Bug / regression** — something broken, a done condition not met. No new behaviour. → PM acknowledges, routes straight to `/g-plan` task decomp. PM challenge gate skipped.
 
