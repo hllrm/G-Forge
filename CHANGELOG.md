@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.6.0] — 2026-06-26
+
+### Added
+
+- **Silent observer** — `hooks/observe.sh` (PostToolUse + SessionStart) and an updated `hooks/agent-lifecycle.sh` passively journal what happens — commits, branches, tests, pushes, reverts, agent dispatches — to `.claude/journal/YYYY-MM-DD.jsonl`. Writes nothing to the chat and never interrupts. Off on the `light` tier.
+- **`/g-intake`** — proactive feature-drop triage. When a single feature idea is dropped mid-stream, it classifies the idea against `project_brief.md` (on-brief / scope-creep / out-of-scope), proposes placement (active milestone / new milestone / backlog), version impact, and a one-line risk hint, then **asks** before writing anything. Wired into G-RULES §B as the front-end of the "New capability" path; routes onward to `/g-roadmap`, the backlog, or `/g-plan`.
+- **`/g-align`** — brief-deviation check. Compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `project_brief.md` across four axes (goal service, scope creep, MVP integrity, tech-decision drift) and reports ALIGNED or DRIFTING with evidence and a recommendation. Advisory — never blocks. Auto-runs at each milestone close (via `/g-review`'s close swarm) and is nudged between milestones by `workflow-checkpoint.sh` (≥7 days since `.claude/last-align`).
+
+### Changed
+
+- **`/g-retro` no longer interviews** — it now **synthesizes** the retrospective from the silent-observer journal plus git and `todo.md`. Decisions and patterns are inferred from evidence (commits, reverts, test cadence, agent dispatches); the developer verifies the output instead of answering questions. Forecast-outcome reconciliation is now evidence-based (`journal` / `git` / `unverified` tags) rather than a manual Q&A.
+- `34 skills` (was 32) — `/g-intake` and `/g-align` added; router (`/g-forge`) and G-RULES §B maintenance table updated.
+
+### Fixed
+
+- **Hardened the JSON-parse cascade in `hooks/agent-lifecycle.sh`** — it shared the same fail-open defect as the commit gate: a lone `python3` with its failure silenced. On the Windows Microsoft-Store python3 stub the agent name came back empty. Now probes jq → probed python3 → node → raw fallback, identical to `check-commit.sh`. `observe.sh` uses the same hardened cascade from the start.
+
+## [1.5.5] — 2026-06-26
+
+### Fixed
+
+- **Commit gate no longer fails open on the Windows `python3` stub** — `hooks/check-commit.sh` and `hooks/post-commit-cleanup.sh` parsed the PreToolUse payload through a lone `python3` with `2>/dev/null`. Where `python3` is the Microsoft Store stub (the default on a fresh Windows machine), it exits non-zero and the silenced failure left the command empty, so the `git commit` match never fired and the gate silently passed every commit. Replaced with a probed parser cascade (jq → probed python3 → node) plus a raw-payload fallback that fails safe toward gating. Added a stub-simulation regression test to `hooks/test-check-commit.sh`.
+
 ## [1.5.4] — 2026-06-16
 
 ### Changed

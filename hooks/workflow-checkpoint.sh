@@ -186,6 +186,20 @@ if [ "$NEEDS_TRIM" = true ]; then
     echo "  📋 Weekly optimization due — run /g-trim to compact CLAUDE.md and agent memory"
 fi
 
+# Between-milestone alignment nudge — /g-align runs automatically at milestone
+# close; this nudges a drift check between closes once 7 days have elapsed.
+# Only meaningful when there's a brief to align against and a roadmap to drift.
+if [ -f "project_brief.md" ] && [ -f "ROADMAP.md" ]; then
+    ALIGN_STAMP=".claude/last-align"
+    NEEDS_ALIGN=true
+    if [ -f "$ALIGN_STAMP" ] && find "$ALIGN_STAMP" -mmin -10080 2>/dev/null | grep -q .; then
+        NEEDS_ALIGN=false
+    fi
+    if [ "$NEEDS_ALIGN" = true ]; then
+        echo "  🎯 Brief-alignment check due — run /g-align to confirm progress still serves project_brief.md"
+    fi
+fi
+
 # Self-update check — background curl once per day, zero blocking latency
 CLAUDE_DIR="$HOME/.claude"
 INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-forge/g-forge/.claude-plugin/plugin.json"
