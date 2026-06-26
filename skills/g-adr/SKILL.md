@@ -1,17 +1,19 @@
 ---
 name: g-adr
-description: Capture an architectural decision record. Interactive prompts gather context, decision, alternatives considered, and consequences. Writes to docs/decisions/NNN-title.md in standard ADR format. Run when making a significant technical choice — stack selection, new pattern, new external dependency, layer restructure.
+description: Capture an architectural decision record. Gathers context interactively, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), promotes only the finalized draft, and writes docs/decisions/NNN-title.md. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
 argument-hint: [short decision title]
 ---
 
 **Announce:** "Using g-adr to record an architectural decision."
 
-Architectural decisions undocumented become invisible. New team members re-litigate settled choices. Drift happens without anyone knowing why the original constraint existed. This skill captures decisions while the context is fresh.
+Architectural decisions undocumented become invisible. New team members re-litigate settled choices. Drift happens without anyone knowing why the original constraint existed. This skill captures decisions while the context is fresh — and it does so without poisoning HQ's own window with the deliberation that produced them.
+
+> **Why this skill is built the way it is.** Weighing options is exactly the high-branching reasoning that poisons a context (G-RULES §C): three-way pattern debates, rejected alternatives, and wrong first guesses all stay in-window and drag on everything HQ does next. The single-use doctrine applies to HQ's *own* deliberation, not just dispatched agents. So this skill offloads the weighing to a throwaway subagent and promotes only the finished answer — and, once a consequential decision is finalized, it resets the residue: retro, then verify from a fresh session.
 
 ## Step 1 — Establish the title
 
 **If an argument was provided** (e.g. `/g-adr "use PostgreSQL instead of SQLite"`):
-- Use it as the working title. Confirm with developer: "Recording ADR: '[title]' — is that the right framing?"
+- Use it as the working title. Confirm: "Recording ADR: '[title]' — is that the right framing?"
 - Wait for confirmation or correction.
 
 **If no argument was provided**, ask:
@@ -19,57 +21,79 @@ Architectural decisions undocumented become invisible. New team members re-litig
 
 Wait for the title. Proceed.
 
-## Step 2 — Gather context interactively
+## Step 2 — Gather raw inputs interactively
 
-Ask each question in sequence. Wait for the answer before asking the next. Do not batch them.
+Collect the developer's raw inputs — facts, options on the table, constraints. You are gathering material, not yet weighing it. Ask each question in sequence; wait for the answer before the next. Do not batch them.
 
-**Question 1 — Context:**
-> "What is the situation, problem, or requirement that forced this decision? Include any constraints (performance, team skill, cost, existing infrastructure) that shaped the options."
+**Q1 — Context:** "What situation, problem, or requirement forced this decision? Include constraints (performance, team skill, cost, existing infrastructure) that shaped the options."
+**Q2 — Decision:** "What did you decide, specifically? Name the technology, pattern, or approach. Be concrete — 'use X', not 'improve Y'."
+**Q3 — Alternatives:** "What other options did you evaluate? Name each."
+**Q4 — Consequences (as you see them):** "What becomes easier? What becomes harder or off the table? Any risks or follow-up decisions?"
+**Q5 — Status:** "Accepted (in effect) · Proposed (under discussion) · Deprecated · Superseded by ADR-NNN (which)?"
+**Q6 — Constraints that drove it:** "What constraints (time, team, compatibility, compliance, cost) were the primary drivers? Would you decide differently without them?"
+**Q7 — Assumptions:** "What is this decision relying on? Which assumptions are most likely to be invalidated later?"
 
-**Question 2 — Decision:**
-> "What did you decide, specifically? Name the technology, pattern, or approach chosen. Be concrete — 'use X' not 'improve Y'."
+Keep it to raw answers — do not start analyzing the trade-offs yourself. That happens in Step 3, off-context.
 
-**Question 3 — Alternatives considered:**
-> "What other options did you evaluate? For each, why did you reject it? (Even if you only considered one alternative, name it and say why it lost.)"
+## Step 3 — Deliberate off-context (throwaway subagent)
 
-**Question 4 — Consequences:**
-> "What becomes easier as a result? What becomes harder or is now off the table? Any risks, trade-offs, or follow-up decisions this creates?"
+Dispatch a **single-use deliberation subagent** to do the weighing and drafting. This is the load-bearing step: the messy comparison happens in the subagent's window, never in HQ's.
 
-**Question 5 — Status:**
-> "What is the status of this decision?
-> - **Accepted** — in effect, team has agreed
-> - **Proposed** — under discussion, not yet confirmed
-> - **Deprecated** — was accepted but is being phased out
-> - **Superseded** — replaced by a newer ADR (which one?)"
+Dispatch one general-purpose subagent with this prompt (fill in the raw inputs from Step 2):
 
-**Question 6 — Rejected alternatives:**
-> "What alternatives did you seriously consider and reject? For each, what was the deciding factor against it?"
+```
+You are a single-use decision analyst. Stress-test and structure an architectural
+decision — do NOT make it; the developer already has. Return ONLY the finalized ADR
+body below. Do not return your reasoning, comparisons, or any exploration — only the
+distilled result crosses back.
 
-**Question 7 — Assumptions that held:**
-> "What assumptions is this decision relying on? Which of these are most likely to be invalidated later?"
+Decision title: [title]
+Developer's raw inputs:
+  Context: [Q1]
+  Decision: [Q2]
+  Alternatives named: [Q3]
+  Consequences (developer's view): [Q4]
+  Status: [Q5]
+  Constraints: [Q6]
+  Assumptions: [Q7]
 
-**Question 8 — Constraints that drove the decision:**
-> "What constraints (time, team, compatibility, compliance, cost) were the primary drivers? Would you decide differently without them?"
+Read project_brief.md, CLAUDE.md (layer map / import rules), and any directly relevant
+source to ground the analysis. Then produce:
 
-## Step 3 — Determine ADR number
+1. A rigorous "Alternatives considered" table (option → why rejected), including any
+   strong alternative the developer did not name but should have.
+2. A "Consequences" block: Easier / Harder-constrained / Follow-up decisions / Risks.
+3. A "Rejected Alternatives" table (alternative → deciding factor).
+4. "Assumptions That Held" — each with its fragility.
+5. "Constraints That Drove This Decision".
+6. WEAKNESSES: a short list of any place the rationale is thin, an assumption is load-
+   bearing-and-fragile, or a rejected option deserves a second look. (This is the one
+   place you may flag judgment — keep it to bullet points, no narrative.)
+
+Return ONLY those six sections. No preamble, no reasoning trace.
+```
+
+The subagent is single-use and discarded after it returns. You never see its deliberation — only the finalized sections. **Do not** re-prompt it or continue its context; if the draft needs rework, dispatch a fresh one with the adjustment.
+
+## Step 4 — Promote across the seam
+
+Present the subagent's finalized draft to the developer for approval — this is the clean contract crossing the boundary:
+
+> "Here's the structured decision record. I had it stress-tested off-context — note the **weaknesses** flagged at the bottom. Approve as-is, or tell me what to change."
+
+Show the draft plus the WEAKNESSES list. If the developer wants substantive changes to the analysis, dispatch a **fresh** deliberation subagent with the adjustment (never re-prompt the spent one). Minor wording edits, apply directly. Drop the WEAKNESSES section from the final ADR — it is decision-support, not part of the record. Loop until the developer approves.
+
+## Step 5 — Determine ADR number
 
 ```bash
 find . -path "*/docs/decisions/*.md" -not -path "*/node_modules/*" | sort
 ```
 
-If `docs/decisions/` does not exist, create it.
+If `docs/decisions/` does not exist, create it. Next number = highest existing + 1, zero-padded to 3 digits. If none exist, start at 001.
 
-Count existing ADRs. Next number = highest existing number + 1, zero-padded to 3 digits (001, 002, ... 099, 100).
+## Step 6 — Write the ADR
 
-If no existing ADRs, start at 001.
-
-## Step 4 — Write the ADR
-
-Derive a kebab-case filename from the title. Examples:
-- "Use PostgreSQL instead of SQLite" → `001-use-postgresql-instead-of-sqlite.md`
-- "Adopt server-side rendering for marketing pages" → `002-adopt-ssr-for-marketing-pages.md`
-
-Write to `docs/decisions/[NNN]-[kebab-title].md`:
+Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQLite" → `001-use-postgresql-instead-of-sqlite.md`). Write to `docs/decisions/[NNN]-[kebab-title].md`:
 
 ```markdown
 # ADR-[NNN]: [Title]
@@ -80,18 +104,17 @@ Write to `docs/decisions/[NNN]-[kebab-title].md`:
 
 ## Context
 
-[Developer's answer to Question 1 — situation, problem, constraints. 2–5 sentences.]
+[Q1 — situation, problem, constraints. 2–5 sentences.]
 
 ## Decision
 
-[Developer's answer to Question 2 — what was chosen, specifically. 1–3 sentences.]
+[Q2 — what was chosen, specifically. 1–3 sentences.]
 
 ## Alternatives considered
 
 | Option | Why rejected |
 |--------|-------------|
-| [alternative 1] | [reason] |
-| [alternative 2] | [reason] |
+| [from the promoted draft] | [reason] |
 
 ## Consequences
 
@@ -115,13 +138,12 @@ Write to `docs/decisions/[NNN]-[kebab-title].md`:
 - [constraint: time/team/compliance/cost/etc.]
 ```
 
-## Step 5 — Surface follow-up actions
+## Step 7 — Surface follow-up actions
 
-After writing the ADR, check whether any downstream files should be updated:
-
-- If the decision affects the project's architecture: "Does this decision change the layer map or import rules in CLAUDE.md? If so, update it or run `/g-specialize` to reinstall the profile."
-- If the decision involves a new external dependency: "Consider adding this dependency to `project_brief.md`'s tech decisions table."
-- If the decision deprecates a previous approach: "Is there an existing ADR for the old approach? If so, update its status to Deprecated and add a 'Superseded by ADR-[NNN]' note."
+Check downstream files:
+- Affects architecture: "Does this change the layer map or import rules in CLAUDE.md? Update it or run `/g-specialize` to reinstall the profile."
+- New external dependency: "Consider adding it to `project_brief.md`'s tech decisions table."
+- Deprecates a previous approach: "If an ADR exists for the old approach, set its status to Deprecated and add 'Superseded by ADR-[NNN]'."
 
 Report:
 ```
@@ -131,10 +153,32 @@ Status: [Accepted | Proposed | ...]
 [Follow-up actions if any, or "No follow-up actions identified."]
 ```
 
+## Step 8 — Close the circle (consequential, Accepted decisions only)
+
+A finalized ADR is a high-stakes artifact produced through deliberation. Even with the weighing offloaded, this session's window now carries the interview and the promotion loop — you should not keep building architecture on top of it, and the ADR itself was produced in a context that should be **checked, not trusted from memory** (airtight = checked, not remembered).
+
+**This reuses the existing session-reset path, it does not invent one.** The context gate (G-RULES §A7, driven by the exchange counter in `workflow-checkpoint.sh`) already runs exactly this reset — auto-`/g-retro` + handoff write + "open a fresh session" — when the *quantitative* trigger fires (exchange count hits red). Finalizing a consequential ADR is the *semantic* trigger for the same response: you don't wait for the exchange count to climb, because an architecture decision warrants the reset now. Same path, different trigger.
+
+Apply this step only when the ADR is **Accepted** and consequential (a real stack / pattern / dependency / layer decision — the skill's normal case). For a **Proposed** ADR or a minor record, skip Step 8 and stop after Step 7.
+
+1. **Promote the record — run `/g-retro`** (the same `/g-retro` the context gate triggers at red). Use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it; topic slug `adr-[NNN]-[short]`. The observer journal already captured the session; the retro distills it into the durable record. **Skip if a retro has already run or is scheduled this session** — e.g. the §A7 red gate already fired, or you reached `/g-adr` via `/g-review`'s milestone close, which runs `/g-retro` itself. Don't double-retro.
+
+2. **Write the handoff** — the same `## Handoff` block §A7 writes on reset. If `todo.md` exists, set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
+   > `⚠ FIRST: verify ADR-[NNN] against the actual repo state before building on it (clean-slate check).`
+   If `todo.md` does not exist, carry the task in the chat recommendation only.
+
+3. **Recommend a fresh session** (the same recommendation the red gate makes). Tell the developer:
+   > "ADR-[NNN] is finalized. This session's context now carries the deliberation that produced it — that's residue I shouldn't keep building on, and the ADR itself is an airtight answer that should be *checked*, not trusted from memory. Recommend: **start a fresh session, and make its first task verifying ADR-[NNN] against the actual repo** — confirm the decision still matches ground truth, then proceed. The handoff, this retro, and the ADR itself carry the clean record across, so you lose the residue, not the knowledge."
+
+   This is a recommendation, not a gate — the developer decides. Do not force a new session or block further work.
+
 ## Rules
-- Never reconstruct past decisions from code alone — the developer must provide the context.
-- If the developer cannot articulate why the decision was made, record what is known and mark the Context section with `[Note: rationale partially reconstructed — verify with original decision-makers]`.
-- Do not editorialize or second-guess the decision in the ADR — record it faithfully.
-- If a decision is still being debated, use status **Proposed** and record the current leading option — update to **Accepted** when confirmed.
+- Never reconstruct past decisions from code alone — the developer provides the context (Step 2).
+- The weighing happens in the Step 3 subagent, never in HQ. If you catch yourself drafting the alternatives analysis inline, stop and dispatch — that is the poison this skill exists to avoid.
+- Single-use all the way down: never re-prompt or continue the deliberation subagent. Rework = a fresh dispatch.
+- If the developer cannot articulate why the decision was made, record what is known and mark Context with `[Note: rationale partially reconstructed — verify with original decision-makers]`.
+- Do not editorialize the decision in the ADR — record it faithfully. The WEAKNESSES list is decision-support shown in Step 4 and is NOT written into the ADR file.
+- Still-debated decision → status **Proposed**, record the leading option, skip Step 8. Update to **Accepted** when confirmed.
 - ADR numbers are permanent. Never renumber existing ADRs.
-- ADRs written before M9 (v0.10.0) are pre-lineage — they do not have Rejected Alternatives, Assumptions, or Constraints sections. No backfill is required.
+- Step 8 is a recommendation, never a gate. The developer owns whether to open a fresh session.
+- ADRs written before M9 (v0.10.0) are pre-lineage — no backfill required.
