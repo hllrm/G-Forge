@@ -1,5 +1,5 @@
 ---
-description: Record a structured session retrospective to docs/retros/YYYY-MM-DD-topic.md. Captures what was done, decisions made, patterns that worked/failed, and cold-start context for the next session.
+description: Synthesize a session retrospective from the silent-observer journal (no interview) to docs/retros/YYYY-MM-DD-topic.md. Reads the passive activity log, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context.
 argument-hint: [topic slug]
 ---
 

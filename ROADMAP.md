@@ -178,6 +178,22 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 
 ---
 
+### M19 — Ambient Proactivity
+**Status:** ✅ Complete
+**Version:** v1.6.0
+**Goal:** G-Forge watches continuously, stays anchored to the brief, and reacts to feature drops — less command-driven, more ambient
+**Scope:**
+- Silent observer (`hooks/observe.sh` + `hooks/agent-lifecycle.sh`) — passive `.claude/journal/` activity log; `/g-retro` reworked to synthesize from it (no interview)
+- `/g-align` — brief-deviation check vs `project_brief.md`; auto-runs at milestone close, nudged between milestones; advisory
+- `/g-intake` — proactive feature-drop triage (classify against brief → propose placement + version + risk → ask before writing)
+- Hardened the JSON-parse cascade across all hooks (no fail-open on the Windows python3 stub)
+
+**Depends on:** M18 (compact-return + plan-derisking foundation)
+
+> Note: M16–M18 shipped between M15 and M19 (see CHANGELOG and README roadmap table for v1.2.0 / v1.3.3 / v1.5.0) — this file tracks the headline milestones.
+
+---
+
 ## Backlog
 
 (clear — all items placed into milestones M9–M15)

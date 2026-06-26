@@ -1,76 +1,62 @@
 ---
 name: g-retro
-description: Save a structured session retrospective to docs/retros/YYYY-MM-DD-topic.md — captures what was done, decisions made, patterns that worked or failed, and cold-start context for the next session.
+description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and todo.md, and writes docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
 context: [task, sprint, institutional]
 ---
 
-**Announce:** "Using g-retro to record a session retrospective."
+**Announce:** "Using g-retro to synthesize a retrospective from the session journal."
+
+g-retro no longer interviews. The silent observer (`hooks/observe.sh` + `hooks/agent-lifecycle.sh`) records what actually happened as it happens — commits, branches, tests, pushes, agent dispatches, reverts — into an append-only daily journal. This skill reads that journal plus git and `todo.md`, then **synthesizes** the retro. The developer's job is to verify, not to recall.
 
 ## Step 1 — Determine topic
 
 If the user provided a topic argument, use it as the slug (lowercase, hyphen-separated, e.g. `auth-refactor`).
 
-Otherwise, read `todo.md` (Handoff block) and run `git log --oneline -5` in parallel. From those two sources, infer a short descriptive slug that captures the session's main theme (e.g. `precompact-hook`, `review-gate-fix`, `m3-wave2`). Keep it under 30 characters.
+Otherwise infer a slug automatically — do **not** stop to ask:
+1. If the current branch matches `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, or `chore/<slug>`, use `<slug>`.
+2. Else read `todo.md` (Handoff block) and `git log --oneline -5` and infer a short descriptive slug capturing the session's main theme (e.g. `precompact-hook`, `m3-wave2`).
+3. Keep it under 30 characters.
 
-Confirm with the developer before continuing:
+State the chosen topic in one line and proceed: `Retro topic: [topic]`. If the developer corrects it afterward, rename the file.
 
-> "Recording retro for: **[topic]** — correct? (reply with the topic to change it, or say 'yes' / 'y' to confirm)"
-
-Wait for confirmation. If the developer replies with a different topic, use that instead.
-
-## Step 2 — Gather session context
+## Step 2 — Read the journal and project state
 
 Read the following in parallel:
 
-- `todo.md` — full file (Handoff block + Tasks table)
-- `todo-done.md` — last 10 entries (read from the end of the file)
-- Run `git log --oneline -10` via Bash
+- **The observer journal** — `.claude/journal/*.jsonl`. Read today's file in full and the two most recent prior days (the work being retro'd may span sessions). Each line is `{"ts","kind","detail"}` with `kind` ∈ `session · agent · commit · branch · test · push · merge · revert · destructive · note`.
+- `todo.md` — full file (Handoff block + Tasks table).
+- `todo-done.md` — last 10 entries (read from the end of the file).
+- `git log --oneline -15` via Bash.
+- `git branch --show-current` via Bash.
 
-From these sources extract:
+If `.claude/journal/` does not exist or is empty (e.g. the observer never fired this session, or the project predates it), say so in one line — `No journal entries — synthesizing from git + todo only` — and continue with git + todo as the sources. The retro is still produced; it is just thinner.
 
-- **What was built or fixed** — commits and closed tasks from this session
-- **What was deferred** — open tasks still in `todo.md` Tasks table
-- **Any blockers hit** — mentioned in the Handoff block or visible in the commit history (e.g. reverts, fix-of-fix commits)
-- **Key files touched** — unique file names appearing across the 10 commits (strip paths to basename, deduplicate)
-- **Current branch** — from `git branch --show-current`
-- **Active milestone** — from the Handoff block in `todo.md`, or from `ROADMAP.md` if not present in `todo.md`
+## Step 3 — Synthesize (no interview)
 
-## Step 3 — Interview for patterns and decisions
+Derive each section from evidence. Do not ask the developer questions — read the signals.
 
-Ask the developer the following questions, one at a time. Wait for the answer to each before asking the next.
+- **What was done** — from `commit` journal entries + git log + closed `todo-done.md` entries. One bullet per logical unit of work, not per commit. Group related commits.
+- **Decisions made** — infer from the journal and commit messages: a `branch` event starting `refactor/*` plus its commits implies an approach decision; a `revert` followed by a different fix implies a reversed decision; a new dependency in a commit implies a library choice. State each as a factual observation, e.g. "Adopted X over Y (commit abc123 replaced the Z approach)." If nothing is inferable, write `None inferred from journal.`
+- **Patterns** —
+  - *Worked well*: clean signal — tests run before commits (`test` entries preceding `commit` entries), no reverts, no `destructive` flags, agents finishing without re-dispatch.
+  - *Avoid / do differently*: friction signal — `revert` entries, repeated `test` failures before a commit, `destructive` flags, the same agent dispatched repeatedly on one task, or commits with `fix-of-fix`/`take 2`/`retry` messages.
+  - If a category has no signal, write `None observed.`
+- **Cold-start context** — branch, active milestone (from `todo.md` Handoff or `ROADMAP.md`), next-up line (verbatim from `todo.md`), key files touched (unique basenames across the git log this session), and carry-over context (from the Handoff "Active context" line).
 
-**Question 1:**
-> "Any decisions made this session worth recording? (tech choices, approach changes, anything you'd want to remember next time — or 'none')"
+## Step 4 — Forecast outcome reconciliation (conditional, evidence-based)
 
-Wait for answer.
+Derive the active plan slug deterministically:
+1. Branch name `feat/<slug>` etc. → `<slug>`.
+2. `docs/forecasts/<candidate>.md` exists → that is the active plan.
+3. Fallback: most-recently-modified `docs/forecasts/*.md` whose `docs/plans/<slug>.md` has an incomplete wave. If none, skip this step silently.
 
-**Question 2:**
-> "Any patterns that worked well or failed? Anything to do differently next time? (or 'none')"
+If a forecast file is found, reconcile its predicted scenarios against the journal evidence rather than asking the developer:
+- For each predicted scenario, mark `happened` / `did not happen` / `unverified` based on journal + git signals (e.g. a forecasted "auth refactor will cause regressions" is `happened` if reverts or HOLD-related rework appear around the auth files).
+- Update the `## Outcome` table in the forecast file with the verdict **and** a one-word evidence tag (`journal` / `git` / `unverified`). This keeps the `/g-patterns` feedback loop running without a manual interview. Mark anything you cannot substantiate as `unverified` — never guess a positive.
 
-Wait for answer.
+## Step 5 — Write the retro file
 
-**Question 3 (conditional — only if a forecast file exists for the active plan):**
-
-Before asking, derive the plan slug for this session using the following deterministic order:
-
-1. **Branch name** — if the current branch matches `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, or `chore/<slug>`, strip the prefix and use `<slug>` as the candidate.
-2. **Forecast directory** — check whether `docs/forecasts/<candidate>.md` exists. If yes, that is the active plan.
-3. **Fallback** — if no match by branch, find the most-recently-modified file under `docs/forecasts/*.md` whose corresponding `docs/plans/<slug>.md` has at least one wave in the Progress table not yet marked `complete`. If no such file exists, skip Question 3 silently.
-
-When a forecast file is identified, ask:
-
-> "Forecast for this milestone predicted the following scenarios — for each, did it actually happen? (yes / no / partial)
-> 1. [scenario 1 from forecast]
-> 2. [scenario 2 from forecast]
-> ..."
-
-Wait for answer. Then update the `## Outcome` table in the identified forecast file with the developer's verdict for each row. This closes the feedback loop — `/g-patterns` reads these outcomes to weight pattern confidence in future runs.
-
-If derivation yields no forecast file, skip Question 3 silently — it is conditional and only fires when a forecast exists to verify.
-
-## Step 4 — Write the retro file
-
-Create `docs/retros/` if it does not exist. Use today's date in `YYYY-MM-DD` format and the confirmed topic slug to form the filename: `docs/retros/YYYY-MM-DD-[topic].md`.
+Create `docs/retros/` if it does not exist. Use today's date (`YYYY-MM-DD`) and the topic slug: `docs/retros/YYYY-MM-DD-[topic].md`.
 
 Write the file with this exact structure:
 
@@ -78,71 +64,61 @@ Write the file with this exact structure:
 # Retro: [topic] — [YYYY-MM-DD]
 
 ## What was done
-[bullet list derived from git log + closed todo-done.md entries — one bullet per logical unit of work, not per commit]
+[bullet list derived from journal commits + git log + closed todo-done.md entries — one bullet per logical unit of work]
 
 ## Decisions made
-[developer's answer from Question 1, or "None recorded."]
+[inferred from journal/commit evidence, each with its evidence; or "None inferred from journal."]
 
 ## Patterns
 ### Worked well
-[from developer's answer to Question 2 — items that helped; or "None recorded."]
+[evidence-backed positives, or "None observed."]
 ### Avoid / do differently
-[from developer's answer to Question 2 — items to stop or change; or "None recorded."]
+[evidence-backed friction signals, or "None observed."]
 
 ## Cold-start context
 **Branch:** [current branch]
-**Active milestone:** [milestone name and status, e.g. "M3 — Hooks + Init · In progress"]
+**Active milestone:** [milestone name and status]
 **Next up:** [Handoff "Next up" line from todo.md, verbatim]
-**Key files touched:** [comma-separated list of files from git log this session]
-**Carry-over context:** [any in-flight logic, state, gotchas, or partial work from the Handoff "Active context" line in todo.md]
+**Key files touched:** [comma-separated basenames from git log this session]
+**Carry-over context:** [Handoff "Active context" line from todo.md]
+
+## Journal basis
+[count of journal events read, by kind — e.g. "8 commit · 3 test · 12 agent · 1 revert", or "No journal — git + todo only"]
 ```
 
-Do not add extra sections. Do not summarise the interview answers beyond what the developer said.
+Do not add extra sections.
 
-## Step 5 — Surface the file
+## Step 6 — Surface for verification
 
-Report the file path and print the Cold-start context section verbatim so the developer can verify it is accurate:
+Report the file path and print the **Cold-start context** and **Patterns** sections verbatim so the developer can correct anything the synthesis got wrong:
 
 ```
-Retro written: docs/retros/YYYY-MM-DD-[topic].md
+Retro written: docs/retros/YYYY-MM-DD-[topic].md  (synthesized from [N] journal events)
+
+--- Patterns ---
+[paste]
 
 --- Cold-start context ---
-[paste the Cold-start context block here]
+[paste]
 ```
 
-If the developer requests a correction, edit the file and re-print only the corrected section.
+If the developer corrects a section, edit the file and re-print only the corrected section.
 
-## Step 6 — Pattern suggestions (informational)
+## Step 7 — Pattern suggestions (informational)
 
-After writing the retro, surface any patterns that just-written retro contributes to. This closes the loop with `/g-patterns` without requiring a separate invocation.
+After writing, surface any ≥2-occurrence patterns this retro contributes to — same as before:
+1. Read every retro under `docs/retros/`, including the one just written.
+2. Apply the `None recorded.` / `None observed.` sentinel filter.
+3. Extract `Avoid / do differently` bullets, group by normalised label, count distinct source files.
 
-Run a lightweight pattern-mine pass:
-1. Read every retro under `docs/retros/`, including the one you just wrote.
-2. Apply the `None recorded.` sentinel filter from `/g-patterns` Step 2a.
-3. Extract bullets under `Avoid / do differently` and group by normalised label.
-4. Count distinct source files per label.
-
-If any label now has ≥2 source files, print:
-
-```
-Pattern signal — labels reaching ≥2 occurrences after this retro:
-  · [label]  — sources: [filenames]
-  · [label]  — sources: [filenames]
-
-Run /g-patterns to triage these into proposed rule edits.
-```
-
-If no label reaches ≥2 — print nothing. Pattern-suggestion is silent when there's no signal worth surfacing.
-
-Do not modify any rule files from inside `/g-retro` — surfacing is the cap of this skill's responsibility. `/g-patterns` is the only entry point that proposes edits.
+If any label now has ≥2 source files, print the `Pattern signal` block and suggest `/g-patterns`. If none reach ≥2, print nothing. Never modify rule files from inside `/g-retro` — surfacing is the cap.
 
 ## Rules
-
-- Never write the retro file before receiving explicit confirmation in Step 1
-- Never skip Step 3 — the interview is mandatory even if the developer says they have nothing to add ("none" is a valid answer and must be recorded as-is)
-- Use today's date for the filename — never infer the date from git history
-- One retro file per session — if a retro file already exists for today's topic, ask before overwriting
-- Do not commit the retro file — writing the file is the done condition; committing is the developer's choice
-- Keep bullet points in "What was done" at the logical-work level, not the commit level — group related commits into one bullet
-- If `todo.md` or `todo-done.md` is missing, note the gap and proceed with whatever is available from git log
-- Never add opinions, suggestions, or follow-up recommendations to the retro file — it is a factual record only
+- **No interview.** Never block on a question. The journal and git are the sources of truth; the developer verifies the output, they do not supply it. (A single one-line topic statement in Step 1 is not a blocking question.)
+- Synthesis must be evidence-backed — every decision and pattern traces to a journal entry, commit, or todo line. Mark anything unsubstantiated as inferred/unverified rather than asserting it.
+- Use today's date for the filename — never infer the date from git history.
+- One retro file per session — if a retro file already exists for today's topic, append a `-2` suffix rather than overwriting, and note it.
+- Do not commit the retro file — writing it is the done condition; committing is the developer's choice.
+- Keep "What was done" at the logical-work level, not the commit level.
+- If `.claude/journal/`, `todo.md`, and `todo-done.md` are all absent, synthesize from git log alone and note the gap.
+- Never add opinions or follow-up recommendations to the retro file — it is a factual record.

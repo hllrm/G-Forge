@@ -1,6 +1,6 @@
 ---
-description: G-Forge workflow commands. Subcommands: help, status, doctor, init, kickoff, onboard, brief, roadmap, plan, execute, review, afk, specialize, update, skill-design, skill-validate, patterns, forecast, telemetry, blast-radius, identity, tier, voice.
-argument-hint: <help|status|doctor|init|kickoff|onboard|brief|roadmap|plan|execute|review|afk|specialize|update|skill-design|skill-validate|patterns|forecast|telemetry|blast-radius|identity|tier|voice> [args]
+description: G-Forge workflow commands. Subcommands: help, status, doctor, init, kickoff, onboard, brief, roadmap, intake, plan, execute, review, align, afk, specialize, update, skill-design, skill-validate, patterns, forecast, telemetry, blast-radius, identity, tier, voice.
+argument-hint: <help|status|doctor|init|kickoff|onboard|brief|roadmap|intake|plan|execute|review|align|afk|specialize|update|skill-design|skill-validate|patterns|forecast|telemetry|blast-radius|identity|tier|voice> [args]
 ---
 
 Route to the correct skill file based on the subcommand in $ARGUMENTS.
@@ -15,9 +15,11 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 - `onboard`    → `skills/g-onboard/SKILL.md`
 - `brief`      → `skills/g-brief/SKILL.md`
 - `roadmap`    → `skills/g-roadmap/SKILL.md`
+- `intake`     → `skills/g-intake/SKILL.md`  (remaining args: $ARGUMENTS)
 - `plan`       → `skills/g-plan/SKILL.md`
 - `execute`    → `skills/g-execute/SKILL.md`  (remaining args: $ARGUMENTS)
 - `review`     → `skills/g-review/SKILL.md`
+- `align`      → `skills/g-align/SKILL.md`  (remaining args: $ARGUMENTS)
 - `afk`        → `skills/g-afk/SKILL.md`
 - `specialize` → `skills/g-specialize/SKILL.md`  (remaining args: $ARGUMENTS)
 - `update`     → `skills/g-update/SKILL.md`
@@ -40,9 +42,11 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `onboard` — onboard onto an existing codebase; produce project_brief.md
   - `brief` — refresh project_brief.md as the project evolves
   - `roadmap` — intake features, cluster and sequence into milestones, write ROADMAP.md
+  - `intake [idea]` — triage a single dropped feature against the brief (on-brief / scope-creep / out-of-scope), propose placement + version + risk, then ask before writing
   - `plan` — decompose request into atomic tasks and parallel wave schedule
   - `execute [wave]` — dispatch parallel agents per wave; optionally resume from a specific wave number
   - `review` — run full review pipeline; issues MERGE READY or HOLD
+  - `align [milestone]` — brief-deviation check; compares trajectory against project_brief.md, reports ALIGNED / DRIFTING with evidence (advisory)
   - `afk` — autonomous milestone executor: runs all waves + review unattended, requires approved plan
   - `specialize [stack]` — auto-detect or apply a named stack profile
   - `update` — realign all G-Forge-managed files to the current plugin version

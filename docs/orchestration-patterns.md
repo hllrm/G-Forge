@@ -340,8 +340,11 @@ Installed by `/g-init` into `.claude/hooks/` and registered in `.claude/settings
 | `workflow-checkpoint.sh` | `UserPromptSubmit` | `.claude/hooks/workflow-checkpoint.sh` | Reports active plan path, current wave, and review-approved state on every message. Claude uses this to auto-trigger plan/execute/review. |
 | `check-commit.sh` | `PreToolUse` (Bash) | `.claude/hooks/check-commit.sh` | Blocks any `git commit` command unless `.claude/g-forge-approved` exists. |
 | `post-commit-cleanup.sh` | `PostToolUse` (Bash) | `hooks/post-commit-cleanup.sh` | Deletes `.claude/g-forge-approved` after a successful commit, resetting the gate. |
-| `agent-lifecycle.sh` | `SubagentStart` / `SubagentStop` | `hooks/agent-lifecycle.sh` | Logs agent start/stop events to `.claude/g-forge-agent-log.jsonl` and echoes a status line to Claude. |
+| `agent-lifecycle.sh` | `SubagentStart` / `SubagentStop` | `hooks/agent-lifecycle.sh` | Logs agent start/stop events to `.claude/g-forge-agent-log.jsonl` **and** the silent-observer journal, and echoes a status line to Claude. Hardened JSON parse (no fail-open on the Windows python3 stub). |
+| `observe.sh` | `PostToolUse` (Bash) · `SessionStart` | `hooks/observe.sh` | **Silent observer.** Journals meaningful workflow events (commits, branches, tests, pushes, reverts, session opens) to `.claude/journal/YYYY-MM-DD.jsonl`. No stdout — never interrupts. `/g-retro` synthesizes from this journal. Off on the `light` tier. |
 
 **Sentinel file:** `.claude/g-forge-approved` — written by `g-review` on MERGE READY, deleted by `post-commit-cleanup.sh` after commit. Its presence is the only condition that unlocks `git commit`.
+
+**Observer journal:** `.claude/journal/YYYY-MM-DD.jsonl` — append-only, one event per line (`{"ts","kind","detail"}`). Written by `observe.sh` and `agent-lifecycle.sh`; read by `/g-retro` and `/g-align`. Passive — it records, it never acts.
 
 **Note:** `workflow-checkpoint.sh` and `check-commit.sh` are project-local (written to `.claude/hooks/` by `/g-init`). The lifecycle and cleanup hooks ship with the plugin at `hooks/`.

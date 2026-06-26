@@ -101,6 +101,11 @@ All commands (grouped by purpose):
     /g-init        — scaffold CLAUDE.md, commit gate, workflow hooks
     /g-specialize  — install stack architect agent + architecture rules
 
+  Planning:
+    /g-roadmap     — feature dump → cluster → sequence → ROADMAP.md
+    /g-intake      — triage a dropped feature vs the brief → propose → ask
+    /g-align       — brief-deviation check: ALIGNED / DRIFTING (advisory)
+
   Per-task loop (auto-triggered on `full` tier):
     /g-plan        — decompose task → wave schedule → approval
     /g-execute     — dispatch waves
@@ -122,7 +127,7 @@ All commands (grouped by purpose):
     /g-status      — quick one-line state snapshot
     /g-doctor      — health check: hooks, settings, rules block
     /g-update      — realign all g-forge files to current plugin version
-    /g-retro       — record session retrospective
+    /g-retro       — synthesize session retro from the observer journal (no interview)
     /g-adr         — capture an architectural decision record
     /g-help        — context-aware help (this skill)
     /g-listen      — Tier 3 listen mode for smoke testing
