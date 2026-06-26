@@ -47,6 +47,33 @@ run "git commit --amend blocked without sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit --amend --no-edit"}}' \
     1
 
+# 6: Regression — Windows Microsoft-Store python3 stub (prints to stderr,
+# exits non-zero) must NOT make the gate fall open. With no working parser,
+# the hook falls back to grepping the raw payload and still blocks.
+# Simulate by shadowing python3 with a stub and exposing only a minimal PATH
+# (no jq, no node) so the raw-payload fallback is the only thing left.
+STUBDIR="$(mktemp -d)"
+BINDIR="$(mktemp -d)"
+cat > "$STUBDIR/python3" <<'STUB'
+#!/bin/sh
+echo "Python was not found; run without arguments to install from the Microsoft Store..." >&2
+exit 1
+STUB
+chmod +x "$STUBDIR/python3"
+for t in bash sh cat grep printf echo rm mkdir tr dirname env git; do
+    p="$(command -v "$t")"; [ -n "$p" ] && ln -sf "$p" "$BINDIR/$t" 2>/dev/null
+done
+ln -sf "$STUBDIR/python3" "$BINDIR/python3"   # jq and node intentionally absent
+rm -f "$SENTINEL"
+echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}' \
+    | PATH="$BINDIR" bash "$SCRIPT" >/dev/null 2>&1
+if [ $? -eq 1 ]; then
+    echo "PASS: gate enforced when python3 is the Store stub (no jq/node)"; PASS=$((PASS+1))
+else
+    echo "FAIL: gate fell OPEN under python3 stub (the Windows bug)"; FAIL=$((FAIL+1))
+fi
+rm -rf "$STUBDIR" "$BINDIR"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] || exit 1
