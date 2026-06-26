@@ -32,3 +32,4 @@ At 🔴 **red**: enforce without waiting for the user. Accept no new scope. Comp
 
 **A8 Three-Strikes** — Same bug class × 3 attempts = STOP. Name the mechanism. List what failed and why. Find an alternative that bypasses it entirely. Escalate model before attempt 3, not after.
 Warning signs: error message changes but bug class persists · you're explaining why *this* approach should work when the last one didn't · fix requires knowing internals of a platform component you don't control.
+Three-Strikes is the ceiling on the single-use retry loop (§C). Each strike is a **fresh** agent with a *different* mechanism, seeded only by the prior attempts' distilled learnings — never the same context re-poked, which only poisons it further. After the third failed approach, stop and escalate to the human with the full learnings trail; do not deploy a fourth.

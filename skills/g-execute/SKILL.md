@@ -93,26 +93,45 @@ Output file: docs/agent-output/wave-[N]/[task-slug].md
 Constraint: touch only files in your task scope.
 [if defensive or recovery: telemetry clause from Step 0]
 
-1. Implement the task.
+You get ONE approach and ONE attempt. If your approach works, return DONE. If it does not work, do NOT thrash or try a second approach in this context — return FAILED with a learnings report and stop. HQ owns the retry.
+
+1. Implement the task using a single, committed approach.
 2. For any file with public interfaces or exported functions, dispatch doc-writer (files changed + design intent).
 3. Write a complete implementation summary to the output file above.
 4. Return ONLY this block — no other prose:
 
-RESULT: DONE|BLOCKED
+RESULT: DONE|FAILED|BLOCKED
 SUMMARY: [one sentence]
 FILES: [files changed, comma-separated]
 DONE_CONDITION: met|not met — [reason]
+LEARNINGS: [FAILED only — the approach you tried, where/why it broke, what is now ruled out, and a recommended DIFFERENT approach. Omit for DONE/BLOCKED.]
 DETAIL: docs/agent-output/wave-[N]/[task-slug].md
 ```
+
+`FAILED` = your approach didn't work; you are returning learnings so HQ can try a different one. `BLOCKED` = an external dependency makes the task impossible to proceed (missing upstream work, unavailable resource) — a different approach wouldn't help.
 
 ### Wave completion gate
 
 Wait for all agents in the wave to return before proceeding.
 
-Agents return a compact block (`RESULT / SUMMARY / FILES / DONE_CONDITION / DETAIL`). Parse the `RESULT:` field:
+Agents return a compact block (`RESULT / SUMMARY / FILES / DONE_CONDITION / LEARNINGS / DETAIL`). Parse the `RESULT:` field:
 
 - **`DONE`** — compact block is sufficient. Mark task complete. Do not read the detail file unless you need specifics for a dependent wave.
-- **`BLOCKED`** — read the full detail file at the `DETAIL:` path. Then dispatch `error-detective` with the detail file contents and any error messages or stack traces present. Then dispatch `debugger` with error-detective's findings and the relevant source files. Present both diagnoses alongside the block report:
+- **`FAILED`** — the agent's single approach didn't work; the agent is spent. **Never re-prompt it** — single-use agents are discarded on failure (G-RULES §C). Run the redeploy loop:
+  1. Read the `LEARNINGS:` block (and the `DETAIL:` file if you need specifics). This is the only thing that crosses back — the failed agent's context is gone, and that's the point: it can't poison the retry.
+  2. Track an attempt counter for this task (start at 1 for the original dispatch). This is the `FAILED` count + 1.
+  3. **If this is attempt 1 or 2:** analyze the learnings — optionally dispatch `error-detective` / `debugger` on the learnings to identify a *different* mechanism. Before redeploying, hand the next agent a clean starting point: revert the failed attempt's partial changes (`git restore`/`git checkout --` on the scoped files), or describe the exact working-tree state, so it conditions on ground truth, not residue. Escalate the model tier before attempt 3 (per §A8). Then dispatch a **fresh** single-use agent for the same task, seeded **only** by the revised approach + the accumulated learnings — never the dead agent's output file as context. Append a line to `.claude/escalation-log` (`YYYY-MM-DD <task-label> retry-N`).
+  4. **If attempt 3 also returns `FAILED`:** STOP. Do not deploy a fourth. Escalate to the developer with the full learnings trail:
+     ```
+     ✗ Wave [N] — [task name]: 3 approaches failed.
+     Attempt 1: [approach] — [why it broke]
+     Attempt 2: [approach] — [why it broke]
+     Attempt 3: [approach] — [why it broke]
+     Ruled out: [union of ruled-out approaches]
+     Need your call on direction before I spend a fourth attempt.
+     ```
+     Do not proceed to the next wave.
+- **`BLOCKED`** — an external dependency makes the task impossible to proceed; a different approach won't help. Read the full detail file at the `DETAIL:` path. Then dispatch `error-detective` with the detail file contents and any error messages or stack traces present. Then dispatch `debugger` with error-detective's findings and the relevant source files. Present both diagnoses alongside the block report:
   ```
   ⛔ Wave [N] blocked on: [task name]
   Reason: [agent's reported blocker]
@@ -163,3 +182,4 @@ Do not output a "run /g-review" suggestion and stop. The review is part of the w
 - **Escalation logging** — whenever Three-Strikes (G-RULES.md §A7) escalates a task to a higher model tier, append a single line to `.claude/escalation-log` in the format `YYYY-MM-DD <task-label>`. Create the file if missing. This feeds the escalation-frequency telemetry metric — without this write, the metric cannot increment.
 - If a task has no done condition in the plan, flag it to the developer before dispatching.
 - **Never instruct subagents to run `git commit`.** Committing is HQ's responsibility after `/g-review` issues MERGE READY. Agent prompts must not include commit instructions — only implement, test, and return results.
+- **Agents are single-use (G-RULES §C).** One approach, one attempt. Never continue or re-prompt a `FAILED` agent — discard it and redeploy a fresh one seeded only by the distilled learnings. The failed agent's context never re-enters the loop; that is what keeps each retry clean (no context poisoning). The retry ceiling is Three-Strikes (§A8): three fresh attempts with different mechanisms, then escalate to the human.

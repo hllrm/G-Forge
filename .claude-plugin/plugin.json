@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "g-forge",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Multi-agent Claude Code plugin - planned execution, production architecture, enforced review.",
   "author": {
     "name": "hllrm"

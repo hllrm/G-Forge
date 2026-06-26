@@ -44,11 +44,12 @@ Write the full step-by-step execution report to the `output_file` path passed in
 Return to the calling session using **only** this compact block — no additional prose:
 
 ```
-RESULT: DONE|BLOCKED
+RESULT: DONE|FAILED|BLOCKED
 FILES: [files modified, comma-separated]
 DONE_CONDITION: met|not met — [reason]
 SUMMARY: [one sentence]
+LEARNINGS: [FAILED only — the approach you tried, where/why it broke, what is now ruled out, and a recommended DIFFERENT approach. Omit otherwise.]
 DETAIL: [output_file path]
 ```
 
-Use `BLOCKED` if a step is ambiguous and you stopped rather than interpreted.
+You are single-use: one approach, one attempt. If the refactor approach doesn't work, do **not** try a second approach in this context — return `FAILED` with `LEARNINGS` and stop; HQ will redeploy a fresh agent with a different approach. Use `BLOCKED` if a step is ambiguous and you stopped rather than interpreted (an external/spec gap, not a failed approach).

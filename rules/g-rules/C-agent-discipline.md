@@ -25,3 +25,20 @@
 **Caps:** Hard limit 7 agents/task. 4 agents in one wave = warning sign, restructure first.
 
 **Background by default** for anything >~2 min that doesn't block HQ's next move.
+
+### Single-use agents — one approach, one attempt
+
+**An agent is single-use. It gets one approach and one attempt. It is never continued, re-prompted, or reused for a retry.** If its approach works, it returns `DONE`. If the approach doesn't work, it does **not** thrash — it returns `FAILED` with a learnings report and is discarded. HQ owns every retry.
+
+**Why — context poisoning.** A context window conditions the next token on its *entire* contents, not just the parts that were "accepted." When an agent explores options, hits dead-ends, makes a wrong first guess, and then keeps going in the same context, that crossed-out reasoning stays on the page it is reading from. The agent then anchors on options it already rejected, hedges because conflicting half-conclusions are still in-window, and clings to a wrong first guess even after correcting it. The residue of deliberation poisons execution — and the higher-stakes the task, the more exploration it needed, so the most consequential work gets the most poison. **Single-use agents make this structurally impossible: the failed exploration dies with the agent. Nothing crosses back to HQ except the distilled learnings.**
+
+**The failure loop (`FAILED` → learnings → fresh redeploy):**
+
+1. A failing agent returns `RESULT: FAILED` with a `LEARNINGS:` block — the approach it tried, where and why it broke, what is now ruled out, and a recommended *different* approach. This is a clean contract, not a transcript.
+2. HQ reads the learnings (and may dispatch `error-detective` / `debugger` on them for a different mechanism). It does **not** re-prompt the dead agent.
+3. HQ deploys a **fresh** single-use agent for the same task, seeded **only** by the revised approach + distilled learnings — never the failed agent's context or output file. Hand the fresh agent a clean starting point: revert the failed attempt's partial changes, or describe the working-tree state explicitly, so it conditions on ground truth, not residue.
+4. **Bound = Three-Strikes (§A8).** Each strike is a fresh agent with a *different* mechanism. Escalate the model tier before attempt 3. After three failed approaches, **stop and escalate to the human** with the full learnings trail — do not deploy a fourth.
+
+`FAILED` (the approach didn't work — HQ analyzes and redeploys) is distinct from `BLOCKED` (an external dependency makes the task impossible to proceed — surface to the human immediately; redeploying a fresh agent won't help).
+
+This is the same airtight-contract discipline G-Forge already uses for *first* attempts — `spec-writer` produces a spec precise enough for a cheap executor to run without judgment calls — extended to *retries*. The learnings report is the fixed-contract value crossing the seam; thinking out loud inside a reused agent is mutating the shared object (the executor's window) in place. Keep the seam clean.
