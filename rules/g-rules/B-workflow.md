@@ -62,6 +62,7 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 | `/g-doctor` | Health check: missing files, broken hooks, config drift, sentinel state |
 | `/g-listen` | Enter Tier 3 listen mode for smoke test collection |
 | `/g-retro` | Synthesize a session retrospective from the silent-observer journal — no interview; reads `.claude/journal/`, git, and todo.md |
+| `/g-resume` | Re-hydrate a fresh session — selectively pull the relevant retro, ADRs, journal, and handoff into a clean window, then point at the first task. The read side of the §A7 reset |
 | `/g-intake` | Triage a dropped feature against the brief — classify, propose placement + version + risk, then ask before writing |
 | `/g-align` | Brief-deviation check — compares trajectory against `project_brief.md`; reports ALIGNED / DRIFTING. Advisory |
 | `/g-trim` | Weekly read-only audit of CLAUDE.md and agent memory — surfaces issues for human review, never modifies files |

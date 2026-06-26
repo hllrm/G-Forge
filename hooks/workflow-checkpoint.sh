@@ -186,6 +186,26 @@ if [ "$NEEDS_TRIM" = true ]; then
     echo "  📋 Weekly optimization due — run /g-trim to compact CLAUDE.md and agent memory"
 fi
 
+# Session re-entry nudge — on the FIRST prompt of a session, if a handoff is
+# pending (todo.md Handoff or a PreCompact snapshot), nudge /g-resume to
+# re-hydrate the clean window with the right slice of the durable record.
+# This is the read-side counterpart to the /g-retro reset; it's what makes
+# "start a fresh session" cheap.
+if [ "$PROMPT_COUNT" -eq 1 ]; then
+    _has_handoff=false
+    [ -f ".claude/compact-state.md" ] && _has_handoff=true
+    if [ "$_has_handoff" = false ] && [ -f "todo.md" ] && grep -q '## Handoff' todo.md 2>/dev/null; then
+        _has_handoff=true
+    fi
+    if [ "$_has_handoff" = true ]; then
+        if grep -qi 'verify ADR' todo.md .claude/compact-state.md 2>/dev/null; then
+            echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate; a handed-off ADR needs verifying first"
+        else
+            echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate context before new work"
+        fi
+    fi
+fi
+
 # Between-milestone alignment nudge — /g-align runs automatically at milestone
 # close; this nudges a drift check between closes once 7 days have elapsed.
 # Only meaningful when there's a brief to align against and a roadmap to drift.

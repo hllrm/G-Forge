@@ -221,6 +221,19 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 
 ---
 
+### M22 — Session Re-entry
+**Status:** ✅ Complete
+**Version:** v1.9.0
+**Goal:** Make "start a fresh session" cheap — the read side of the reset seam, so a clean window re-hydrates the right slice of the durable record instead of inheriting a poisoned one
+**Scope:**
+- `/g-resume` — selective re-hydration: pulls the relevant retro cold-start, in-force ADRs, journal tail, and handoff first-task into a clean window, keyed to branch/milestone/first-task; offers the clean-slate ADR verification when one was handed off
+- First-prompt `/g-resume` nudge in `workflow-checkpoint.sh` when a handoff is pending
+- §A7 reframed as a two-sided reset (promote out via `/g-retro`; re-hydrate in via `/g-resume`); orchestration-patterns doctrine extended with the read side
+
+**Depends on:** M19 (observer journal), M20–M21 (the reset path `/g-resume` re-enters from)
+
+---
+
 ## Backlog
 
 (clear — all items placed into milestones M9–M15)

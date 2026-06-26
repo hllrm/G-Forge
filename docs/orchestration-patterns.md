@@ -394,6 +394,20 @@ HQ promotes draft → developer approves → ADR-NNN written
 
 The reset is not a new mechanism: the **context gate** (§A7) already triggers `/g-retro` + handoff + fresh-session on the *quantitative* trigger (exchange count → red). The ADR loop is the *semantic* trigger for the same response — a consequential decision is finalized, so reset now rather than waiting for the counter. The two triggers share one reset path, which is what keeps the fresh session's re-entry clean: it picks up the handoff and the durable record (retro, ADR, journal) instead of the poisoned window.
 
+### The read side — `/g-resume`
+
+Promoting the clean record *out* (`/g-retro` + handoff) is only half the seam. The other half is pulling the right slice back *in* when the fresh session starts — otherwise "start a fresh session" means losing your place. **`/g-resume`** is that read side: on the first prompt of a session (auto-nudged by `workflow-checkpoint.sh` when a handoff is pending), it re-hydrates the clean window selectively — the relevant retro's cold-start, the in-force ADRs, the journal tail, the handoff's first task — keyed to the branch/milestone/first-task. It is "retrieval" in the honest sense available to a markdown-and-shell plugin: gather candidates deterministically by key (grep/glob the durable record), judge relevance, load only the **distilled** sections, never whole histories. A clean window is the point, so re-hydration that dumped everything would just re-poison it.
+
+```
+finishing session                          fresh session
+─────────────────                          ─────────────
+/g-retro  ──promote──▶  durable record  ──/g-resume──▶  clean window
+handoff   ──promote──▶  (retros, ADRs,   selective       + first task
+                         journal, brief)  retrieval       (e.g. verify ADR-NNN)
+```
+
+The same `/g-resume` serves both reset triggers — the red context gate (§A7) and the finalized-ADR trigger (§C). When the first task it surfaces is `verify ADR-NNN`, it offers to run the clean-slate check immediately: confirm the decision still matches ground truth before anything builds on it. That is the loop fully closed — deliberate off-context, promote clean, reset, re-hydrate clean, verify, then build.
+
 ---
 
 ## Hooks Reference

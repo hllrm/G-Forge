@@ -125,6 +125,7 @@ All commands (grouped by purpose):
   Hygiene:
     /g-brief       — refresh project_brief.md as project evolves
     /g-status      — quick one-line state snapshot
+    /g-resume      — re-hydrate a fresh session with the right slice of the durable record
     /g-doctor      — health check: hooks, settings, rules block
     /g-update      — realign all g-forge files to current plugin version
     /g-retro       — synthesize session retro from the observer journal (no interview)

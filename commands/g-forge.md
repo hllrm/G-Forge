@@ -9,6 +9,7 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 
 - `help`       → `skills/g-help/SKILL.md`
 - `status`     → `skills/g-status/SKILL.md`
+- `resume`     → `skills/g-resume/SKILL.md`  (remaining args: $ARGUMENTS)
 - `doctor`     → `skills/g-doctor/SKILL.md`
 - `init`       → `skills/g-init/SKILL.md`
 - `kickoff`    → `skills/g-kickoff/SKILL.md`
@@ -36,6 +37,7 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `help` — show current project state and next recommended action
   - `status` — quick one-line workflow snapshot (milestone, plan, review gate)
+  - `resume` — re-hydrate a fresh session: selectively pull the relevant retro, ADRs, journal, and handoff into a clean window, then point at the first task
   - `doctor` — validate project setup health (hooks, settings, CLAUDE.md, milestone alignment)
   - `init` — scaffold CLAUDE.md, ROADMAP.md, milestones/, todo.md, and commit hooks
   - `kickoff` — interview about goals and stack; produce project_brief.md
