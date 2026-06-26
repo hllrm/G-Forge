@@ -331,6 +331,46 @@ refactor-executor returns: src/repositories/user.ts created, src/controllers/use
 
 ---
 
+## Doctrine — single-use agents and context poisoning
+
+Every pattern above shares one rule: **an agent is single-use.** It gets one approach and one attempt. If it works, it returns `DONE`. If the approach doesn't work, it returns `FAILED` with a learnings report and is discarded — never re-prompted, never continued.
+
+### The failure mode: context poisoning
+
+A context window doesn't merely *store* information — the model **conditions the next token on the entire window.** So when an agent explores options, hits dead-ends, makes a wrong first guess, and keeps going *in the same context*, that crossed-out reasoning never leaves the page it's reading from. The executor then:
+
+- **anchors on options it already rejected** (and quietly reintroduces them),
+- **hedges**, because conflicting half-conclusions are still in-window,
+- **clings to a wrong first guess** even after correcting it, because the wrong guess is still being weighted.
+
+The cruel part: the more consequential the task, the more exploration it needed — so the highest-stakes work accumulates the most poison. This is distinct from "context is getting long." It is specifically *the residue of deliberation polluting execution.*
+
+### The fix: burn the context, keep the lesson
+
+Single-use agents make context poisoning **structurally impossible**. The failed exploration dies with the agent. The only thing that crosses back to HQ is the distilled `LEARNINGS:` report — a clean contract, not a transcript. HQ analyzes it (optionally via `error-detective` / `debugger` for a *different* mechanism), then deploys a **fresh** agent seeded only by the revised approach. The new agent conditions on ground truth, never on residue.
+
+```
+agent (attempt 1)  → FAILED + LEARNINGS  ─┐  (agent discarded — context gone)
+                                          │
+HQ: analyze learnings, pick a different   │
+    mechanism, revert partial changes,    │
+    escalate model tier before attempt 3  │
+                                          ▼
+agent (attempt 2, FRESH)  → FAILED + LEARNINGS  ─┐
+                                                 ▼
+agent (attempt 3, FRESH, escalated)  → DONE | FAILED
+                                                 │
+                          3× FAILED → STOP, escalate to human with the trail
+```
+
+The retry ceiling is **Three-Strikes** (G-RULES §A8): three fresh attempts with different mechanisms, then HQ stops and hands the developer the full learnings trail rather than spending a fourth. `FAILED` (approach didn't work → HQ retries) is distinct from `BLOCKED` (external dependency → straight to the human; a different approach won't help).
+
+### Why it generalizes
+
+This is the same airtight-handoff discipline G-Forge already trusts for *first* attempts — `spec-writer` produces a spec precise enough for a cheap executor to run without judgment calls — extended to *retries*, which is the one place a naive model leaks. It is also the **automatable form of the deliberation/execution split**: instead of a human carrying finished answers between a messy thinking session and a clean execution session, the pipeline encodes the same boundary structurally. The learnings report is the fixed-contract value crossing the seam; re-prompting a spent agent is mutating the shared object — the executor's window — in place. Keep the seam clean and the executor stays sharp; you aren't making the agent smarter, you're keeping its input clean.
+
+---
+
 ## Hooks Reference
 
 Installed by `/g-init` into `.claude/hooks/` and registered in `.claude/settings.json`.

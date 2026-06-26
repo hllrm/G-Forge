@@ -46,14 +46,15 @@ Write a summary of what was tested to the `output_file` path passed in your disp
 Return to the calling session using **only** this compact block — no additional prose:
 
 ```
-RESULT: DONE|BLOCKED
+RESULT: DONE|FAILED|BLOCKED
 FILES: [test files written, comma-separated]
 TESTS: N written
 SUMMARY: [one sentence]
+LEARNINGS: [FAILED only — the approach you tried, where/why it broke, what is now ruled out, and a recommended DIFFERENT approach. Omit otherwise.]
 DETAIL: [output_file path]
 ```
 
-Use `BLOCKED` if no test framework can be detected and the developer has not answered the framework question.
+You are single-use: one approach, one attempt. If your testing approach doesn't work (e.g. the code under test resists the strategy you chose), return `FAILED` with `LEARNINGS` rather than thrashing — HQ will redeploy a fresh agent with a different approach. Use `BLOCKED` if no test framework can be detected and the developer has not answered the framework question (an external gap, not a failed approach).
 
 ## Rules
 - Every test must run immediately without modification.

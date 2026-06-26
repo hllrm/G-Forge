@@ -344,17 +344,24 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ### Agent output architecture
 
-All 15 dispatched agents write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact five-line summary to the calling session:
+All 15 dispatched agents write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
 
 ```
-RESULT: DONE|BLOCKED  (or PASS|HOLD for review agents)
+RESULT: DONE|FAILED|BLOCKED  (or PASS|HOLD for review agents)
 ISSUES: N critical · M major · K minor
 SUMMARY: [one sentence]
 FILES: [files changed]
+LEARNINGS: [FAILED only — approach tried, why it broke, what's ruled out, recommended different approach]
 DETAIL: [output file path]
 ```
 
-The calling session reads the detail file only when the result is HOLD or BLOCKED. This keeps main-session context growth at ~70 tokens per agent return rather than 1,500–3,000 tokens of inline output — larger waves stay within budget, and the full audit trail is preserved on disk.
+The calling session reads the detail file only when the result is HOLD, FAILED, or BLOCKED. This keeps main-session context growth at ~70 tokens per agent return rather than 1,500–3,000 tokens of inline output — larger waves stay within budget, and the full audit trail is preserved on disk.
+
+### Single-use agents — one approach, one attempt
+
+Agents are **single-use**. Each gets one approach and one attempt. If it works, the agent returns `DONE`; if the approach doesn't work, the agent returns `FAILED` with a **learnings report** (what it tried, why it broke, what's ruled out, a recommended different approach) and is **discarded** — never re-prompted. HQ reads the learnings, picks a different mechanism, and deploys a *fresh* agent seeded only by that distilled lesson, never the dead agent's context.
+
+This is deliberate. A context window conditions on everything in it, so a failed exploration left inside an executor degrades its next output — it anchors on rejected options, hedges, and clings to wrong first guesses. G-Forge calls this **context poisoning**, and single-use agents make it structurally impossible: the mess dies with the agent, and only a clean contract crosses back. The retry loop is bounded by Three-Strikes — three fresh attempts with different mechanisms, escalating the model tier before the third, then it stops and hands you the full learnings trail. `FAILED` (approach didn't work → HQ retries) is distinct from `BLOCKED` (external dependency → straight to you). It's the same airtight-handoff discipline the planner/executor split already uses for first attempts, extended to retries.
 
 ---
 
@@ -674,3 +681,4 @@ git push
 | M17 — Token Optimization & Session Sync | ✅ Done — **v1.3.3** |
 | M18 — Compact Return Architecture & Plan Derisking | ✅ Done — **v1.5.0** |
 | M19 — Ambient Proactivity (silent observer · brief alignment · feature triage) | ✅ Done — **v1.6.0** |
+| M20 — Single-Use Agent Doctrine (FAILED + learnings retry loop · context-poisoning fix) | ✅ Done — **v1.7.0** |

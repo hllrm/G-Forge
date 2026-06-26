@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.7.0] — 2026-06-26
+
+### Added
+
+- **Single-use agent doctrine (G-RULES §C)** — an agent gets one approach and one attempt; it is never continued, re-prompted, or reused for a retry. Names and prevents **context poisoning**: because a context window conditions the next token on its entire contents, a failed exploration left inside an executor degrades its output (anchoring on rejected options, hedging, clinging to wrong first guesses). Single-use agents make this structurally impossible — the failed exploration dies with the agent; only distilled learnings cross back to HQ.
+- **`FAILED` agent outcome + `LEARNINGS:` field** — the agent return contract is now `RESULT: DONE | FAILED | BLOCKED`. `FAILED` = the approach didn't work; the agent returns a learnings report (approach tried, why it broke, what's ruled out, a recommended different approach) and is discarded. `BLOCKED` stays = an external dependency makes the task impossible to proceed (straight to the human; a different approach won't help).
+- **`/g-execute` redeploy loop** — on `FAILED`, HQ reads the learnings (optionally via `error-detective`/`debugger` for a different mechanism), hands a **fresh** single-use agent a clean starting point (revert partial changes or describe the working-tree state), and redeploys seeded only by the distilled learnings — never the dead agent's context. Bounded by Three-Strikes: three fresh attempts with different mechanisms, model tier escalated before attempt 3, then HQ stops and escalates to the developer with the full learnings trail. Retries are logged to `.claude/escalation-log`.
+
+### Changed
+
+- **`A8 Three-Strikes`** reconciled with the single-use doctrine — it is now the explicit ceiling on the retry loop; each strike is a fresh agent with a different mechanism, never the same context re-poked.
+- **`docs/orchestration-patterns.md`** gains a *Doctrine — single-use agents and context poisoning* section framing the rule as the automatable form of the deliberation/execution split (burn the context, keep the lesson).
+
 ## [1.6.0] — 2026-06-26
 
 ### Added

@@ -194,6 +194,20 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 
 ---
 
+### M20 — Single-Use Agent Doctrine
+**Status:** ✅ Complete
+**Version:** v1.7.0
+**Goal:** Make context poisoning structurally impossible — agents are single-use; retries live at HQ via clean learnings reports, not inside a degrading executor context
+**Scope:**
+- Single-use agent doctrine in G-RULES §C — one approach, one attempt; names and prevents context poisoning
+- `FAILED` agent outcome + `LEARNINGS:` field in the return contract, distinct from `BLOCKED`
+- `/g-execute` redeploy loop — HQ analyzes learnings and deploys a fresh agent with a different mechanism, bounded by Three-Strikes (§A8), then escalates to the human
+- Doctrine note in `docs/orchestration-patterns.md` framing it as the automatable form of the deliberation/execution split
+
+**Depends on:** M18 (compact-return contract this extends)
+
+---
+
 ## Backlog
 
 (clear — all items placed into milestones M9–M15)
