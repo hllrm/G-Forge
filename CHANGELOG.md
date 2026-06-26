@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.0] — 2026-06-26
+
+### Changed
+
+- **`/g-adr` now deliberates off-context and closes the loop** — extends the single-use doctrine (§C) to HQ's own deliberation. The high-branching weighing (alternatives, consequences, trade-offs) is offloaded to a **throwaway deliberation subagent** that stress-tests and drafts the record and returns only the finalized draft + a flagged weaknesses list; HQ never sees the comparison, so its window isn't poisoned. HQ promotes the clean draft across the seam for approval, then writes the ADR.
+- **Decision-hygiene reset** — on a consequential **Accepted** ADR, `/g-adr` reuses the existing context-gate reset path (G-RULES §A7, the exchange-count trigger in `workflow-checkpoint.sh`) on a *semantic* trigger: it runs `/g-retro` to promote the clean record, writes the handoff with **`verify ADR-NNN against ground truth`** as the next session's first task, and recommends a fresh session. The reset is not a new mechanism — finalizing an architecture decision is just another trigger for the retro + handoff + fresh-session path the gate already runs when the exchange counter hits red. Skipped for Proposed/minor ADRs and de-duplicated when a retro already ran this session.
+
+### Added
+
+- **G-RULES §C — HQ deliberation hygiene** — the single-use doctrine now explicitly covers HQ's own window: offload high-stakes weighing to a throwaway subagent, promote only the finished answer, and reset the residue via the §A7 path (retro + fresh-session verification) once a decision is finalized. `docs/orchestration-patterns.md` gains the matching "HQ deliberates too — closing the circle" section.
+
 ## [1.7.0] — 2026-06-26
 
 ### Added

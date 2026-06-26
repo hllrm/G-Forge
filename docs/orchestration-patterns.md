@@ -369,6 +369,31 @@ The retry ceiling is **Three-Strikes** (G-RULES §A8): three fresh attempts with
 
 This is the same airtight-handoff discipline G-Forge already trusts for *first* attempts — `spec-writer` produces a spec precise enough for a cheap executor to run without judgment calls — extended to *retries*, which is the one place a naive model leaks. It is also the **automatable form of the deliberation/execution split**: instead of a human carrying finished answers between a messy thinking session and a clean execution session, the pipeline encodes the same boundary structurally. The learnings report is the fixed-contract value crossing the seam; re-prompting a spent agent is mutating the shared object — the executor's window — in place. Keep the seam clean and the executor stays sharp; you aren't making the agent smarter, you're keeping its input clean.
 
+### HQ deliberates too — closing the circle
+
+Dispatched agents aren't the only context that gets poisoned. **HQ poisons its own window** whenever it runs high-branching deliberation directly — weighing architecture options, debating a pattern, drafting an ADR. The single-use doctrine applies one level up, and `/g-adr` is where it's wired:
+
+1. **Offload the weighing.** HQ gathers the developer's raw inputs, then dispatches a **single-use deliberation subagent** to stress-test and draft the decision record. The three-way pattern debate happens in the subagent's window; HQ sees only the finalized draft.
+2. **Promote across the seam.** HQ presents the clean draft (plus a flagged weaknesses list) to the developer for approval. The reasoning never crossed back.
+3. **Reset the residue — via the path that already exists.** A finalized ADR is an airtight answer produced through deliberation — and the first guardrail is that a deliberation context *goes confidently stale*, so an airtight answer built on it is worse than none. G-Forge already has the reset path: the **context gate** (G-RULES §A7, driven by the exchange counter in `workflow-checkpoint.sh`) auto-triggers `/g-retro`, writes the handoff, and tells the user to open a fresh session when the *exchange count* hits red. `/g-adr` reuses that exact path on a *semantic* trigger — a consequential decision is finalized — so the reset happens when the decision warrants it, not only when the counter climbs. It promotes the clean record (`/g-retro`), writes the handoff with `verify ADR-NNN` as the first task, and recommends a fresh session. Airtight = checked, not remembered; the handoff and the ADR carry the clean record across, so you shed the residue, not the knowledge.
+
+```
+[developer raw inputs] → HQ
+   │
+   ├─ dispatch single-use deliberation subagent (weighing happens HERE)
+   │     └─ returns ONLY the finalized ADR draft + weaknesses
+   ▼
+HQ promotes draft → developer approves → ADR-NNN written
+   │
+   ▼  reuse the §A7 context-gate reset path (semantic trigger, not exchange-count)
+   ├─ /g-retro            (promote the clean record)
+   ├─ todo.md Next up:    "FIRST: verify ADR-NNN against ground truth"
+   ▼
+[recommend fresh session] → first task = verify the decision → then build
+```
+
+The reset is not a new mechanism: the **context gate** (§A7) already triggers `/g-retro` + handoff + fresh-session on the *quantitative* trigger (exchange count → red). The ADR loop is the *semantic* trigger for the same response — a consequential decision is finalized, so reset now rather than waiting for the counter. The two triggers share one reset path, which is what keeps the fresh session's re-entry clean: it picks up the handoff and the durable record (retro, ADR, journal) instead of the poisoned window.
+
 ---
 
 ## Hooks Reference

@@ -208,6 +208,19 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 
 ---
 
+### M21 — Decision Hygiene Loop
+**Status:** ✅ Complete
+**Version:** v1.8.0
+**Goal:** Apply the single-use doctrine to HQ's own deliberation and close the loop — high-stakes thinking happens off-context, and the session resets after a decision is finalized
+**Scope:**
+- `/g-adr` offloads the weighing to a throwaway deliberation subagent; HQ promotes only the finalized draft (HQ window stays clean)
+- Decision-hygiene reset reuses the §A7 context-gate path on a semantic trigger — `/g-retro` + handoff (`verify ADR-NNN` first) + fresh-session recommendation
+- G-RULES §C extended with HQ deliberation hygiene; orchestration-patterns doctrine section extended
+
+**Depends on:** M20 (single-use agent doctrine this generalizes to HQ)
+
+---
+
 ## Backlog
 
 (clear — all items placed into milestones M9–M15)
