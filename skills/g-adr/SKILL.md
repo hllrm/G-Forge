@@ -168,7 +168,7 @@ Apply this step only when the ADR is **Accepted** and consequential (a real stac
    If `todo.md` does not exist, carry the task in the chat recommendation only.
 
 3. **Recommend a fresh session** (the same recommendation the red gate makes). Tell the developer:
-   > "ADR-[NNN] is finalized. This session's context now carries the deliberation that produced it — that's residue I shouldn't keep building on, and the ADR itself is an airtight answer that should be *checked*, not trusted from memory. Recommend: **start a fresh session, and make its first task verifying ADR-[NNN] against the actual repo** — confirm the decision still matches ground truth, then proceed. The handoff, this retro, and the ADR itself carry the clean record across, so you lose the residue, not the knowledge."
+   > "ADR-[NNN] is finalized. This session's context now carries the deliberation that produced it — that's residue I shouldn't keep building on, and the ADR itself is an airtight answer that should be *checked*, not trusted from memory. Recommend: **start a fresh session and run `/g-resume`** — it re-hydrates a clean window with the handoff, this retro, and ADR-[NNN], and offers to verify the decision against the actual repo as the first task. You lose the residue, not the knowledge."
 
    This is a recommendation, not a gate — the developer decides. Do not force a new session or block further work.
 

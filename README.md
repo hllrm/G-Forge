@@ -91,7 +91,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 /plugin install g-forge
 ```
 
-All 17 G-Forge agents, 34 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All 17 G-Forge agents, 35 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -140,7 +140,7 @@ This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, 
 
 ### Verify
 
-Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-intake`, `/g-align`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`, `/g-trim`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-intake`, `/g-align`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-resume`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`, `/g-trim`.
 
 ### Set up a new project
 
@@ -283,6 +283,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 |-------|-------------|
 | `/g-help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
+| `/g-resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
 | `/g-doctor` | 11-point health check: all 5 hooks installed and registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
 | `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
 | `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
@@ -683,3 +684,4 @@ git push
 | M19 — Ambient Proactivity (silent observer · brief alignment · feature triage) | ✅ Done — **v1.6.0** |
 | M20 — Single-Use Agent Doctrine (FAILED + learnings retry loop · context-poisoning fix) | ✅ Done — **v1.7.0** |
 | M21 — Decision Hygiene Loop (off-context ADR deliberation · post-decision session reset) | ✅ Done — **v1.8.0** |
+| M22 — Session Re-entry (`/g-resume` · selective re-hydration of the durable record) | ✅ Done — **v1.9.0** |

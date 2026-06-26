@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.0] — 2026-06-26
+
+### Added
+
+- **`/g-resume` — the read side of the session-reset seam.** `/g-retro` and the §A7 context gate promote the clean record *out* of a finishing session; `/g-resume` pulls the right slice back *in* when a fresh one starts, so "start a fresh session" no longer means losing your place. It re-hydrates a clean window **selectively** — the relevant retro's cold-start, in-force ADRs, the journal tail, and the handoff's first task — keyed to the current branch / milestone / first-task. Retrieval is honest for a markdown-and-shell plugin: deterministic candidate-gathering (grep/glob the durable record by key) + relevance judgment + load only distilled sections, never whole histories. When the handed-off first task is `verify ADR-NNN`, it offers to run the clean-slate verification immediately — closing the decision-hygiene loop (deliberate off-context → promote → reset → re-hydrate clean → verify → build).
+- **First-prompt re-entry nudge** — `workflow-checkpoint.sh` nudges `/g-resume` on the first prompt of a session when a handoff is pending (`todo.md` Handoff or a `.claude/compact-state.md` PreCompact snapshot), flagging when a handed-off ADR needs verifying first.
+
+### Changed
+
+- **G-RULES §A7** (context gate) now describes the reset as two-sided — promote out (`/g-retro` + handoff) and re-hydrate in (`/g-resume`) — and the red-gate message recommends running `/g-resume` in the fresh session. `docs/orchestration-patterns.md` gains "The read side — `/g-resume`," and `/g-adr`'s fresh-session recommendation now points at `/g-resume`.
+- `35 skills` (was 34) — `/g-resume` added; router (`/g-forge`), `/g-help` reference, and G-RULES §B maintenance table updated.
+
 ## [1.8.0] — 2026-06-26
 
 ### Changed
