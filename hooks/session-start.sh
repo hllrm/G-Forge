@@ -9,6 +9,16 @@ if [ ! -t 0 ]; then
     : "${_STDIN_PAYLOAD:=}"
 fi
 
+# SessionStart carries a `source`: startup | resume | clear | compact.
+# A `compact` start is NOT a fresh session — it's the same session continuing
+# after context compression. Treating it as fresh (and resetting the context-depth
+# counter) is what let a deep session compact over and over without ever tripping
+# the §A7 reset gate. Only `compact` is special-cased; an unknown/absent source
+# falls through to the normal reset (backward-compatible).
+SESSION_SOURCE=$(printf '%s' "${_STDIN_PAYLOAD:-}" \
+    | grep -oE '"source"[[:space:]]*:[[:space:]]*"[a-zA-Z]+"' | head -1 \
+    | grep -oE '"[a-zA-Z]+"$' | tr -d '"')
+
 # Only meaningful inside a git repo.
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 0
@@ -51,6 +61,13 @@ if [ "$DIRTY_COUNT" -eq 0 ] && [ "$STASH_COUNT" -eq 0 ] && \
     echo "  ✓ Clean and in sync with remote"
 fi
 
-# Reset the per-session prompt counter so workflow-checkpoint can track
-# context depth from session open.
-printf '0\n' > ".claude/session-prompt-count" 2>/dev/null || true
+# Reset the per-session counters so workflow-checkpoint tracks context depth from
+# session open — but ONLY on a genuinely new session. A `compact` SessionStart is
+# the same session continuing, so its counters must carry across (the depth counter
+# keeps climbing toward the §A7 threshold; the compaction count keeps accumulating).
+if [ "$SESSION_SOURCE" = "compact" ]; then
+    : # same session post-compaction — preserve counters
+else
+    printf '0\n' > ".claude/session-prompt-count" 2>/dev/null || true
+    printf '0\n' > ".claude/session-compaction-count" 2>/dev/null || true
+fi

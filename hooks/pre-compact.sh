@@ -11,6 +11,17 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
 # Ensure .claude/ exists in the developer's project directory
 mkdir -p .claude 2>/dev/null
 
+# Record that this session compacted. Auto-compaction is the strongest
+# "context overloaded" signal there is — workflow-checkpoint.sh reads this count
+# and escalates the §A7 reset recommendation (auto-/g-retro + fresh session).
+# Reset to 0 by session-start.sh only on a genuinely new session, never on the
+# compact-source SessionStart that follows this hook.
+CC_FILE=".claude/session-compaction-count"
+_cc=0
+[ -f "$CC_FILE" ] && _cc=$(tr -dc '0-9' < "$CC_FILE" 2>/dev/null)
+[ -z "$_cc" ] && _cc=0
+printf '%d\n' "$((_cc + 1))" > "$CC_FILE" 2>/dev/null || true
+
 # Collect git state
 BRANCH=$(git branch --show-current 2>/dev/null || echo "not a git repo")
 COMMITS=$(git log --oneline -5 2>/dev/null || echo "no commits found")

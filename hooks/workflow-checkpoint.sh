@@ -68,7 +68,8 @@ if [ -f ".claude/tier3-active" ]; then
 fi
 
 # Context depth counter — increments each prompt; thresholds vary by session mode.
-# Resets to 0 on SessionStart via session-start.sh.
+# Reset to 0 by session-start.sh on a genuinely new session (startup/resume/clear);
+# preserved across a `compact` SessionStart so it keeps climbing toward the gate.
 PROMPT_COUNT_FILE=".claude/session-prompt-count"
 PROMPT_COUNT=0
 if [ -f "$PROMPT_COUNT_FILE" ]; then
@@ -104,6 +105,20 @@ if [ "$PROMPT_COUNT" -ge "$RED_THRESHOLD" ]; then
     echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — ENFORCED: finish task in flight, auto-trigger /g-retro, tell user to start fresh session"
 elif [ "$PROMPT_COUNT" -ge "$AMBER_THRESHOLD" ]; then
     echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — run /context, then warn user: finish in-flight work and /g-retro before any new tasks"
+fi
+
+# Compaction escalation — auto-compaction is the strongest "context overloaded"
+# signal there is, and the prompt counter alone misses it: the post-compaction
+# SessionStart used to reset that counter, so a session could compact repeatedly
+# without ever tripping the red gate above. pre-compact.sh now counts compactions
+# (carried across the compact SessionStart by session-start.sh); surface the §A7
+# reset directly off that count. Even one auto-compaction means the window is full.
+COMPACTION_COUNT=0
+if [ -f ".claude/session-compaction-count" ]; then
+    COMPACTION_COUNT=$(to_int "$(cat .claude/session-compaction-count 2>/dev/null)")
+fi
+if [ "$COMPACTION_COUNT" -ge 1 ]; then
+    echo "  🔴 Context compacted ${COMPACTION_COUNT}× this session — the window is overloaded; finish in-flight work, auto-trigger /g-retro, then start a fresh session (run /g-resume to re-hydrate)"
 fi
 
 # Milestone health — rework commits, blockers, review holds since main.
