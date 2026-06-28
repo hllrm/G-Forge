@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Context gate no longer self-defeats on compaction.** The §A7 depth counter was reset to 0 on *every* `SessionStart` — including `source=compact`, which fires after each auto-compaction — so a deep session that kept compacting kept zeroing the very counter meant to trigger its reset, and the retro/fresh-session recommendation never fired. `session-start.sh` now parses the start `source` and preserves the depth + compaction counters across a `compact` start (resetting only on a genuine new session: startup/resume/clear).
+
+### Added
+
+- **§A7 prevention model — reset *before* the window compacts, never after.** A compaction is now treated as gate failure. Three coordinated mechanisms:
+  - **Active monitoring at amber** — amber is no longer a one-time warning; the model runs `/context` every turn and resets the moment remaining capacity drops below ~25%, capacity-driven rather than waiting for the red exchange count. `/context` is the only true read of context pressure, and only the model can run it.
+  - **`/context` at every wave boundary (`/g-execute`)** — a wave is the heaviest token-burn event and already a hold point, so the check is nearly free; it catches fast-burning sessions the exchange count misses, resetting before the next wave if below the floor.
+  - **Auto-calibrated thresholds** — baselines start lenient (impl 30/45, conv 45/65) and tighten per project: each compaction grows a persistent offset (`.claude/context-threshold-offset`, capped) subtracted from the baselines (floored), so the gate fires earlier next time until compaction stops recurring.
+- **Compaction backstop** — `pre-compact.sh` counts compactions and `workflow-checkpoint.sh` surfaces the red reset off that count, so even a slipped-through compaction still triggers retro + fresh session.
+
 ## [1.9.1] — 2026-06-28
 
 ### Added

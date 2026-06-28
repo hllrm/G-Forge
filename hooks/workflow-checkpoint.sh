@@ -93,18 +93,43 @@ if [ "$_recent" -gt 0 ] || [ "$_dirty" -gt 3 ] || [ "$_plans" -gt 0 ]; then
     SESSION_MODE="implementation"
 fi
 
-# Thresholds: implementation 25/40, conversation 35/55.
-AMBER_THRESHOLD=35
-RED_THRESHOLD=55
+# Baseline thresholds — start LENIENT (the /context capacity floor at amber is the
+# real guard, so we don't need to nag early). Auto-calibration tightens them per
+# project: every compaction adds to .claude/context-threshold-offset, which is
+# subtracted from these baselines (floored), so the gate fires earlier next time
+# until compaction stops happening. Goal: prevent compaction, not react to it.
+BASE_AMBER=45
+BASE_RED=65
+FLOOR_AMBER=20
+FLOOR_RED=30
 if [ "$SESSION_MODE" = "implementation" ]; then
-    AMBER_THRESHOLD=25
-    RED_THRESHOLD=40
+    BASE_AMBER=30
+    BASE_RED=45
+    FLOOR_AMBER=15
+    FLOOR_RED=25
 fi
 
+# Persistent calibration offset (never reset; grows with each compaction).
+OFFSET=0
+if [ -f ".claude/context-threshold-offset" ]; then
+    OFFSET=$(to_int "$(cat .claude/context-threshold-offset 2>/dev/null)")
+fi
+
+AMBER_THRESHOLD=$((BASE_AMBER - OFFSET))
+RED_THRESHOLD=$((BASE_RED - OFFSET))
+[ "$AMBER_THRESHOLD" -lt "$FLOOR_AMBER" ] && AMBER_THRESHOLD=$FLOOR_AMBER
+[ "$RED_THRESHOLD" -lt "$FLOOR_RED" ] && RED_THRESHOLD=$FLOOR_RED
+
+# Capacity floor (% remaining): at amber the model polls /context every turn and
+# resets the MOMENT remaining capacity drops below this — capacity-driven, before
+# the window ever fills enough to compact. This, not the exchange count, is what
+# actually prevents compaction; the count only decides when to start polling.
+CAP_FLOOR_PCT=25
+
 if [ "$PROMPT_COUNT" -ge "$RED_THRESHOLD" ]; then
-    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — ENFORCED: finish task in flight, auto-trigger /g-retro, tell user to start fresh session"
+    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}], threshold ${RED_THRESHOLD} — ENFORCED: finish task in flight, auto-trigger /g-retro, tell user to start fresh session NOW (do not let the window reach compaction)"
 elif [ "$PROMPT_COUNT" -ge "$AMBER_THRESHOLD" ]; then
-    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}] — run /context, then warn user: finish in-flight work and /g-retro before any new tasks"
+    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}], threshold ${AMBER_THRESHOLD} — ACTIVE MONITORING: run /context THIS turn and every turn from now; the moment remaining capacity drops below ${CAP_FLOOR_PCT}%, reset immediately (finish in-flight work, /g-retro, fresh session) — do not wait for the red exchange count. Goal: reset before compaction, never after."
 fi
 
 # Compaction escalation — auto-compaction is the strongest "context overloaded"

@@ -22,6 +22,19 @@ _cc=0
 [ -z "$_cc" ] && _cc=0
 printf '%d\n' "$((_cc + 1))" > "$CC_FILE" 2>/dev/null || true
 
+# Auto-calibration: a compaction means the gate's thresholds were too loose for
+# this project's burn rate. Grow the persistent offset (never reset) so
+# workflow-checkpoint.sh fires amber/red earlier next time — converging toward
+# zero compactions. Step 5 per compaction, capped at 30 (the per-mode floors in
+# workflow-checkpoint.sh stop thresholds collapsing regardless).
+OFF_FILE=".claude/context-threshold-offset"
+_off=0
+[ -f "$OFF_FILE" ] && _off=$(tr -dc '0-9' < "$OFF_FILE" 2>/dev/null)
+[ -z "$_off" ] && _off=0
+_off=$((_off + 5))
+[ "$_off" -gt 30 ] && _off=30
+printf '%d\n' "$_off" > "$OFF_FILE" 2>/dev/null || true
+
 # Collect git state
 BRANCH=$(git branch --show-current 2>/dev/null || echo "not a git repo")
 COMMITS=$(git log --oneline -5 2>/dev/null || echo "no commits found")

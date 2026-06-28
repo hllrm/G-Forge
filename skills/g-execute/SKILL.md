@@ -148,7 +148,9 @@ After all tasks in the wave complete without blockers:
 
 1. **Update the Progress table** in the plan file: find the row for Wave N in the `## Progress` table and change its status from `pending` or `in progress` to `complete`. If the plan file or Progress table doesn't exist, skip silently.
 
-2. Announce:
+2. **Capacity check (additional §A7 guard).** A wave is the heaviest token-burn event in the workflow — parallel agents, file reads, returned detail — so the boundary right after it is exactly where the window can jump toward overflow, and it's a natural hold point, so the check is essentially free. Run `/context` now. If remaining capacity is below the §A7 floor (~25%), **do not dispatch the next wave**: finish here, trigger `/g-retro`, write the handoff (next wave as the first task), and tell the developer to start a fresh session and run `/g-resume`. The remaining waves resume clean. This catches fast-burning sessions before they ever compact — the exchange-count gate alone can miss them. Above the floor, proceed.
+
+3. Announce:
 ```
 ✓ Wave [N] complete. Proceeding to Wave [N+1].
 ```
