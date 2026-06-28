@@ -1,6 +1,6 @@
 ---
-description: G-Forge workflow commands. Subcommands — help, status, resume, doctor, audit, init, kickoff, onboard, brief, roadmap, intake, plan, forecast, blast-radius, execute, review, align, afk, specialize, update, skill-design, skill-validate, adr, docs, patterns, telemetry, identity, retro, listen, optimize, refactor, train, trim, tier, voice.
-argument-hint: <help|status|resume|doctor|audit|init|kickoff|onboard|brief|roadmap|intake|plan|forecast|blast-radius|execute|review|align|afk|specialize|update|skill-design|skill-validate|adr|docs|patterns|telemetry|identity|retro|listen|optimize|refactor|train|trim|tier|voice> [args]
+description: G-Forge workflow commands. Subcommands — help, status, resume, doctor, audit, init, kickoff, onboard, brief, roadmap, intake, plan, forecast, blast-radius, execute, review, align, afk, specialize, update, skill-design, skill-validate, adr, docs, wiki, patterns, telemetry, identity, retro, listen, optimize, refactor, train, trim, tier, voice.
+argument-hint: <help|status|resume|doctor|audit|init|kickoff|onboard|brief|roadmap|intake|plan|forecast|blast-radius|execute|review|align|afk|specialize|update|skill-design|skill-validate|adr|docs|wiki|patterns|telemetry|identity|retro|listen|optimize|refactor|train|trim|tier|voice> [args]
 ---
 
 Route to the correct skill file based on the subcommand in $ARGUMENTS.
@@ -31,6 +31,7 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 - `skill-validate` → `skills/g-skill-validate/SKILL.md`  (remaining args: $ARGUMENTS)
 - `adr`         → `skills/g-adr/SKILL.md`  (remaining args: $ARGUMENTS)
 - `docs`        → `skills/g-docs/SKILL.md`  (remaining args: $ARGUMENTS)
+- `wiki`        → `skills/g-wiki/SKILL.md`  (remaining args: $ARGUMENTS)
 - `patterns`    → `skills/g-patterns/SKILL.md`
 - `telemetry`   → `skills/g-telemetry/SKILL.md`
 - `identity`    → `skills/g-identity/SKILL.md`
@@ -68,6 +69,7 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `skill-validate [name]` — validate a skill or agent against G-Forge structural rules
   - `adr [title]` — capture an architectural decision record (triage → off-context deliberation → reversibility + premortem)
   - `docs [scope]` — documentation audit + generation (stale code docs, README gaps, env vars, CHANGELOG, missing ADRs)
+  - `wiki [area]` — build/maintain the human-facing project wiki in g-wiki/ (narrative architecture + how-to; queued each milestone)
   - `patterns` — mine g-docs/retros/ and todo-done.md for recurring failure patterns; propose rule edits
   - `telemetry` — compute 8 reliability metrics and derive a health profile; drives adaptive orchestration
   - `identity` — narrative synthesis of the project's operational personality; written to g-docs/identity.md

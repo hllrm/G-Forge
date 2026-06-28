@@ -336,6 +336,7 @@ G-Forge initialized ✓
   ✓ .claude/integration-tier — [chosen tier]
 
 Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
+Tip: run /g-wiki anytime to start a human-facing project wiki in g-wiki/ — it's also refreshed automatically at the end of every milestone.
 
 **Recommended MCPs** — install these in Claude Code for best results with G-Forge:
 - `context7` — pulls current library docs into context, eliminates stale-training hallucinations
