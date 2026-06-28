@@ -233,18 +233,18 @@ if [ "$NEEDS_TRIM" = true ]; then
 fi
 
 # Session re-entry nudge — on the FIRST prompt of a session, if a handoff is
-# pending (todo.md Handoff or a PreCompact snapshot), nudge /g-resume to
+# pending (ROADMAP ## Active Session or a PreCompact snapshot), nudge /g-resume to
 # re-hydrate the clean window with the right slice of the durable record.
 # This is the read-side counterpart to the /g-retro reset; it's what makes
 # "start a fresh session" cheap.
 if [ "$PROMPT_COUNT" -eq 1 ]; then
     _has_handoff=false
     [ -f ".claude/compact-state.md" ] && _has_handoff=true
-    if [ "$_has_handoff" = false ] && [ -f "todo.md" ] && grep -q '## Handoff' todo.md 2>/dev/null; then
+    if [ "$_has_handoff" = false ] && [ -f "ROADMAP.md" ] && grep -q '## Active Session' ROADMAP.md 2>/dev/null; then
         _has_handoff=true
     fi
     if [ "$_has_handoff" = true ]; then
-        if grep -qi 'verify ADR' todo.md .claude/compact-state.md 2>/dev/null; then
+        if grep -qi 'verify ADR' ROADMAP.md .claude/compact-state.md 2>/dev/null; then
             echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate; a handed-off ADR needs verifying first"
         else
             echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate context before new work"

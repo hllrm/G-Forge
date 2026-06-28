@@ -44,15 +44,16 @@ printf '%d\n' "$_off" > "$OFF_FILE" 2>/dev/null || true
 BRANCH=$(git branch --show-current 2>/dev/null || echo "not a git repo")
 COMMITS=$(git log --oneline -5 2>/dev/null || echo "no commits found")
 
-# Extract the Handoff block from todo.md if it exists
-if [ -f "todo.md" ]; then
-  # Capture everything from the HANDOFF header line through the closing separator
-  HANDOFF=$(awk '/^━+$/{found++} found==1{print} found==2{print; exit}' todo.md 2>/dev/null)
+# Snapshot the single canonical handoff — the `## Active Session` block in
+# ROADMAP.md. Capture everything under that heading up to the next `## ` heading,
+# so the full Done/Next up/Active context block is preserved (not just the header).
+if [ -f "ROADMAP.md" ]; then
+  HANDOFF=$(awk '/^## Active Session/{cap=1; next} cap && /^## /{exit} cap{print}' ROADMAP.md 2>/dev/null)
   if [ -z "$HANDOFF" ]; then
-    HANDOFF="(Handoff block not found in todo.md)"
+    HANDOFF="(No '## Active Session' handoff found in ROADMAP.md)"
   fi
 else
-  HANDOFF="todo.md not found"
+  HANDOFF="ROADMAP.md not found"
 fi
 
 # Write compact-state.md
