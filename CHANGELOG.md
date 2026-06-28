@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.0.0] — Unreleased
+## [2.0.0] — 2026-06-28
 
 G-Forge 2.0 — production-readiness audit. A ruthless consistency, clarity, and
 shippability pass: no leftover cruft, no stale docs, no claims the repo doesn't back up.
