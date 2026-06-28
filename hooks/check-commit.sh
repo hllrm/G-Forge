@@ -32,6 +32,13 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
 }
 
 INPUT=$(cat)
+
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the gate inert everywhere
+# else, so it never blocks commits in a project that doesn't use G-Forge — and so
+# multiple registration sources can never make it misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 CMD=$(extract_cmd "$INPUT")
 # No parser yielded a command (missing/stubbed) → grep the raw payload, which
 # still contains "command":"git commit …". Fails toward enforcing the gate.

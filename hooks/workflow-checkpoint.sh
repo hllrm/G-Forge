@@ -9,6 +9,12 @@ if [ ! -t 0 ]; then
     : "${_STDIN_PAYLOAD:=}"
 fi
 
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the checkpoint inert
+# everywhere else, so it never prints in a non-G-Forge project and so multiple
+# registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 # Helper: emit a non-negative integer, defaulting to 0 on empty / non-numeric input.
 to_int() {
     local v

@@ -13,6 +13,11 @@ LOG_FILE=".claude/g-forge-agent-log.jsonl"
 JOURNAL_DIR=".claude/journal"
 JOURNAL="$JOURNAL_DIR/$(date -u +%Y-%m-%d).jsonl"
 
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
+# else, so multiple registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 mkdir -p .claude
 
 INPUT=$(cat)

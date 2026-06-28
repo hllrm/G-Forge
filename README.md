@@ -65,6 +65,8 @@ Seven shell scripts registered in `.claude/settings.json` keep Claude oriented a
 
 The hooks are the reason you don't have to type commands for the day-to-day loop. Claude sees the state on every message and responds to it.
 
+They're registered in exactly one place — your project's `.claude/settings.json`, by `/g-init` (and realigned by `/g-update`) — **not** the plugin manifest, so they never double-fire. Each script also self-guards on `.claude/integration-tier`, so it stays completely inert in any repo that hasn't run `/g-init`: no commit gate, no output, nothing. `/g-doctor` flags any accidental duplicate registration.
+
 ### 6. The silent observer
 
 The observer is a passive recorder, not a participant. As you work, it appends a one-line-per-event journal to `.claude/journal/` — what was committed, what branch you cut, when tests ran, which agents were dispatched, any revert or destructive command. It writes **nothing** to the chat and never interrupts. When you run `/g-retro`, it synthesizes the retrospective from that journal plus git and `todo.md` — no end-of-session interview. You verify the output instead of reconstructing the session from memory. The observer is off on the `light` tier.
@@ -283,7 +285,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-doctor` | 13-point health check: all 7 hooks installed and registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
+| `/g-doctor` | 14-point health check: all 7 hooks installed, registered in settings.json, and not double-registered by the plugin manifest, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
 | `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
 | `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
 | `/g-roadmap` | Four-phase milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → approve → ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Auto-triggers on any feature idea or empty milestone list. |
@@ -532,7 +534,7 @@ Auto-triggers:  — no ROADMAP.md exists in the project
 /g-status       Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-doctor       13-point health check — all 7 hooks installed and registered in
+/g-doctor       14-point health check — all 7 hooks installed and registered in
                      settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md
                      present and referenced, no stale sentinel
                      Reports ✓/✗ per check with a one-line fix instruction

@@ -31,6 +31,12 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
 }
 
 INPUT=$(cat)
+
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
+# else, so multiple registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 CMD=$(extract_cmd "$INPUT")
 # No parser yielded a command (missing/stubbed) → grep the raw payload.
 [ -z "$CMD" ] && CMD="$INPUT"
