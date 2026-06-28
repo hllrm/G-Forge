@@ -123,10 +123,10 @@ Archives & lenses (where to read what's going on — only list paths that exist)
 All commands (grouped by purpose):
 
   Setup:
-    /g-kickoff     — new project: interview → project_brief.md
-    /g-onboard     — existing project: read repo → project_brief.md
-    /g-init        — scaffold CLAUDE.md, commit gate, workflow hooks
-    /g-specialize  — install stack architect agent + architecture rules
+    /g-init        — the single front door: detect → onboard|kickoff → scaffold → specialize → ready
+    /g-kickoff     — (sub-step of /g-init) new project: interview → project_brief.md
+    /g-onboard     — (sub-step of /g-init) existing repo: deep-read → project_brief.md
+    /g-specialize  — (sub-step of /g-init) install stack architect agent + architecture rules
 
   Planning:
     /g-roadmap     — feature dump → cluster → sequence → ROADMAP.md
