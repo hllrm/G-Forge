@@ -49,10 +49,11 @@ avoid reopening it:
    certain?) — never *predictions of its impact*. A property is an observation; an
    impact-prediction is introspection, and introspection is where the bias lives.
 
-3. **Frequency-before-friction.** The most decision-relevant fact — `/g-adr` fires rarely,
-   is never gated, and G-Forge's own repo has zero ADRs — came from research, and late.
-   Establish how often a thing runs before optimizing its per-run cost. We were optimizing
-   the page layout before checking the print volume.
+3. **Frequency-before-friction.** The most decision-relevant fact — `/g-adr` fires rarely
+   and is never gated (it is not in the auto-trigger loop; it is only prompted at milestone
+   close) — came from the wiring research, and late. Establish how often a thing runs before
+   optimizing its per-run cost. We were optimizing the page layout before checking the print
+   volume.
 
 4. **Mitigations have their own premortems; complexity is conserved.** Each fix
    (tool-grounding, a floor, a stamp) introduced a failure worse than the one it patched,
