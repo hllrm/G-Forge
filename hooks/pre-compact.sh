@@ -1,5 +1,5 @@
 #!/bin/bash
-# pre-compact.sh — PreCompact hook for G-Team Claude Code plugin
+# pre-compact.sh — PreCompact hook for G-Forge Claude Code plugin
 # Fires before context compression. Writes .claude/compact-state.md so the
 # next session can recover context without re-briefing. Must never exit 1.
 

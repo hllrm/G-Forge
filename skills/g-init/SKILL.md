@@ -133,16 +133,18 @@ Active context:   · Fresh project, just initialized
 
 Create `.claude/hooks/` directory if it does not exist.
 
-All four hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
+All seven hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
 
 Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`. Call this `<plugin-hooks>`.
 
-For each of the following five hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
+For each of the following seven hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
 
 | Hook | Source | Destination |
 |------|--------|-------------|
 | `check-commit.sh` | `<plugin-hooks>/check-commit.sh` | `.claude/hooks/check-commit.sh` |
 | `post-commit-cleanup.sh` | `<plugin-hooks>/post-commit-cleanup.sh` | `.claude/hooks/post-commit-cleanup.sh` |
+| `observe.sh` | `<plugin-hooks>/observe.sh` | `.claude/hooks/observe.sh` |
+| `agent-lifecycle.sh` | `<plugin-hooks>/agent-lifecycle.sh` | `.claude/hooks/agent-lifecycle.sh` |
 | `pre-compact.sh` | `<plugin-hooks>/pre-compact.sh` | `.claude/hooks/pre-compact.sh` |
 | `session-start.sh` | `<plugin-hooks>/session-start.sh` | `.claude/hooks/session-start.sh` |
 | `workflow-checkpoint.sh` | `<plugin-hooks>/workflow-checkpoint.sh` | `.claude/hooks/workflow-checkpoint.sh` |
@@ -153,12 +155,14 @@ Report:
 ```
   ✓ .claude/hooks/check-commit.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/post-commit-cleanup.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/observe.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/agent-lifecycle.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/pre-compact.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/session-start.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/workflow-checkpoint.sh — installed (canonical from plugin cache)
 ```
 
-If the plugin cache does not contain any of the five scripts, stop and report:
+If the plugin cache does not contain any of the seven scripts, stop and report:
 ```
 ✗ Plugin cache missing hook file: <plugin-hooks>/<filename>
   Reinstall the plugin: /plugin install g-forge
@@ -204,6 +208,31 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
             "type": "command",
             "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/post-commit-cleanup.sh\"'",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/observe.sh\" log'",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/agent-lifecycle.sh\" start'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/agent-lifecycle.sh\" stop'"
           }
         ]
       }
@@ -226,6 +255,11 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
             "type": "command",
             "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/session-start.sh\"'",
             "timeout": 8000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/observe.sh\" session'",
+            "timeout": 5000
           }
         ]
       }

@@ -1,5 +1,5 @@
 {
-  "description": "G-Team commit gate and agent lifecycle hooks",
+  "description": "G-Forge commit gate, workflow checkpoint, silent observer, and agent lifecycle hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -30,9 +30,25 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/workflow-checkpoint.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+            "timeout": 8000
+          },
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/observe.sh session",

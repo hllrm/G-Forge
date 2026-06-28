@@ -1,5 +1,5 @@
 #!/bin/bash
-# G-Team post-commit cleanup — PostToolUse hook.
+# G-Forge post-commit cleanup — PostToolUse hook.
 # Clears .claude/g-forge-approved after a successful git commit.
 # Input: Claude Code PostToolUse JSON on stdin.
 
