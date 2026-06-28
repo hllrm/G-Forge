@@ -1,7 +1,7 @@
 #!/bin/bash
 # Unit tests for hooks/check-commit.sh
 
-SCRIPT="$(dirname "$0")/check-commit.sh"
+SCRIPT="$(dirname "$0")/../hooks/check-commit.sh"
 SENTINEL=".claude/g-forge-approved"
 PASS=0
 FAIL=0

@@ -108,7 +108,7 @@ spec_deviation = count(matching_bullets) / count(retros) * 100
 
 **What it measures.** How often a task escalated to a higher model tier (Sonnet → Opus) due to repeated failure.
 
-**Source.** `.claude/escalation-log` — a plain-text counter written by `/g-execute` whenever the Three-Strikes rule (G-RULES.md §A7) escalates a task. One line per escalation: `YYYY-MM-DD <task-id-or-label>`. `docs/retros/*.md` bullets matching `escalated`, `bumped to opus`, `three-strikes` are read as a fallback for sessions before `.claude/escalation-log` was introduced.
+**Source.** `.claude/escalation-log` — a plain-text counter written by `/g-execute` whenever the Three-Strikes rule (G-RULES.md §A8) escalates a task. One line per escalation: `YYYY-MM-DD <task-id-or-label>`. `docs/retros/*.md` bullets matching `escalated`, `bumped to opus`, `three-strikes` are read as a fallback for sessions before `.claude/escalation-log` was introduced.
 
 **Formula.**
 ```

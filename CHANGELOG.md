@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0] — Unreleased
+
+G-Forge 2.0 — production-readiness audit. A ruthless consistency, clarity, and
+shippability pass: no leftover cruft, no stale docs, no claims the repo doesn't back up.
+
+### Changed
+
+- **Hooks reconciled across all four surfaces.** `hooks/hooks.json`, `/g-init`, `/g-doctor`, and `/g-update` now describe the same canonical set of **seven** operational hooks (`check-commit`, `post-commit-cleanup`, `observe`, `agent-lifecycle`, `pre-compact`, `session-start`, `workflow-checkpoint`). Previously the manifest, the installer, the health check, and the updater each knew a different subset:
+  - `hooks.json` gained the missing `UserPromptSubmit → workflow-checkpoint.sh` (the §A7 context-gate driver) and `SessionStart → session-start.sh` registrations, and its description no longer says "G-Team."
+  - `/g-init` now installs and registers the M19 observer (`observe.sh`) and agent-lifecycle (`agent-lifecycle.sh`) hooks it had been omitting — a fresh init was leaving the silent-observer journal unwired.
+  - `/g-doctor` now verifies all seven hooks (its description said "all 4"); added required checks 12 (observer) and 13 (agent lifecycle), and the output template now lists every required check (check 11 had been missing from the printed report).
+  - `/g-update` Step 7 rewritten table-driven: it now realigns all seven hooks from the canonical `hooks/` source. It had pointed at hook bodies inlined in `/g-init` that no longer exist, and covered only four of the seven.
+- **Legacy "G-Team" naming purged from all live content** — renamed to G-Forge across the hook scripts (`check-commit.sh`, `post-commit-cleanup.sh`, `pre-compact.sh`, `workflow-checkpoint.sh`, including the runtime "committing directly to main" warning), `hooks/hooks.json`, and the `.gitignore` artifacts comment. Historical CHANGELOG / ROADMAP / retro records and the deprecated `/g-team` alias left intact.
+- **Hook unit tests moved out of `hooks/`.** `test-check-commit.sh` and `test-observe.sh` relocated to a new `tests/` directory (with a README); only real hook scripts ship in `hooks/` now. Path references updated — both suites pass from the new location.
+
+### Fixed
+
+- **`docs/agent-output/` is now git-ignored.** Dispatched-agent findings (an on-disk audit trail) were not excluded and would have been committed in self-hosted and downstream projects.
+- **`docs/agents.md` was a full agent short** — it claimed "16 agents" and omitted `dependency-auditor` entirely. Corrected to 17 with the missing section added under Review & Quality.
+- **Three-Strikes section references corrected to §A8.** `docs/telemetry-metrics.md` and `skills/g-execute/SKILL.md` cited it as §A7 — but §A7 is the context gate and §A8 is Three-Strikes.
+- **Ambiguous "15 dispatched agents" count clarified** in the README agent-output section (the 15 compact-return specialists vs. the two user-facing agents, `project-manager` and `pr-writer`).
+
 ## [1.9.2] — 2026-06-28
 
 ### Fixed

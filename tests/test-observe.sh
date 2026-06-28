@@ -4,7 +4,7 @@
 # skipped, the journal is valid JSONL, and the parser survives a stubbed
 # python3 (the Windows Microsoft-Store stub) without losing events.
 
-SCRIPT="$(cd "$(dirname "$0")" && pwd)/observe.sh"
+SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/observe.sh"
 PASS=0
 FAIL=0
 

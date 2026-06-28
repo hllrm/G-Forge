@@ -1,5 +1,5 @@
 #!/bin/bash
-# G-Team workflow checkpoint — UserPromptSubmit hook.
+# G-Forge workflow checkpoint — UserPromptSubmit hook.
 # Outputs current workflow state so Claude can auto-trigger the right step.
 
 # Consume stdin payload — UserPromptSubmit delivers tool_input JSON here.

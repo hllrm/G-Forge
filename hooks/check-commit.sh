@@ -1,5 +1,5 @@
 #!/bin/bash
-# G-Team commit gate — PreToolUse hook.
+# G-Forge commit gate — PreToolUse hook.
 # Blocks git commit if .claude/g-forge-approved does not exist.
 # Input: Claude Code PreToolUse JSON on stdin.
 
@@ -7,7 +7,7 @@
 # Never trust a lone interpreter whose failure we've silenced: probe each
 # parser before use (the Windows Microsoft-Store `python3` stub fails the
 # probe), and fall back to the caller's raw-payload grep if none works.
-# Fails safe toward gating — see test-check-commit.sh.
+# Fails safe toward gating — see tests/test-check-commit.sh.
 extract_cmd() {
     local payload="$1" cmd=""
     if command -v jq >/dev/null 2>&1; then
@@ -61,6 +61,6 @@ if echo "$CMD" | grep -q "git commit"; then
     # Advisory: warn when committing directly to main with approval
     BRANCH=$(git branch --show-current 2>/dev/null)
     if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-        echo "G-Team: Note — committing directly to main. Non-trivial work should be on a feature branch (feat/<slug>, fix/<slug>)." >&2
+        echo "G-Forge: Note — committing directly to main. Non-trivial work should be on a feature branch (feat/<slug>, fix/<slug>)." >&2
     fi
 fi
