@@ -177,7 +177,7 @@ Report: `✓ .claude/rules/[filename] — updated` for each updated file.
 
 ## Step 7 — Update hook scripts
 
-The canonical hook bodies live in `[plugin-root]/hooks/` (these are the same files `hooks/hooks.json` registers and `/g-init` copies). For each of the seven G-Forge-managed hooks in the table below, realign `.claude/hooks/<file>` to the plugin source:
+The canonical hook bodies live in `[plugin-root]/hooks/` (the same files `/g-init` copies). `.claude/settings.json` is the **single** registrar — the plugin manifest (`hooks/hooks.json`) registers no hooks, so there is never a manifest-vs-project duplicate. For each of the seven G-Forge-managed hooks in the table below, realign `.claude/hooks/<file>` to the plugin source:
 
 - **File exists:** Replace its contents with `[plugin-root]/hooks/<file>`. Report: `✓ .claude/hooks/<file> — updated`.
 - **File does not exist:** Create it (along with `.claude/hooks/` if needed) from the plugin source, AND register its hook entry in `.claude/settings.json` for every event it uses, if not already present. Report: `✓ .claude/hooks/<file> — created and registered`.
@@ -195,6 +195,15 @@ In **both** cases, after writing the file, verify `.claude/settings.json` contai
 | `workflow-checkpoint.sh` | UserPromptSubmit | `workflow-checkpoint.sh` |
 
 Use the exact registration JSON in `[plugin-root]/skills/g-init/SKILL.md` Step 7 as the template for any entry you add.
+
+### De-duplicate — enforce the single-registrar guarantee
+
+After realigning, ensure `.claude/settings.json` has **exactly one** entry per G-Forge script per event. This is the "check and update, don't duplicate" guarantee — `/g-update` is the tool that repairs a project that picked up duplicates from an older version or a second install path:
+- If any G-Forge script is registered more than once under the same event (a legacy entry plus a new one, or two different command paths for the same script), remove the extras — keep the single entry matching the canonical invocation above.
+- Remove any stale G-Forge hook entry whose command points at a path that no longer exists (e.g. an old hooks location, or a duplicate that referenced `${CLAUDE_PLUGIN_ROOT}` from when the manifest still registered hooks).
+- Leave non-G-Forge hooks the developer added untouched.
+
+Report `✓ .claude/settings.json — removed [N] duplicate hook registration(s)` only if you removed any.
 
 ---
 

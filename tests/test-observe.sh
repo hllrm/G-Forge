@@ -16,7 +16,9 @@ check() { # name expected actual
 # kind_of <command> [PATH-override] — run observe.sh on a payload, return the
 # journaled kind (empty string if the command was skipped as noise).
 kind_of() {
-    local dir; dir=$(mktemp -d); ( cd "$dir" && git init -q )
+    # The hook self-guards to G-Forge-managed projects (.claude/integration-tier);
+    # mark each fixture as one so the observer is active.
+    local dir; dir=$(mktemp -d); ( cd "$dir" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier )
     if [ -n "$2" ]; then
         echo "{\"tool_input\":{\"command\":\"$1\"}}" | ( cd "$dir" && PATH="$2" bash "$SCRIPT" log )
     else
@@ -56,7 +58,7 @@ check "commit journaled under python3 stub" "commit" "$(kind_of 'git commit -m w
 rm -rf "$STUB" "$BIN"
 
 # Session marker.
-SDIR=$(mktemp -d); ( cd "$SDIR" && git init -q && bash "$SCRIPT" session )
+SDIR=$(mktemp -d); ( cd "$SDIR" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier && bash "$SCRIPT" session )
 SKIND=$(jq -r '.kind' "$SDIR"/.claude/journal/*.jsonl 2>/dev/null | head -1)
 check "session marker written" "session" "$SKIND"
 # Journal must be valid JSONL.

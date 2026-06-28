@@ -6,6 +6,11 @@
 # Consume stdin to avoid broken pipe (PreCompact may or may not send JSON)
 cat > /dev/null 2>&1
 
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
+# else, so multiple registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
 
 # Ensure .claude/ exists in the developer's project directory

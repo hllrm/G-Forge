@@ -170,9 +170,17 @@ If the plugin cache does not contain any of the seven scripts, stop and report:
 
 ## Step 7 — Register hooks in .claude/settings.json
 
+`.claude/settings.json` (project-local settings) is the **single** place G-Forge hooks are registered. The plugin manifest (`hooks/hooks.json`) deliberately registers **none** — a manifest registers hooks globally for every session, which would double-fire against this per-project registration (Claude Code only de-dupes *identical* command strings, and the manifest path differs from the project path) and would run the commit gate in non-G-Forge projects. One registrar, no duplication.
+
+Register **idempotently — check before you add, never append a duplicate** (this is what keeps re-running `/g-init` or installing from more than one entry point safe):
+
 Read `.claude/settings.json` if it exists. If it does not exist, start with `{}`.
 
-Add the following hook entries under the `hooks` key. If `hooks` already exists, merge — do not overwrite existing hooks.
+For each hook entry below, look under its event key (e.g. `hooks.PreToolUse`) for an existing command that references the same script basename (e.g. `check-commit.sh`):
+- **A matching entry already exists:** leave it — or, if its command string differs from the canonical one below, replace that single entry in place. Never add a second entry for the same script + event.
+- **No matching entry exists:** add it.
+
+Preserve any hooks the developer added that are not G-Forge scripts — merge into the `hooks` object, never overwrite it.
 
 ```json
 {

@@ -17,8 +17,10 @@ TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DAY=$(date -u +"%Y-%m-%d")
 JOURNAL="$JOURNAL_DIR/$DAY.jsonl"
 
-# Only journal inside an actual project; stay silent (and cheap) elsewhere.
-[ -d .git ] || [ -f .claude/integration-tier ] || [ -f ROADMAP.md ] || exit 0
+# G-Forge project guard — journal only inside a G-Forge-managed project (one that
+# ran /g-init, which writes .claude/integration-tier). Stays silent (and cheap)
+# everywhere else, so multiple registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
 
 # `light` tier means the user opted G-Forge out — don't journal either.
 if [ -f ".claude/integration-tier" ]; then

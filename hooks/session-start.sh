@@ -9,6 +9,11 @@ if [ ! -t 0 ]; then
     : "${_STDIN_PAYLOAD:=}"
 fi
 
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
+# else, so multiple registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 # SessionStart carries a `source`: startup | resume | clear | compact.
 # A `compact` start is NOT a fresh session — it's the same session continuing
 # after context compression. Treating it as fresh (and resetting the context-depth
