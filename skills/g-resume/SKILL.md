@@ -14,7 +14,7 @@ Retrieval here is selective and honest — there is no vector store. It is deter
 
 Gather, in parallel:
 - **Branch** — `git branch --show-current`. If it matches `feat/<slug>` / `fix/<slug>` / `refactor/<slug>` / `chore/<slug>`, extract `<slug>`.
-- **Active milestone** — the milestone marked 🔄 / 🚧 in `ROADMAP.md` (name + scope).
+- **Active milestone** — the milestone marked 🔄 In progress in `ROADMAP.md` (name + scope).
 - **Handoff** — the `## Active Session` block in `ROADMAP.md` (the "Next up" and "Active context" lines). Also read `.claude/compact-state.md` if it exists (the PreCompact snapshot) — it is the same block captured mid-session before a compaction.
 - **First task** — the lead item of "Next up". Watch specifically for a `verify ADR-NNN` task (written by `/g-adr`'s decision-hygiene reset) — that is a first-class re-entry signal.
 - **Recently touched files** — `git log --name-only -n 10 --pretty=format:` (unique basenames) — used to match decisions to the active work.
