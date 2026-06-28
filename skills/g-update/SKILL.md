@@ -34,6 +34,32 @@ You are first updating the plugin cache from GitHub, then syncing G-Forge-manage
 
 ---
 
+## Step 0a — Detect a leftover legacy `g-team` plugin
+
+G-Forge was formerly named **g-team**. Claude Code keys plugins by name, so the rename created a *new* plugin (`g-forge`) — it does not replace an old `g-team` install. If both are enabled, **every `/g-*` command appears twice** (one copy from each plugin's `commands/`). Check for the leftover:
+
+```bash
+ls -d ~/.claude/plugins/cache/g-team 2>/dev/null
+grep -l '"g-team"' ~/.claude/plugins/config.json ~/.claude/settings.json 2>/dev/null
+```
+
+If a `g-team` plugin or marketplace entry is found, stop and tell the developer (this is the fix for duplicated commands):
+
+```
+⚠ Legacy "g-team" plugin still installed — it duplicates every /g-* command.
+  g-team was renamed to g-forge; the old plugin must be removed.
+
+  Remove it:
+    /plugin  →  Installed  →  g-team  →  Uninstall
+    (or: /plugin uninstall g-team, then remove any g-team marketplace entry)
+
+  Then re-run /g-update.
+```
+
+Do not attempt to delete another plugin's files yourself — only the developer (via `/plugin`) can uninstall it cleanly. If no `g-team` install is found, report `✓ No legacy g-team plugin — commands are g-forge only.` and continue.
+
+---
+
 ## Step 1 — Locate the plugin root
 
 Use Glob to find the plugin's skill files:
