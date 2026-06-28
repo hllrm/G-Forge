@@ -1,15 +1,30 @@
 ---
 name: g-init
-description: Scaffold a new project with CLAUDE.md (compact G-rules injected), ROADMAP.md, milestones/, todo.md, and commit enforcement hooks. Run once in a new project after installing G-Forge.
+description: The single G-Forge front door — run once after installing the plugin. Detects what's here and routes to /g-onboard (existing codebase) or /g-kickoff (new project) for the brief, scaffolds CLAUDE.md (compact G-rules), ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven commit/workflow hooks, then runs /g-specialize for the stack — leaving you ready to /g-plan.
 ---
 
-**Announce:** "Using g-init to scaffold the project."
+**Announce:** "Using g-init to set up G-Forge."
 
-You are initializing a G-Forge project. Execute these steps in order. Do not skip any step.
+`/g-init` is the **single front door**. You run it once and it takes the project from wherever it is to ready-to-work: it detects what's already here, routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief, scaffolds the G-Forge structure, then runs `/g-specialize` for the stack. The developer doesn't have to know which command to run first — this is it. Execute the steps in order; skip a step only when its detection says it's already satisfied.
 
 ## Step 1 — Confirm project root
 
 The project root is the current working directory. If uncertain, ask the developer to confirm before creating any files.
+
+## Step 1a — Detect state and route to intake
+
+Before scaffolding anything, figure out the situation and get a `project_brief.md` in place via the right intake skill.
+
+1. **Already a G-Forge project?** If `.claude/integration-tier` exists **and** `CLAUDE.md` contains `<!-- G-Forge Rules`, G-Forge is already initialized here. Don't re-scaffold — tell the developer: "G-Forge is already set up here. Run `/g-update` to re-sync to the current plugin version, or `/g-plan` to start working." Then stop.
+
+2. **Does a `project_brief.md` already exist?** If yes, intake is done — skip to Step 2 (scaffold).
+
+3. **Otherwise classify the directory and run the matching intake skill, then continue to Step 2 when it returns:**
+   - **Existing codebase** — there is real source beyond docs: a dependency manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, `pom.xml`/`build.gradle`), or source directories, or more than a couple of commits of real code → run **`/g-onboard`**. Use Glob to find `skills/g-onboard/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It deep-reads the repo, resolves any existing-G-Forge-state conflicts (so the scaffold and `/g-specialize` don't clobber the developer's files), and writes `project_brief.md`. **Carry its recorded conflict preferences forward** — if the developer chose to skip CLAUDE.md injection, the existing `todo.md` schema, or rules/agents installation, honor that in Steps 2–7.
+   - **New / greenfield** — empty, or only docs/README, no real source → run **`/g-kickoff`**. Use Glob to find `skills/g-kickoff/SKILL.md` and follow it (interview → goals/stack → `project_brief.md`).
+   - If it's genuinely ambiguous, ask the developer one question: "Is this an existing codebase to onboard, or a fresh project to scaffold?" and route accordingly.
+
+   (When `/g-onboard` or `/g-kickoff` finishes by suggesting `/g-init`, ignore that — you're already in it. Continue to Step 2.)
 
 ## Step 2 — Create or update CLAUDE.md
 
@@ -69,20 +84,34 @@ Report:
 
 ## Step 3 — Create ROADMAP.md
 
-Create `ROADMAP.md` if it does not exist:
+Create `ROADMAP.md` if it does not exist. It carries the **`## Active Session` handoff** — the single canonical cold-start the whole workflow reads (`workflow-checkpoint.sh`, `/g-resume`, `pre-compact.sh`, `/g-retro`). `todo.md` never holds a handoff. Write the handoff block raw under the heading (no code fence), so the `━` separators and the `Active context:` line are greppable:
 
 ```
 # Roadmap
 
-## Current Milestone
-- **M1** — [Define milestone name] — 🚧 In progress
+## Active Session
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HANDOFF — [project] | branch: [branch]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Done this pass:   · (nothing yet)
+Next up:          · Define M1 scope in milestones/M1.md
+Active context:   · Fresh project, just initialized
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Milestones
+
+### M1 — [Define milestone name]
+**Status:** 🔄 In progress
+**Goal:** [one line — what M1 delivers]
+**Scope:**
+- [ ] Task 1
 
 ## Backlog
 - M2 — [Define next milestone]
-
-## Done
-(none yet)
 ```
+
+Use the same skeleton `/g-roadmap` writes — `## Milestones` with a `### MN` block per milestone — and the same status key: ⬜ Not started · 🔄 In progress · ✅ Complete. Completed milestones stay under `## Milestones` marked ✅ (there is no separate `## Done` section).
 
 If a `project_brief.md` exists, read it and use the project goals to fill in M1 and M2 with meaningful content.
 
@@ -105,22 +134,14 @@ Create `milestones/M1.md` if it does not exist:
 [Specific, mechanically checkable condition]
 
 ## Status
-🚧 In progress
+🔄 In progress
 ```
 
 ## Step 5 — Create todo.md
 
-Create `todo.md` if it does not exist:
+Create `todo.md` if it does not exist. It is the tactical task ledger only — **no handoff block** (the handoff lives in `ROADMAP.md`'s `## Active Session`):
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — [project] | branch: [branch]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · (nothing yet)
-Next up:          · Define M1 scope in milestones/M1.md
-Active context:   · Fresh project, just initialized
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 ## Tasks
 | # | Task | Notes |
 |---|------|-------|
@@ -133,16 +154,20 @@ Active context:   · Fresh project, just initialized
 
 Create `.claude/hooks/` directory if it does not exist.
 
-All four hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
+**Mark the project as G-Forge-managed first.** Every hook self-guards on `.claude/integration-tier` and stays inert without it (this is what keeps the global plugin from gating commits in non-G-Forge repos). So before wiring any hooks, if `.claude/integration-tier` does not already exist, write `full` to it now — Step 7a refines it from the developer's answer. This guarantees the marker exists the moment the hooks are registered, even if onboarding (Step 7a) is interrupted.
+
+All seven hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
 
 Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`. Call this `<plugin-hooks>`.
 
-For each of the following five hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
+For each of the following seven hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
 
 | Hook | Source | Destination |
 |------|--------|-------------|
 | `check-commit.sh` | `<plugin-hooks>/check-commit.sh` | `.claude/hooks/check-commit.sh` |
 | `post-commit-cleanup.sh` | `<plugin-hooks>/post-commit-cleanup.sh` | `.claude/hooks/post-commit-cleanup.sh` |
+| `observe.sh` | `<plugin-hooks>/observe.sh` | `.claude/hooks/observe.sh` |
+| `agent-lifecycle.sh` | `<plugin-hooks>/agent-lifecycle.sh` | `.claude/hooks/agent-lifecycle.sh` |
 | `pre-compact.sh` | `<plugin-hooks>/pre-compact.sh` | `.claude/hooks/pre-compact.sh` |
 | `session-start.sh` | `<plugin-hooks>/session-start.sh` | `.claude/hooks/session-start.sh` |
 | `workflow-checkpoint.sh` | `<plugin-hooks>/workflow-checkpoint.sh` | `.claude/hooks/workflow-checkpoint.sh` |
@@ -153,12 +178,14 @@ Report:
 ```
   ✓ .claude/hooks/check-commit.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/post-commit-cleanup.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/observe.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/agent-lifecycle.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/pre-compact.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/session-start.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/workflow-checkpoint.sh — installed (canonical from plugin cache)
 ```
 
-If the plugin cache does not contain any of the five scripts, stop and report:
+If the plugin cache does not contain any of the seven scripts, stop and report:
 ```
 ✗ Plugin cache missing hook file: <plugin-hooks>/<filename>
   Reinstall the plugin: /plugin install g-forge
@@ -166,9 +193,17 @@ If the plugin cache does not contain any of the five scripts, stop and report:
 
 ## Step 7 — Register hooks in .claude/settings.json
 
+`.claude/settings.json` (project-local settings) is the **single** place G-Forge hooks are registered. The plugin manifest (`hooks/hooks.json`) deliberately registers **none** — a manifest registers hooks globally for every session, which would double-fire against this per-project registration (Claude Code only de-dupes *identical* command strings, and the manifest path differs from the project path) and would run the commit gate in non-G-Forge projects. One registrar, no duplication.
+
+Register **idempotently — check before you add, never append a duplicate** (this is what keeps re-running `/g-init` or installing from more than one entry point safe):
+
 Read `.claude/settings.json` if it exists. If it does not exist, start with `{}`.
 
-Add the following hook entries under the `hooks` key. If `hooks` already exists, merge — do not overwrite existing hooks.
+For each hook entry below, look under its event key (e.g. `hooks.PreToolUse`) for an existing command that references the same script basename (e.g. `check-commit.sh`):
+- **A matching entry already exists:** leave it — or, if its command string differs from the canonical one below, replace that single entry in place. Never add a second entry for the same script + event.
+- **No matching entry exists:** add it.
+
+Preserve any hooks the developer added that are not G-Forge scripts — merge into the `hooks` object, never overwrite it.
 
 ```json
 {
@@ -204,6 +239,31 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
             "type": "command",
             "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/post-commit-cleanup.sh\"'",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/observe.sh\" log'",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/agent-lifecycle.sh\" start'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/agent-lifecycle.sh\" stop'"
           }
         ]
       }
@@ -226,6 +286,11 @@ Add the following hook entries under the `hooks` key. If `hooks` already exists,
             "type": "command",
             "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/session-start.sh\"'",
             "timeout": 8000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --git-common-dir)/../.claude/hooks/observe.sh\" session'",
+            "timeout": 5000
           }
         ]
       }
@@ -271,25 +336,34 @@ Report:
   ✓ .claude/integration-tier — [resolved]
 ```
 
+## Step 7b — Specialize for the stack
+
+The structure is in place; now fit it to the project's stack so the right architect agent and architecture rules are installed. Run **`/g-specialize`** — use Glob to find `skills/g-specialize/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It detects the stack (from the brief + dependency manifests), confirms with the developer, and installs the matching architect agent + rules.
+
+Honor any conflict preference recorded in Step 1a: if the developer chose to **skip** or **overlay** rules/agents installation during `/g-onboard`, pass that through — do not overwrite existing `.claude/agents/` or `.claude/rules/` files without the permission they already gave. If no stack is detectable (e.g. a brand-new empty project), skip specialization and note that `/g-specialize` can be run later once the stack exists.
+
 ## Step 8 — Report
 
 After all steps, report:
 
 ```
-G-Forge initialized ✓
+G-Forge ready ✓
 
+  ✓ project_brief.md — [via /g-onboard | via /g-kickoff | already present]
   ✓ CLAUDE.md — G-Forge rules injected
   ✓ G-RULES.md — installed
   ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
-  ✓ ROADMAP.md — stub created (or already existed)
+  ✓ ROADMAP.md — created with the Active Session handoff (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
-  ✓ .claude/hooks/ — check-commit.sh, workflow-checkpoint.sh, post-commit-cleanup.sh, pre-compact.sh, and session-start.sh installed
+  ✓ .claude/hooks/ — 7 hooks installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint)
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]
+  ✓ Stack — [specialized: <stack> architect + rules installed | no stack detected yet — run /g-specialize once it exists]
 
-Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
+You're set up and ready to work. Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
+Tip: run /g-wiki anytime to start a human-facing project wiki in g-wiki/ — it's also refreshed automatically at the end of every milestone.
 
 **Recommended MCPs** — install these in Claude Code for best results with G-Forge:
 - `context7` — pulls current library docs into context, eliminates stale-training hallucinations

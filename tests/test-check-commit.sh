@@ -1,7 +1,7 @@
 #!/bin/bash
 # Unit tests for hooks/check-commit.sh
 
-SCRIPT="$(dirname "$0")/check-commit.sh"
+SCRIPT="$(dirname "$0")/../hooks/check-commit.sh"
 SENTINEL=".claude/g-forge-approved"
 PASS=0
 FAIL=0
@@ -18,6 +18,9 @@ run() {
 }
 
 mkdir -p .claude
+# The hook self-guards to G-Forge-managed projects (presence of
+# .claude/integration-tier). Mark this fixture as one so the gate is active.
+printf 'full\n' > .claude/integration-tier
 rm -f "$SENTINEL"
 
 # 1: git commit without sign-off → blocked
@@ -73,6 +76,7 @@ else
     echo "FAIL: gate fell OPEN under python3 stub (the Windows bug)"; FAIL=$((FAIL+1))
 fi
 rm -rf "$STUBDIR" "$BINDIR"
+rm -f .claude/integration-tier
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

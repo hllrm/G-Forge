@@ -26,7 +26,7 @@ If `project_brief.md` does not exist, stop with one line: `No project_brief.md �
 ## Step 2 — Observe the actual trajectory
 
 Read in parallel:
-- `ROADMAP.md` — every milestone with status (✅ done · 🔄/🚧 active · ⬜ not started) and its scope.
+- `ROADMAP.md` — every milestone with status (✅ Complete · 🔄 In progress · ⬜ Not started) and its scope.
 - `git log --oneline -40` via Bash — what has actually been built recently.
 - The observer journal — `.claude/journal/*.jsonl`, last ~5 days — for the texture of recent work (commits, reverts, destructive flags, test cadence).
 - The current manifest version (`.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, or `Cargo.toml`).
@@ -47,7 +47,7 @@ Compose an overall verdict:
 - **ALIGNED** — no axis is drifting, or only cosmetic divergence with a recorded rationale.
 - **DRIFTING** — one or more axes diverge from the brief without a recorded decision. Not a failure — a flag.
 
-Write the report to `docs/alignment/YYYY-MM-DD-<milestone-or-slug>.md` (create `docs/alignment/` if needed; use the active milestone id as the slug, else `adhoc`):
+Write the report to `g-docs/alignment/YYYY-MM-DD-<milestone-or-slug>.md` (create `g-docs/alignment/` if needed; use the active milestone id as the slug, else `adhoc`):
 
 ```markdown
 # Alignment check — [YYYY-MM-DD] — [milestone or "ad-hoc"]
@@ -80,7 +80,7 @@ Print the verdict and the Recommendation verbatim, then the report path:
 Alignment: [ALIGNED | DRIFTING]
 [Recommendation line(s)]
 
-Report: docs/alignment/YYYY-MM-DD-<slug>.md
+Report: g-docs/alignment/YYYY-MM-DD-<slug>.md
 ```
 
 If DRIFTING and the recommendation is to add/defer/record something, offer — do not perform:

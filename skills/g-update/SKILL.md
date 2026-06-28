@@ -1,6 +1,6 @@
 ---
 name: g-update
-description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and commit hooks. Safe — only touches content between G-Forge markers.
+description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and all seven G-Forge hooks. Safe — only touches content between G-Forge markers.
 ---
 
 **Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
@@ -31,6 +31,32 @@ You are first updating the plugin cache from GitHub, then syncing G-Forge-manage
    Then re-run /g-update to sync your project files.
    ```
    Do not proceed to Step 1.
+
+---
+
+## Step 0a — Detect a leftover legacy `g-team` plugin
+
+G-Forge was formerly named **g-team**. Claude Code keys plugins by name, so the rename created a *new* plugin (`g-forge`) — it does not replace an old `g-team` install. If both are enabled, **every `/g-*` command appears twice** (one copy from each plugin's `commands/`). Check for the leftover:
+
+```bash
+ls -d ~/.claude/plugins/cache/g-team 2>/dev/null
+grep -l '"g-team"' ~/.claude/plugins/config.json ~/.claude/settings.json 2>/dev/null
+```
+
+If a `g-team` plugin or marketplace entry is found, stop and tell the developer (this is the fix for duplicated commands):
+
+```
+⚠ Legacy "g-team" plugin still installed — it duplicates every /g-* command.
+  g-team was renamed to g-forge; the old plugin must be removed.
+
+  Remove it:
+    /plugin  →  Installed  →  g-team  →  Uninstall
+    (or: /plugin uninstall g-team, then remove any g-team marketplace entry)
+
+  Then re-run /g-update.
+```
+
+Do not attempt to delete another plugin's files yourself — only the developer (via `/plugin`) can uninstall it cleanly. If no `g-team` install is found, report `✓ No legacy g-team plugin — commands are g-forge only.` and continue.
 
 ---
 
@@ -177,26 +203,33 @@ Report: `✓ .claude/rules/[filename] — updated` for each updated file.
 
 ## Step 7 — Update hook scripts
 
-Read `[plugin-root]/skills/g-init/SKILL.md` once. Extract each hook script's content from the code blocks in the init skill.
+The canonical hook bodies live in `[plugin-root]/hooks/` (the same files `/g-init` copies). `.claude/settings.json` is the **single** registrar — the plugin manifest (`hooks/hooks.json`) registers no hooks, so there is never a manifest-vs-project duplicate. For each of the seven G-Forge-managed hooks in the table below, realign `.claude/hooks/<file>` to the plugin source:
 
-**check-commit.sh:** If `.claude/hooks/check-commit.sh` exists, replace with the extracted content. Report: `✓ .claude/hooks/check-commit.sh — updated`. If not present, skip silently.
+- **File exists:** Replace its contents with `[plugin-root]/hooks/<file>`. Report: `✓ .claude/hooks/<file> — updated`.
+- **File does not exist:** Create it (along with `.claude/hooks/` if needed) from the plugin source, AND register its hook entry in `.claude/settings.json` for every event it uses, if not already present. Report: `✓ .claude/hooks/<file> — created and registered`.
 
-**post-commit-cleanup.sh:** Two cases:
+In **both** cases, after writing the file, verify `.claude/settings.json` contains a registration for every event the hook uses; if any is missing, add it with the merge-not-overwrite pattern (read the current JSON, insert under the event key, write back without touching other keys) and report `✓ .claude/settings.json — <Event> hook verified`.
 
-- **File exists:** Replace with the extracted content. Report: `✓ .claude/hooks/post-commit-cleanup.sh — updated`.
-- **File does not exist:** Create it (along with `.claude/hooks/` if needed), write the content, and register the `PostToolUse` hook in `.claude/settings.json` if not already present (same merge-not-overwrite pattern as other hooks). Report: `✓ .claude/hooks/post-commit-cleanup.sh — created and registered`.
+| Hook | settings.json event(s) | invocation |
+|------|------------------------|------------|
+| `check-commit.sh` | PreToolUse (matcher `Bash`) | `check-commit.sh` |
+| `post-commit-cleanup.sh` | PostToolUse (matcher `Bash`) | `post-commit-cleanup.sh` |
+| `observe.sh` | PostToolUse (matcher `Bash`) + SessionStart | `observe.sh log` / `observe.sh session` |
+| `agent-lifecycle.sh` | SubagentStart + SubagentStop | `agent-lifecycle.sh start` / `agent-lifecycle.sh stop` |
+| `pre-compact.sh` | PreCompact | `pre-compact.sh` |
+| `session-start.sh` | SessionStart | `session-start.sh` |
+| `workflow-checkpoint.sh` | UserPromptSubmit | `workflow-checkpoint.sh` |
 
-**workflow-checkpoint.sh:** Two cases:
+Use the exact registration JSON in `[plugin-root]/skills/g-init/SKILL.md` Step 7 as the template for any entry you add.
 
-- **File exists:** Replace with the extracted content. Report: `✓ .claude/hooks/workflow-checkpoint.sh — updated`. Then check whether `.claude/settings.json` already contains a `UserPromptSubmit` hook entry whose command references `workflow-checkpoint.sh`. If it does not, add it using the same merge-not-overwrite pattern (read the current JSON, insert the hook under `hooks.UserPromptSubmit`, write back without touching other keys). Report: `✓ .claude/settings.json — UserPromptSubmit hook verified` only if the entry was missing and was just added.
+### De-duplicate — enforce the single-registrar guarantee
 
-- **File does not exist:** Create it (along with `.claude/hooks/` if needed), write the content, and also register the `UserPromptSubmit` hook in `.claude/settings.json` if it isn't already present. Report: `✓ .claude/hooks/workflow-checkpoint.sh — created and registered`.
+After realigning, ensure `.claude/settings.json` has **exactly one** entry per G-Forge script per event. This is the "check and update, don't duplicate" guarantee — `/g-update` is the tool that repairs a project that picked up duplicates from an older version or a second install path:
+- If any G-Forge script is registered more than once under the same event (a legacy entry plus a new one, or two different command paths for the same script), remove the extras — keep the single entry matching the canonical invocation above.
+- Remove any stale G-Forge hook entry whose command points at a path that no longer exists (e.g. an old hooks location, or a duplicate that referenced `${CLAUDE_PLUGIN_ROOT}` from when the manifest still registered hooks).
+- Leave non-G-Forge hooks the developer added untouched.
 
-**session-start.sh:** Two cases:
-
-- **File exists:** Replace with the content from `[plugin-root]/hooks/session-start.sh`. Report: `✓ .claude/hooks/session-start.sh — updated`. Then check whether `.claude/settings.json` already contains a `SessionStart` hook entry whose command references `session-start.sh`. If it does not, add it. Report: `✓ .claude/settings.json — SessionStart hook verified` only if the entry was missing and was just added.
-
-- **File does not exist:** Create it from the plugin source, and register the `SessionStart` hook in `.claude/settings.json` if not already present. Report: `✓ .claude/hooks/session-start.sh — created and registered`.
+Report `✓ .claude/settings.json — removed [N] duplicate hook registration(s)` only if you removed any.
 
 ---
 

@@ -13,8 +13,8 @@ If `project_brief.md` does not exist, tell the developer: "No project_brief.md f
 
 Read the following (skip gracefully if missing):
 - `project_brief.md` — current brief (capture the tech decisions table and goals)
-- `ROADMAP.md` — milestone status
-- `todo.md` — handoff block and open tasks
+- `ROADMAP.md` — milestone status and the `## Active Session` handoff block
+- `todo.md` — open tasks
 - Run `git log --oneline -20` via Bash — last 20 commits
 
 Present a summary of what you found:

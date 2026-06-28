@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: feat/m15-cohesion-pass
+HANDOFF — g-forge | branch: claude/m23-release-u3rx0d
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · v1.9.1 — /g-adr entry triage + capture mode + reversibility/premortem · v1.9.2 — §A7 context gate now prevents compaction (carry counters across compact, active monitoring, wave /context checks, auto-calibration)
-Next up:          · ⚠ M23 — G-Forge 2.0 production-readiness audit (consistency/clarity/shippability; .gitignore + repo clean, agents↔hooks reconcile, README v2 from scratch). Start on a fresh branch.
-Active context:   · v1.9.2 merged to main. M23 is the next milestone — see its Scope below for the seeded findings (legacy "G-Team" strings, 37-commands/35-skills count mismatch, shipped test scripts, /g-adr + §A7 doc currency)
+Done this pass:   · v2.0.0 (M23) audit + follow-ons, all committed+pushed on claude/m23-release-u3rx0d (8 commits): hooks → one canonical 7-hook set, single-registrar + self-guard (manifest registers none; guard on .claude/integration-tier; idempotent install; g-doctor dupe + legacy-plugin checks) · "G-Team" purged · tests/ split out · docs/ → g-docs/ everywhere · g-init reviewed/hardened (marker written before hooks; 7-hook report) · handoff unified on ROADMAP ## Active Session (todo.md = tasks only; /g-retro Step 5b owns the write; format in G-RULES §I) · killed /g-team command duplication (alias removed, router completed to 35 subs, migration detection in /g-update + /g-doctor) · GPL-3.0 declared in README · /g-help <topic> + archive map · /g-roadmap premortem+reprio (Step 3b) on M change · NEW /g-wiki skill (committed g-wiki/, refreshed each milestone) · final README pre-merge review (fixed stale 5-hook copy, missing /g-wiki, pre-compact todo.md→ROADMAP, rule-path) · /g-init turned into the SINGLE FRONT DOOR (detect → /g-onboard existing | /g-kickoff new → scaffold → /g-specialize → ready); /g-onboard reviewed (solid, fits the flow); README/g-help/router repositioned around it
+Next up:          · ALL STRAYS CLEARED this pass: LICENSE now full GPL-3.0 text · ROADMAP skeleton + markers unified (## Milestones/### MN, ⬜/🔄/✅) across g-init/g-roadmap/g-resume/g-status/g-align/g-intake/g-review · v2.0.0 PR opened to main. · Remaining = live verification only: run the /g-init front-door flow on a real existing repo (→ onboard) and a greenfield dir (→ kickoff) in an interactive session to confirm routing; then merge the PR once CI/review is green.
+Active context:   · v2.0.0 on branch claude/m23-release-u3rx0d, fully pushed; working tree clean after the next commit. Name kept as G-Forge. Hooks: single registrar (.claude/settings.json via /g-init), manifest registers none, all 7 self-guard on .claude/integration-tier. Handoff = THIS block (ROADMAP ## Active Session); todo.md is tasks only. G-Forge writes under g-docs/; the human wiki is committed g-wiki/. Both hook test suites green (tests/). Counts: 17 agents · 36 skills · 37 commands (36 skill-backed + /g-forge router) · 56 profiles (48+7+1). Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -235,7 +235,7 @@ Active context:   · v1.9.2 merged to main. M23 is the next milestone — see it
 ---
 
 ### M23 — G-Forge 2.0 (Production-Readiness Audit)
-**Status:** ⬜ Planned
+**Status:** ✅ Complete
 **Version:** v2.0.0
 **Depends on:** all prior milestones (this audits the whole surface).
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# G-Team workflow checkpoint — UserPromptSubmit hook.
+# G-Forge workflow checkpoint — UserPromptSubmit hook.
 # Outputs current workflow state so Claude can auto-trigger the right step.
 
 # Consume stdin payload — UserPromptSubmit delivers tool_input JSON here.
@@ -8,6 +8,12 @@ if [ ! -t 0 ]; then
     _STDIN_PAYLOAD=$(cat - 2>/dev/null || true)
     : "${_STDIN_PAYLOAD:=}"
 fi
+
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the checkpoint inert
+# everywhere else, so it never prints in a non-G-Forge project and so multiple
+# registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
 
 # Helper: emit a non-negative integer, defaulting to 0 on empty / non-numeric input.
 to_int() {
@@ -85,7 +91,7 @@ printf '%d\n' "$PROMPT_COUNT" > "$PROMPT_COUNT_FILE" 2>/dev/null || true
 SESSION_MODE="conversation"
 _recent=$(git log --oneline --since="4 hours ago" 2>/dev/null | wc -l | tr -d '[:space:]')
 _dirty=$(git status --porcelain 2>/dev/null | wc -l | tr -d '[:space:]')
-_plans=$(ls docs/plans/*.md 2>/dev/null | wc -l | tr -d '[:space:]')
+_plans=$(ls g-docs/plans/*.md 2>/dev/null | wc -l | tr -d '[:space:]')
 case "$_recent" in ''|*[!0-9]*) _recent=0 ;; esac
 case "$_dirty"  in ''|*[!0-9]*) _dirty=0  ;; esac
 case "$_plans"  in ''|*[!0-9]*) _plans=0  ;; esac
@@ -227,18 +233,18 @@ if [ "$NEEDS_TRIM" = true ]; then
 fi
 
 # Session re-entry nudge — on the FIRST prompt of a session, if a handoff is
-# pending (todo.md Handoff or a PreCompact snapshot), nudge /g-resume to
+# pending (ROADMAP ## Active Session or a PreCompact snapshot), nudge /g-resume to
 # re-hydrate the clean window with the right slice of the durable record.
 # This is the read-side counterpart to the /g-retro reset; it's what makes
 # "start a fresh session" cheap.
 if [ "$PROMPT_COUNT" -eq 1 ]; then
     _has_handoff=false
     [ -f ".claude/compact-state.md" ] && _has_handoff=true
-    if [ "$_has_handoff" = false ] && [ -f "todo.md" ] && grep -q '## Handoff' todo.md 2>/dev/null; then
+    if [ "$_has_handoff" = false ] && [ -f "ROADMAP.md" ] && grep -q '## Active Session' ROADMAP.md 2>/dev/null; then
         _has_handoff=true
     fi
     if [ "$_has_handoff" = true ]; then
-        if grep -qi 'verify ADR' todo.md .claude/compact-state.md 2>/dev/null; then
+        if grep -qi 'verify ADR' ROADMAP.md .claude/compact-state.md 2>/dev/null; then
             echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate; a handed-off ADR needs verifying first"
         else
             echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate context before new work"

@@ -73,7 +73,7 @@ After capturing the diff, check whether it includes changes to any dependency ma
 ## Step 3 — Gather done conditions
 
 Check for done conditions in this order:
-1. The relevant plan file (check `docs/plans/` for the most recent `.md` file, or a spec mentioned by the developer)
+1. The relevant plan file (check `g-docs/plans/` for the most recent `.md` file, or a spec mentioned by the developer)
 2. The current milestone file in `milestones/`
 3. Ask the developer: "What are the done conditions for this implementation?"
 
@@ -89,15 +89,15 @@ Dispatch the `code-lead` agent. Provide **all of the following** in the prompt s
 - The done conditions from Step 3
 - The current branch name (from `git branch --show-current`)
 - The task list (if known)
-- `output_file: docs/agent-output/review/code-lead-[YYYY-MM-DD].md`
+- `output_file: g-docs/agent-output/review/code-lead-[YYYY-MM-DD].md`
 
 code-lead will verify remaining done conditions structurally (file checks, grep, read) and dispatch review-orchestrator internally. It must NOT re-run tests or type-check when attested results are provided. Pass the telemetry profile from Step 0 to code-lead so its dispatch of review-orchestrator scales reviewer count and pre-review additions accordingly.
 
-If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s), the diff context, and `output_file: docs/agent-output/review/dependency-auditor-[YYYY-MM-DD].md`. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
+If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s), the diff context, and `output_file: g-docs/agent-output/review/dependency-auditor-[YYYY-MM-DD].md`. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
 
 Wait for code-lead's complete verdict.
 
-If code-lead returns HOLD, increment `.claude/review-holds` by 1 — this counter feeds the rework-rate telemetry metric (per `docs/telemetry-metrics.md` §4) regardless of the active profile. If the file does not exist, create it with value `1`. The increment is unconditional; only the *review-intensity adjustments above* depend on the profile. `/g-telemetry` resets the counter to `0` when a `stable` profile is derived.
+If code-lead returns HOLD, increment `.claude/review-holds` by 1 — this counter feeds the rework-rate telemetry metric (per `g-docs/telemetry-metrics.md` §4) regardless of the active profile. If the file does not exist, create it with value `1`. The increment is unconditional; only the *review-intensity adjustments above* depend on the profile. `/g-telemetry` resets the counter to `0` when a `stable` profile is derived.
 
 ## Step 5 — Tier 3 Smoke Test (MERGE READY path only)
 
@@ -107,7 +107,7 @@ If code-lead's verdict is **MERGE READY**:
 
 1. Check whether `.claude/tier3-active` exists. If it does, a listen-mode session is already in progress — skip straight to Step 6.
 2. Print the testing instrument:
-   - Check for `docs/qa-scope/<milestone-slug>.md`. If it exists, read it and print the in-scope test groups.
+   - Check for `g-docs/qa-scope/<milestone-slug>.md`. If it exists, read it and print the in-scope test groups.
    - If no QA scope doc: check whether the project has a QA panel (README, project docs). If it does, list the known affected test groups.
    - If no QA panel: retrieve or regenerate the test plan that was produced at milestone planning. Print it in full — the developer uses it as their checklist.
 3. Prompt the developer:
@@ -139,13 +139,13 @@ Present code-lead's verdict to the developer verbatim.
 **Milestone close-out (MERGE READY only):**
 
 1. Read `todo.md` — identify tasks marked as done or the tasks being reviewed in this session.
-2. Read `ROADMAP.md` — find the current active milestone (look for `🚧 In progress`).
+2. Read `ROADMAP.md` — find the current active milestone (look for `🔄 In progress`).
 3. Read the active milestone file from `milestones/` (e.g. `milestones/M1.md`). If the `milestones/` directory does not exist or no matching tasks are found, skip silently — do not report anything.
 4. For each task in the milestone's `## Scope` checklist that matches a completed task from this review, mark it `[x]`.
 5. If ALL scope items in the milestone are now `[x]`:
-   - Update the milestone status header to `✅ Done`
-   - Update the corresponding milestone entry in `ROADMAP.md` from `🚧 In progress` to `✅ Done`
-   - Move the milestone to the `## Done` section of `ROADMAP.md`
+   - Update the milestone status header to `✅ Complete`
+   - Update the corresponding milestone entry in `ROADMAP.md` from `🔄 In progress` to `✅ Complete`
+   - Leave the completed milestone in place under `## Milestones` marked `✅ Complete` — there is no separate `## Done` section; completed milestones stay as history where they are (status key: ⬜ Not started · 🔄 In progress · ✅ Complete)
    - Report: `✓ Milestone [ID — Name] closed out`
    - **Version bump prompt:** Check the milestone entry in `ROADMAP.md` for a `**Version:**` field. If present, use that as the target. If absent, detect the current version from (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`, and suggest a bump based on the milestone's nature (features → minor, fixes → patch, breaking → major).
    - Tell the developer:
@@ -161,6 +161,7 @@ Present code-lead's verdict to the developer verbatim.
      - `/g-telemetry` — refreshes reliability metrics now that the milestone is in the corpus. Use Glob to find `skills/g-telemetry/SKILL.md` and follow its instructions.
      - `/g-align` — brief-deviation check now that a milestone has closed: confirms the project is still serving `project_brief.md` (goals, non-goals, MVP, tech decisions) rather than drifting. Use Glob to find `skills/g-align/SKILL.md` and follow its instructions. Advisory — surfaces ALIGNED or DRIFTING with a recommendation; never blocks the close-out. Skip silently if `project_brief.md` does not exist.
      - **ADR prompt** — ask the developer once: "Were any significant architectural decisions made during this milestone that should be recorded as an ADR? (e.g. a new pattern adopted, a library chosen, a structural constraint introduced) — yes/no." If yes, run `/g-adr`. If no, continue.
+   - **Wiki refresh (end-of-milestone task):** After the close swarm, run `/g-wiki` to update the human-facing project wiki (`g-wiki/`) for the milestone that just shipped — use Glob to find `skills/g-wiki/SKILL.md` and follow its instructions (incremental scope: document what this milestone built and reconcile existing pages against the code). The wiki is committed project content; refreshing it at each milestone close is what stops it going stale. If the developer would rather defer, note `Refresh g-wiki for [milestone]` as a pending task in `todo.md` instead of running it now.
    - **Every-other-milestone health check:** Read `.claude/milestone-count` if it exists (contains an integer, default 0 if absent). Increment by 1. If the result is odd, run `/g-doctor` after the close swarm — use Glob to find `skills/g-doctor/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. Write the new count back to `.claude/milestone-count`.
 6. If only some tasks are done:
    - Save the partial updates to the milestone file

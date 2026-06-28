@@ -1,6 +1,6 @@
 # G-Forge Agents
 
-All 16 agents ship with every install. Stack-specific architect agents are installed per-project by `/g-specialize` and are not listed here.
+All 17 agents ship with every install. Stack-specific architect agents are installed per-project by `/g-specialize` and are not listed here.
 
 ## Model tiers
 
@@ -118,6 +118,15 @@ Agents that audit code changes and report findings. None of them fix what they f
 **Use when:** Changes touch data-fetching logic, loops over large collections, render-critical UI paths, or database queries without limits.  
 **Give it:** The diff or files to review, plus context on expected data volume.  
 **Returns:** Findings with `file:line`, estimated impact (e.g. "O(n²) on items array: 10k items = 100M iterations"), and a recommended fix approach.
+
+---
+
+### `dependency-auditor`
+**Tier:** Sonnet  
+**Role:** Audits the project's dependency manifest(s) for security advisories, deprecated packages, license conflicts, and unused declarations — reporting only, never upgrading or removing.  
+**Use when:** Before any release and whenever the dependency manifest changes. Dispatched in the review wave by `/g-review` and surfaced in `/g-roadmap` and `/g-plan`.  
+**Give it:** The dependency manifest(s) — it auto-detects `package.json`, `requirements.txt`/`pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, and JVM build files.  
+**Returns:** Findings grouped by class (advisory / deprecated / license / unused) with severity, the affected package and version, and a recommended action the developer decides on.
 
 ---
 

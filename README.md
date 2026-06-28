@@ -24,7 +24,7 @@ The goal isn't to automate your project. It's to give it a better chance of succ
 
 ## How G-Forge works
 
-Five concepts explain almost everything.
+Six concepts explain almost everything.
 
 ### 1. Skills vs Agents
 
@@ -54,17 +54,18 @@ You don't configure G-Forge per session. You configure it once via G-RULES.md an
 
 ### 5. Hooks
 
-Five shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
+Seven shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
 
-- **SessionStart** — fires when you open a session. Checks local and remote git state, surfaces uncommitted changes, stash count, ahead/behind counts. Resets the context-depth counters on a genuine open, but carries them across a `compact` restart so the gate isn't silently reset by auto-compaction.
-- **UserPromptSubmit** — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` if you have a new task, `/g-execute` if a plan is approved, `/g-review` when waves finish).
-- **PreToolUse** — blocks `git commit` unless the sentinel exists.
-- **PostToolUse** — clears the sentinel after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
-- **SubagentStart / SubagentStop** — records agent dispatches into the same journal.
-- **SessionStart** — marks a session open in the journal (and syncs git state — see below).
-- **PreCompact** — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
+- **UserPromptSubmit** (`workflow-checkpoint.sh`) — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` for a new task, `/g-execute` once a plan is approved, `/g-review` when waves finish).
+- **PreToolUse** (`check-commit.sh`) — blocks `git commit` unless the review sentinel exists.
+- **PostToolUse** (`post-commit-cleanup.sh`, `observe.sh`) — clears the sentinel after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
+- **SessionStart** (`session-start.sh`, `observe.sh`) — checks local and remote git state (uncommitted changes, stash count, ahead/behind), marks the session open in the journal, and resets the context-depth counters on a genuine open — carrying them across a `compact` restart so auto-compaction can't silently reset the gate.
+- **SubagentStart / SubagentStop** (`agent-lifecycle.sh`) — records every agent dispatch into the same journal.
+- **PreCompact** (`pre-compact.sh`) — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
 
 The hooks are the reason you don't have to type commands for the day-to-day loop. Claude sees the state on every message and responds to it.
+
+They're registered in exactly one place — your project's `.claude/settings.json`, by `/g-init` (and realigned by `/g-update`) — **not** the plugin manifest, so they never double-fire. Each script also self-guards on `.claude/integration-tier`, so it stays completely inert in any repo that hasn't run `/g-init`: no commit gate, no output, nothing. `/g-doctor` flags any accidental duplicate registration.
 
 ### 6. The silent observer
 
@@ -91,7 +92,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 /plugin install g-forge
 ```
 
-All 17 G-Forge agents, 35 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All 17 G-Forge agents, 36 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -117,7 +118,7 @@ Run `/g-update` inside any project that uses G-Forge. It does everything in one 
 G-Forge also checks for updates automatically. The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
 
 ```
-⚡ G-Forge update available: 0.4.4 → 0.5.0 — run /g-update to pull and sync
+⚡ G-Forge update available: 2.0.0 → 2.1.0 — run /g-update to pull and sync
 ```
 
 If `/g-update`'s git pull fails (cache is not a git clone), it will tell you to reinstall manually:
@@ -140,37 +141,25 @@ This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, 
 
 ### Verify
 
-Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-intake`, `/g-align`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-resume`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`, `/g-trim`.
+Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-intake`, `/g-align`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-resume`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-wiki`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`, `/g-trim`.
 
-### Set up a new project
+### Set up — new or existing project
 
-Run these three commands in order inside your project directory:
-
-```bash
-/g-kickoff     # interview → scope challenge → brief → project_brief.md
-/g-init        # scaffold CLAUDE.md (G-rules injected), G-RULES.md, milestones/, commit gate
-/g-roadmap     # intake features → cluster → sequence → write ROADMAP.md
-/g-specialize  # detect stack → install architect agent + architecture rules
-```
-
-After `/g-init`, `git commit` is gated — it will block until `/g-review` issues MERGE READY.
-
-### Add to an existing project
-
-Run onboard first to read the repo and capture current state:
+Run **one** command in your project directory:
 
 ```bash
-/g-onboard     # read repo → present findings → interview → project_brief.md
-/g-init        # safe on existing projects — appends G-rules if CLAUDE.md exists, creates missing files
-/g-specialize  # reads project_brief.md and detects stack automatically
+/g-init   # the single front door
 ```
 
-Or skip onboard if you already know your scope and don't need a project_brief.md:
+`/g-init` detects what's there and drives the whole setup itself — you don't have to know which command comes first:
 
-```bash
-/g-init
-/g-specialize
-```
+1. **Intake** — routes to `/g-kickoff` (new/empty project: interview → brief) or `/g-onboard` (existing codebase: deep-read the repo → resolve conflicts → brief). Skipped if a `project_brief.md` already exists.
+2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the `## Active Session` handoff), milestones/, todo.md, and the seven commit/workflow hooks.
+3. **Specialize** — runs `/g-specialize` to detect your stack and install the architect agent + architecture rules.
+
+You end up ready to `/g-plan`. After `/g-init`, `git commit` is gated — it blocks until `/g-review` issues MERGE READY.
+
+Each sub-step is still available standalone if you want manual control: `/g-kickoff`, `/g-onboard`, `/g-roadmap`, `/g-specialize`.
 
 ### Uninstall
 
@@ -224,7 +213,7 @@ Then for both:
 /g-specialize  →   stack architect agent + architecture rules
 
 Day-to-day (auto-triggered — no command needed):
-/g-plan        →   approved wave schedule  →  saved to docs/plans/
+/g-plan        →   approved wave schedule  →  saved to g-docs/plans/
 /g-execute     →   parallel agent swarming, wave by wave
 /g-review      →   MERGE READY or HOLD  →  milestone tasks auto-closed → /g-retro auto-runs → /g-doctor every other milestone
 git commit          →   gate clears, sentinel removed
@@ -240,13 +229,13 @@ Project hygiene:
 /g-update      →   pull latest G-Forge rules into this project
 ```
 
-Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orchestration-patterns.md)
+Full orchestration pattern reference: [g-docs/orchestration-patterns.md](g-docs/orchestration-patterns.md)
 
 ---
 
 ## Commit Enforcement
 
-Once `/g-init` is run in a project, five hooks are installed:
+Once `/g-init` is run in a project, seven hooks are installed (and registered only in the project's `.claude/settings.json` — never the plugin manifest — so they can't double-fire; each also self-guards on `.claude/integration-tier` and stays inert outside a G-Forge project):
 
 **`session-start.sh`** (`SessionStart`) — fires when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Resets the per-session prompt + compaction counters used for context-depth tracking — **except on a `compact` start** (the same session continuing after auto-compaction), where the counters carry across so the gate isn't silently zeroed.
 
@@ -265,7 +254,11 @@ Amber is **active monitoring**, not a one-time warning: Claude runs `/context` e
 
 **`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-forge-approved` after a successful commit.
 
-**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and handoff block from `todo.md`. Also records the compaction: it bumps a per-session count (the red backstop) and grows the persistent calibration offset so the context gate fires earlier next time.
+**`observe.sh`** (`PostToolUse` + `SessionStart`) — the **silent observer**: journals meaningful events (commits, branches, tests, pushes, reverts) and session opens to `.claude/journal/YYYY-MM-DD.jsonl`. Writes nothing to chat; `/g-retro` synthesizes from it.
+
+**`agent-lifecycle.sh`** (`SubagentStart` / `SubagentStop`) — records every agent dispatch into the same journal.
+
+**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and the `## Active Session` handoff block from `ROADMAP.md`. Also records the compaction: it bumps a per-session count (the red backstop) and grows the persistent calibration offset so the context gate fires earlier next time.
 
 The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
@@ -284,16 +277,16 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-doctor` | 11-point health check: all 5 hooks installed and registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
+| `/g-doctor` | 14-point health check: all 7 hooks installed, registered in settings.json, and not double-registered by the plugin manifest, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
 | `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
 | `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
-| `/g-roadmap` | Four-phase milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → approve → ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Auto-triggers on any feature idea or empty milestone list. |
+| `/g-roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
 | `/g-intake` | Proactive feature-drop triage — when you drop a single feature mid-stream, classifies it against the brief (on-brief / scope-creep / out-of-scope), proposes placement + version impact + risk hint, then asks before writing. The lightweight front-end to `/g-roadmap`. Auto-triggers on any single feature idea. |
 | `/g-align` | Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `project_brief.md` (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory — never blocks. Auto-runs at each milestone close; nudged between milestones. |
 | `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
-| `/g-init` | Scaffold CLAUDE.md, G-RULES.md, ROADMAP.md, milestones/, commit enforcement hooks |
+| `/g-init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven hooks → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
 | `/g-specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
-| `/g-plan` | QA scope prerequisite (compile docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to docs/plans/ |
+| `/g-plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
 | `/g-update` | Pull latest plugin from GitHub, then realign all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
@@ -305,14 +298,15 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-optimize [path]` | Full-codebase or targeted performance audit — algorithmic complexity, N+1 queries, re-render waste, resource leaks, caching opportunities. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
 | `/g-refactor [path\|milestone]` | Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review gate. Accepts a scope path or an audit milestone file. Checks test coverage before execution and runs the full review gate after |
 | `/g-docs [path]` | Documentation audit and generation — scans for missing or stale code docs, README gaps, undocumented env vars, CHANGELOG gaps, and ADR omissions. Targeted scope fixes gaps immediately via doc-writer; whole-codebase scope produces a prioritised documentation debt report |
-| `/g-adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
-| `/g-retro` | Synthesize a session retrospective to `docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
-| `/g-patterns` | Mine `docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
-| `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `docs/forecasts/<slug>.md`. |
+| `/g-wiki [area]` | Build and maintain the human-facing project wiki in a **committed** `g-wiki/` folder — narrative architecture + per-area pages + how-to, synthesized from the codebase, ROADMAP, ADRs, and brief via doc-writer. Run anytime; offered at `/g-init` and refreshed automatically at the end of every milestone. Distinct from `/g-docs` (code-level doc hygiene) and the git-ignored `g-docs/` operational records |
+| `/g-adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `g-docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
+| `/g-retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
+| `/g-patterns` | Mine `g-docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
+| `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `g-docs/forecasts/<slug>.md`. |
 | `/g-telemetry` | Compute 8 reliability metrics (hallucination, review catch, regression, rework, spec deviation, escalation, token efficiency, retry dependency); classify health profile (stable / cautious / defensive / recovery); write `.claude/telemetry-profile` for adaptive orchestration. `/g-execute` and `/g-review` Step 0 read the profile and scale wave size, model tier, and reviewer count accordingly. |
-| `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
-| `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
-| `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `docs/integration-tiers.md`. |
+| `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `g-docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
+| `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `g-docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
+| `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `g-docs/integration-tiers.md`. |
 | `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
 | `/g-train [project idea]` | Training mode — learn software development by building a real project. Sets up the learner profile, confirms the project, and writes `.claude/training-mode`. From that point on, PM runs the session in **mentor register** — a genuinely distinct mode: explains the "why" before every step, assigns you tasks alongside the agent swarms, checks in after each wave, and logs your progress to `.claude/training-progress.md`. The workflow is unchanged; the framing is different. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
 | `/g-trim` | Weekly read-only audit of `CLAUDE.md` and agent memory files. Surfaces orphaned `@references`, duplicate rules, stale content, dead file refs in MEMORY.md files, and overlong memory entries — all flagged for human review, never auto-modified. The only file it writes is `.claude/last-trim`. The workflow-checkpoint hook surfaces a nudge when 7 days have passed since the last audit. |
@@ -321,7 +315,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ## Agents
 
-17 agents ship with every install. Full reference: [docs/agents.md](docs/agents.md)
+17 agents ship with every install. Full reference: [g-docs/agents.md](g-docs/agents.md)
 
 | Agent | Tier | Role |
 |-------|------|------|
@@ -345,7 +339,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ### Agent output architecture
 
-All 15 dispatched agents write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
+All 15 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`g-docs/agent-output/wave-N/<task-slug>.md` for wave agents; `g-docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
 
 ```
 RESULT: DONE|FAILED|BLOCKED  (or PASS|HOLD for review agents)
@@ -384,11 +378,11 @@ Most implementation work lands on Sonnet. Opus is reserved for the review pipeli
 
 ### G-RULES.md selective loading
 
-The full `G-RULES.md` is ~9,000 tokens and loads on every session that references `@G-RULES.md`. For projects that only need a subset of the rules, each of the ten sections is also available as a standalone `@`-referenced file in `.claude/rules/g-rules/`. Reference only the sections your project needs in `CLAUDE.md` — a minimal project referencing `A-session.md`, `D-quality.md`, and `I-tracking.md` saves ~5,400 tokens per session vs the full load.
+The full `G-RULES.md` is ~9,000 tokens and loads on every session that references `@G-RULES.md`. For projects that only need a subset of the rules, `/g-init` also installs each of the ten sections as a standalone `@`-referenced file in `.claude/rules/` (prefixed `g-rules-`). Reference only the sections your project needs in `CLAUDE.md` — a minimal project referencing `g-rules-A-session.md`, `g-rules-D-code-quality.md`, and `g-rules-I-project-tracking.md` saves ~5,400 tokens per session vs the full load.
 
 ### Agent compact returns
 
-Agents write full findings to `docs/agent-output/` and return a five-line summary. The main session reads the detail file only on HOLD or BLOCKED. This reduces per-agent context growth from ~1,500–3,000 tokens (inline output) to ~70 tokens (compact block). A six-agent review wave that previously added ~12,000 tokens to main-session context now adds ~420 tokens.
+Agents write full findings to `g-docs/agent-output/` and return a five-line summary. The main session reads the detail file only on HOLD or BLOCKED. This reduces per-agent context growth from ~1,500–3,000 tokens (inline output) to ~70 tokens (compact block). A six-agent review wave that previously added ~12,000 tokens to main-session context now adds ~420 tokens.
 
 ### Context depth management
 
@@ -479,8 +473,10 @@ Quick reference for the most common workflows.
                                .claude/hooks/workflow-checkpoint.sh (UserPromptSubmit — state + context depth)
                                .claude/hooks/check-commit.sh (PreToolUse — commit gate)
                                .claude/hooks/post-commit-cleanup.sh (PostToolUse — sentinel cleanup)
+                               .claude/hooks/observe.sh (PostToolUse + SessionStart — silent-observer journal)
+                               .claude/hooks/agent-lifecycle.sh (SubagentStart/Stop — agent journal)
                                .claude/hooks/pre-compact.sh (PreCompact — handoff snapshot)
-                     Registers all five in .claude/settings.json
+                     Registers all seven in .claude/settings.json (the plugin manifest registers none)
 
 /g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
 ```
@@ -533,7 +529,7 @@ Auto-triggers:  — no ROADMAP.md exists in the project
 /g-status       Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-doctor       11-point health check — all 5 hooks installed and registered in
+/g-doctor       14-point health check — all 7 hooks installed and registered in
                      settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md
                      present and referenced, no stale sentinel
                      Reports ✓/✗ per check with a one-line fix instruction
@@ -547,7 +543,7 @@ You can still invoke them manually if needed:
 
 ```
 /g-plan         Step 0: QA scope prerequisite — confirm or compile
-                       docs/qa-scope/<milestone>.md (Tier 3 DoD for the milestone)
+                       g-docs/qa-scope/<milestone>.md (Tier 3 DoD for the milestone)
                      Step 1: project-manager challenges the feature request (3 questions,
                        one verdict — bug fixes and refactors skip this gate)
                      Dispatches task-decomposer → wave-planner
@@ -559,7 +555,7 @@ You can still invoke them manually if needed:
                        (blocking), cross-wave ordering violations (warning)
                      Runs /g-forecast premortem (complexity score + miss-risk)
                      Presents wave schedule + budget + forecast for approval
-                     Saves approved plan to docs/plans/<feature-slug>.md
+                     Saves approved plan to g-docs/plans/<feature-slug>.md
                      On approval: hands off to /g-execute
 
 /g-execute      Dispatches all Wave 1 tasks in parallel, waits for completion
@@ -588,7 +584,7 @@ You can still invoke them manually if needed:
 ### Going AFK — unattended milestone execution
 
 ```
-/g-afk          Pre-checks: approved plan must exist in docs/plans/
+/g-afk          Pre-checks: approved plan must exist in g-docs/plans/
                      Configures permissions.allow (no tool prompts) +
                        permissions.deny (safety net):
                        blocks git push, rm -rf, all publish commands,
@@ -685,3 +681,12 @@ git push
 | M20 — Single-Use Agent Doctrine (FAILED + learnings retry loop · context-poisoning fix) | ✅ Done — **v1.7.0** |
 | M21 — Decision Hygiene Loop (off-context ADR deliberation · post-decision session reset) | ✅ Done — **v1.8.0** |
 | M22 — Session Re-entry (`/g-resume` · selective re-hydration of the durable record) | ✅ Done — **v1.9.0** |
+| M23 — G-Forge 2.0 (production-readiness audit · hooks reconciliation · consistency sweep) | ✅ Done — **v2.0.0** |
+
+---
+
+## License
+
+G-Forge is free, open-source software, released under the **GNU General Public License v3.0** (GPL-3.0) — see [LICENSE](LICENSE).
+
+Copyright © 2026 Gianmarco Palma. You're free to use, study, modify, and redistribute it under the GPL-3.0 terms; derivative works must stay under GPL-3.0 and preserve this notice. Full license text: <https://www.gnu.org/licenses/gpl-3.0.txt>.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# G-Team commit gate — PreToolUse hook.
+# G-Forge commit gate — PreToolUse hook.
 # Blocks git commit if .claude/g-forge-approved does not exist.
 # Input: Claude Code PreToolUse JSON on stdin.
 
@@ -7,7 +7,7 @@
 # Never trust a lone interpreter whose failure we've silenced: probe each
 # parser before use (the Windows Microsoft-Store `python3` stub fails the
 # probe), and fall back to the caller's raw-payload grep if none works.
-# Fails safe toward gating — see test-check-commit.sh.
+# Fails safe toward gating — see tests/test-check-commit.sh.
 extract_cmd() {
     local payload="$1" cmd=""
     if command -v jq >/dev/null 2>&1; then
@@ -32,6 +32,13 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
 }
 
 INPUT=$(cat)
+
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the gate inert everywhere
+# else, so it never blocks commits in a project that doesn't use G-Forge — and so
+# multiple registration sources can never make it misfire.
+[ -f ".claude/integration-tier" ] || exit 0
+
 CMD=$(extract_cmd "$INPUT")
 # No parser yielded a command (missing/stubbed) → grep the raw payload, which
 # still contains "command":"git commit …". Fails toward enforcing the gate.
@@ -61,6 +68,6 @@ if echo "$CMD" | grep -q "git commit"; then
     # Advisory: warn when committing directly to main with approval
     BRANCH=$(git branch --show-current 2>/dev/null)
     if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-        echo "G-Team: Note — committing directly to main. Non-trivial work should be on a feature branch (feat/<slug>, fix/<slug>)." >&2
+        echo "G-Forge: Note — committing directly to main. Non-trivial work should be on a feature branch (feat/<slug>, fix/<slug>)." >&2
     fi
 fi

@@ -1,10 +1,15 @@
 #!/bin/bash
-# pre-compact.sh — PreCompact hook for G-Team Claude Code plugin
+# pre-compact.sh — PreCompact hook for G-Forge Claude Code plugin
 # Fires before context compression. Writes .claude/compact-state.md so the
 # next session can recover context without re-briefing. Must never exit 1.
 
 # Consume stdin to avoid broken pipe (PreCompact may or may not send JSON)
 cat > /dev/null 2>&1
+
+# G-Forge project guard — act only inside a G-Forge-managed project (one that ran
+# /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
+# else, so multiple registration sources never cause it to misfire.
+[ -f ".claude/integration-tier" ] || exit 0
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
 
@@ -39,15 +44,16 @@ printf '%d\n' "$_off" > "$OFF_FILE" 2>/dev/null || true
 BRANCH=$(git branch --show-current 2>/dev/null || echo "not a git repo")
 COMMITS=$(git log --oneline -5 2>/dev/null || echo "no commits found")
 
-# Extract the Handoff block from todo.md if it exists
-if [ -f "todo.md" ]; then
-  # Capture everything from the HANDOFF header line through the closing separator
-  HANDOFF=$(awk '/^━+$/{found++} found==1{print} found==2{print; exit}' todo.md 2>/dev/null)
+# Snapshot the single canonical handoff — the `## Active Session` block in
+# ROADMAP.md. Capture everything under that heading up to the next `## ` heading,
+# so the full Done/Next up/Active context block is preserved (not just the header).
+if [ -f "ROADMAP.md" ]; then
+  HANDOFF=$(awk '/^## Active Session/{cap=1; next} cap && /^## /{exit} cap{print}' ROADMAP.md 2>/dev/null)
   if [ -z "$HANDOFF" ]; then
-    HANDOFF="(Handoff block not found in todo.md)"
+    HANDOFF="(No '## Active Session' handoff found in ROADMAP.md)"
   fi
 else
-  HANDOFF="todo.md not found"
+  HANDOFF="ROADMAP.md not found"
 fi
 
 # Write compact-state.md

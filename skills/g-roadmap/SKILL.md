@@ -1,6 +1,6 @@
 ---
 name: g-roadmap
-description: Project-manager-driven milestone planner. Four gated phases — feature dump → cluster → sequence → approve → write. Narrates reasoning at every step. Auto-triggers when no ROADMAP.md exists, no active milestone is present, or any feature idea is mentioned. Never writes ROADMAP.md until the developer explicitly approves.
+description: Project-manager-driven milestone planner. Gated phases — feature dump → cluster → sequence → premortem & re-prioritize → approve → write. Narrates reasoning at every step, and runs a premortem + re-prioritization of the whole roadmap whenever a milestone is added or modified. Auto-triggers when no ROADMAP.md exists, no active milestone is present, or any feature idea is mentioned. Never writes ROADMAP.md until the developer explicitly approves.
 ---
 
 **Announce:** "Using g-roadmap to plan your milestones."
@@ -121,6 +121,20 @@ State your sequencing assumptions:
 
 Wait for the developer's response. Revise if needed. Do not proceed to Step 4 until the developer says the sequence is right.
 
+## Step 3b — Premortem & re-prioritization (mandatory whenever a milestone is added or modified)
+
+Any time this run **adds a new milestone or changes an existing one** — the Step 0 "adding to the plan" path, or an edit to a milestone's scope/version on an existing roadmap — run a premortem and re-prioritize *before* the buy-in gate. A new or changed milestone shifts risk and ordering across the whole roadmap; never just append it. (On a full from-scratch plan, the sequencing in Step 3 already covers this — run the premortem here once, then proceed.)
+
+1. **Premortem each added/modified milestone.** Imagine it's later and this milestone went badly. For each, surface the top 3 failure scenarios — scope blow-up, hidden dependency, volatile/repeatedly-touched systems, unclear done condition — with a likelihood (low / med / high) and a one-line mitigation. Seed the scenarios from `/g-patterns` history (`g-docs/retros/`, `todo-done.md`), any `dependency-auditor` findings from Step 0, and any existing `g-docs/forecasts/*.md` or `g-docs/blast-radius/*.md` for related work. Only premortem the changed milestones — leave stable ones alone.
+
+2. **Re-prioritize the full sequence.** Given the premortem, re-evaluate ordering across **all non-completed** milestones (completed ✅ are frozen — never reorder history):
+   - Does the new/changed milestone add a dependency that forces something earlier or later?
+   - Does a high-likelihood failure scenario argue for de-risking it earlier (spike first) or deferring it until a prerequisite is solid?
+   - Re-derive the MVP cut and the version targets if they shifted.
+   Narrate every change — `> Moved M[X] before M[Y]: [premortem/dependency reason].` If nothing moves, say so explicitly — `> Re-prioritization: order unchanged — M[N] slots in at position [k] without disturbing the sequence.`
+
+3. Present the re-prioritized sequence (same format as Step 3), each changed milestone carrying a short **Premortem** block (its top scenarios + mitigations). Then continue to the buy-in gate — the developer approves the *re-prioritized* roadmap, not just the addition.
+
 ## Step 4 — Buy-in gate
 
 Present the complete roadmap in its final form:
@@ -209,6 +223,7 @@ After writing, confirm:
 - Existing completed milestones (✅) are never modified — only append.
 - Backlog items that don't clearly fit a milestone stay in the backlog section.
 - This skill owns roadmap structure. `/g-plan` owns task breakdown within a single milestone.
+- Adding or modifying a milestone is never a silent append — Step 3b (premortem + re-prioritization across all non-completed milestones) is mandatory before the buy-in gate whenever the roadmap changes.
 - Every milestone must have a target version. Version planning is part of sequencing, not an afterthought — reason about it the same way you reason about dependencies.
 - Auto-trigger conditions (Claude detects and initiates without being asked):
   - No `ROADMAP.md` exists in the project
