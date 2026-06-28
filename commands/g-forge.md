@@ -50,7 +50,7 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `resume` — re-hydrate a fresh session: pull the relevant retro, ADRs, journal, and handoff into a clean window, then point at the first task
   - `doctor` — validate project setup health (hooks, settings, CLAUDE.md, duplicate/legacy installs)
   - `audit [scope]` — code-quality audit (SOLID, smells, drift, dead code, coverage); whole-codebase scope → roadmap milestone
-  - `init` — scaffold CLAUDE.md, ROADMAP.md (incl. the Active Session handoff), milestones/, todo.md, and commit hooks
+  - `init` — the single front door: detect → onboard|kickoff → scaffold (CLAUDE.md, ROADMAP.md incl. Active Session handoff, milestones/, todo.md, 7 hooks) → specialize → ready
   - `kickoff` — interview about goals and stack; produce project_brief.md
   - `onboard` — onboard onto an existing codebase; produce project_brief.md
   - `brief` — refresh project_brief.md as the project evolves

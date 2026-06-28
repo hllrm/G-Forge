@@ -143,35 +143,23 @@ This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, 
 
 Type `/g-help` in any Claude Code session. You should see the current project state and a full command reference. Commands follow the `/g-<name>` pattern: `/g-plan`, `/g-execute`, `/g-review`, `/g-afk`, `/g-init`, `/g-kickoff`, `/g-onboard`, `/g-specialize`, `/g-roadmap`, `/g-intake`, `/g-align`, `/g-brief`, `/g-listen`, `/g-help`, `/g-status`, `/g-resume`, `/g-doctor`, `/g-update`, `/g-skill-design`, `/g-skill-validate`, `/g-audit`, `/g-optimize`, `/g-refactor`, `/g-docs`, `/g-wiki`, `/g-adr`, `/g-retro`, `/g-patterns`, `/g-forecast`, `/g-telemetry`, `/g-blast-radius`, `/g-identity`, `/g-tier`, `/g-voice`, `/g-train`, `/g-trim`.
 
-### Set up a new project
+### Set up — new or existing project
 
-Run these three commands in order inside your project directory:
-
-```bash
-/g-kickoff     # interview → scope challenge → brief → project_brief.md
-/g-init        # scaffold CLAUDE.md (G-rules injected), G-RULES.md, milestones/, commit gate
-/g-roadmap     # intake features → cluster → sequence → write ROADMAP.md
-/g-specialize  # detect stack → install architect agent + architecture rules
-```
-
-After `/g-init`, `git commit` is gated — it will block until `/g-review` issues MERGE READY.
-
-### Add to an existing project
-
-Run onboard first to read the repo and capture current state:
+Run **one** command in your project directory:
 
 ```bash
-/g-onboard     # read repo → present findings → interview → project_brief.md
-/g-init        # safe on existing projects — appends G-rules if CLAUDE.md exists, creates missing files
-/g-specialize  # reads project_brief.md and detects stack automatically
+/g-init   # the single front door
 ```
 
-Or skip onboard if you already know your scope and don't need a project_brief.md:
+`/g-init` detects what's there and drives the whole setup itself — you don't have to know which command comes first:
 
-```bash
-/g-init
-/g-specialize
-```
+1. **Intake** — routes to `/g-kickoff` (new/empty project: interview → brief) or `/g-onboard` (existing codebase: deep-read the repo → resolve conflicts → brief). Skipped if a `project_brief.md` already exists.
+2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the `## Active Session` handoff), milestones/, todo.md, and the seven commit/workflow hooks.
+3. **Specialize** — runs `/g-specialize` to detect your stack and install the architect agent + architecture rules.
+
+You end up ready to `/g-plan`. After `/g-init`, `git commit` is gated — it blocks until `/g-review` issues MERGE READY.
+
+Each sub-step is still available standalone if you want manual control: `/g-kickoff`, `/g-onboard`, `/g-roadmap`, `/g-specialize`.
 
 ### Uninstall
 
@@ -296,7 +284,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-intake` | Proactive feature-drop triage — when you drop a single feature mid-stream, classifies it against the brief (on-brief / scope-creep / out-of-scope), proposes placement + version impact + risk hint, then asks before writing. The lightweight front-end to `/g-roadmap`. Auto-triggers on any single feature idea. |
 | `/g-align` | Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `project_brief.md` (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory — never blocks. Auto-runs at each milestone close; nudged between milestones. |
 | `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
-| `/g-init` | Scaffold CLAUDE.md, G-RULES.md, ROADMAP.md, milestones/, commit enforcement hooks |
+| `/g-init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven hooks → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
 | `/g-specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
 | `/g-plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |

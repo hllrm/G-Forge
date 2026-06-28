@@ -1,15 +1,30 @@
 ---
 name: g-init
-description: Scaffold a new project with CLAUDE.md (compact G-rules injected), ROADMAP.md, milestones/, todo.md, and commit enforcement hooks. Run once in a new project after installing G-Forge.
+description: The single G-Forge front door — run once after installing the plugin. Detects what's here and routes to /g-onboard (existing codebase) or /g-kickoff (new project) for the brief, scaffolds CLAUDE.md (compact G-rules), ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven commit/workflow hooks, then runs /g-specialize for the stack — leaving you ready to /g-plan.
 ---
 
-**Announce:** "Using g-init to scaffold the project."
+**Announce:** "Using g-init to set up G-Forge."
 
-You are initializing a G-Forge project. Execute these steps in order. Do not skip any step.
+`/g-init` is the **single front door**. You run it once and it takes the project from wherever it is to ready-to-work: it detects what's already here, routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief, scaffolds the G-Forge structure, then runs `/g-specialize` for the stack. The developer doesn't have to know which command to run first — this is it. Execute the steps in order; skip a step only when its detection says it's already satisfied.
 
 ## Step 1 — Confirm project root
 
 The project root is the current working directory. If uncertain, ask the developer to confirm before creating any files.
+
+## Step 1a — Detect state and route to intake
+
+Before scaffolding anything, figure out the situation and get a `project_brief.md` in place via the right intake skill.
+
+1. **Already a G-Forge project?** If `.claude/integration-tier` exists **and** `CLAUDE.md` contains `<!-- G-Forge Rules`, G-Forge is already initialized here. Don't re-scaffold — tell the developer: "G-Forge is already set up here. Run `/g-update` to re-sync to the current plugin version, or `/g-plan` to start working." Then stop.
+
+2. **Does a `project_brief.md` already exist?** If yes, intake is done — skip to Step 2 (scaffold).
+
+3. **Otherwise classify the directory and run the matching intake skill, then continue to Step 2 when it returns:**
+   - **Existing codebase** — there is real source beyond docs: a dependency manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, `pom.xml`/`build.gradle`), or source directories, or more than a couple of commits of real code → run **`/g-onboard`**. Use Glob to find `skills/g-onboard/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It deep-reads the repo, resolves any existing-G-Forge-state conflicts (so the scaffold and `/g-specialize` don't clobber the developer's files), and writes `project_brief.md`. **Carry its recorded conflict preferences forward** — if the developer chose to skip CLAUDE.md injection, the existing `todo.md` schema, or rules/agents installation, honor that in Steps 2–7.
+   - **New / greenfield** — empty, or only docs/README, no real source → run **`/g-kickoff`**. Use Glob to find `skills/g-kickoff/SKILL.md` and follow it (interview → goals/stack → `project_brief.md`).
+   - If it's genuinely ambiguous, ask the developer one question: "Is this an existing codebase to onboard, or a fresh project to scaffold?" and route accordingly.
+
+   (When `/g-onboard` or `/g-kickoff` finishes by suggesting `/g-init`, ignore that — you're already in it. Continue to Step 2.)
 
 ## Step 2 — Create or update CLAUDE.md
 
@@ -317,25 +332,33 @@ Report:
   ✓ .claude/integration-tier — [resolved]
 ```
 
+## Step 7b — Specialize for the stack
+
+The structure is in place; now fit it to the project's stack so the right architect agent and architecture rules are installed. Run **`/g-specialize`** — use Glob to find `skills/g-specialize/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It detects the stack (from the brief + dependency manifests), confirms with the developer, and installs the matching architect agent + rules.
+
+Honor any conflict preference recorded in Step 1a: if the developer chose to **skip** or **overlay** rules/agents installation during `/g-onboard`, pass that through — do not overwrite existing `.claude/agents/` or `.claude/rules/` files without the permission they already gave. If no stack is detectable (e.g. a brand-new empty project), skip specialization and note that `/g-specialize` can be run later once the stack exists.
+
 ## Step 8 — Report
 
 After all steps, report:
 
 ```
-G-Forge initialized ✓
+G-Forge ready ✓
 
+  ✓ project_brief.md — [via /g-onboard | via /g-kickoff | already present]
   ✓ CLAUDE.md — G-Forge rules injected
   ✓ G-RULES.md — installed
   ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
-  ✓ ROADMAP.md — stub created (or already existed)
+  ✓ ROADMAP.md — created with the Active Session handoff (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
   ✓ .claude/hooks/ — 7 hooks installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint)
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]
+  ✓ Stack — [specialized: <stack> architect + rules installed | no stack detected yet — run /g-specialize once it exists]
 
-Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
+You're set up and ready to work. Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
 Tip: run /g-wiki anytime to start a human-facing project wiki in g-wiki/ — it's also refreshed automatically at the end of every milestone.
 
 **Recommended MCPs** — install these in Claude Code for best results with G-Forge:
