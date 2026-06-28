@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: feat/m15-cohesion-pass
+HANDOFF — g-forge | branch: claude/m23-release-u3rx0d
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · v1.9.1 — /g-adr entry triage + capture mode + reversibility/premortem · v1.9.2 — §A7 context gate now prevents compaction (carry counters across compact, active monitoring, wave /context checks, auto-calibration)
-Next up:          · ⚠ M23 — G-Forge 2.0 production-readiness audit (consistency/clarity/shippability; .gitignore + repo clean, agents↔hooks reconcile, README v2 from scratch). Start on a fresh branch.
-Active context:   · v1.9.2 merged to main. M23 is the next milestone — see its Scope below for the seeded findings (legacy "G-Team" strings, 37-commands/35-skills count mismatch, shipped test scripts, /g-adr + §A7 doc currency)
+Done this pass:   · v2.0.0 (M23) — production-readiness audit: hooks reconciled across hooks.json/g-init/g-doctor/g-update to one canonical 7-hook set · legacy "G-Team" naming purged from all live content · hook tests moved to tests/ · docs/agent-output/ git-ignored · docs/agents.md restored dependency-auditor (16→17) · §A7→§A8 ref fixes · README hook/concept counts + roadmap synced
+Next up:          · M24 — open. No milestone in flight.
+Active context:   · v2.0.0 shipped on branch claude/m23-release-u3rx0d. Name kept as G-Forge; README given a targeted clarity refresh (not a from-scratch rewrite — the audit confirmed existing content was accurate). Counts ground truth: 17 agents · 35 skills · 37 commands (35 skill-backed + /g-forge router + /g-team alias) · 56 profiles (48 stack + 7 combo + 1 supplementary).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -235,7 +235,7 @@ Active context:   · v1.9.2 merged to main. M23 is the next milestone — see it
 ---
 
 ### M23 — G-Forge 2.0 (Production-Readiness Audit)
-**Status:** ⬜ Planned
+**Status:** ✅ Complete
 **Version:** v2.0.0
 **Depends on:** all prior milestones (this audits the whole surface).
 

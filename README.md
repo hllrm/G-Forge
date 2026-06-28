@@ -24,7 +24,7 @@ The goal isn't to automate your project. It's to give it a better chance of succ
 
 ## How G-Forge works
 
-Five concepts explain almost everything.
+Six concepts explain almost everything.
 
 ### 1. Skills vs Agents
 
@@ -54,15 +54,14 @@ You don't configure G-Forge per session. You configure it once via G-RULES.md an
 
 ### 5. Hooks
 
-Five shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
+Seven shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
 
-- **SessionStart** — fires when you open a session. Checks local and remote git state, surfaces uncommitted changes, stash count, ahead/behind counts. Resets the context-depth counters on a genuine open, but carries them across a `compact` restart so the gate isn't silently reset by auto-compaction.
-- **UserPromptSubmit** — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` if you have a new task, `/g-execute` if a plan is approved, `/g-review` when waves finish).
-- **PreToolUse** — blocks `git commit` unless the sentinel exists.
-- **PostToolUse** — clears the sentinel after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
-- **SubagentStart / SubagentStop** — records agent dispatches into the same journal.
-- **SessionStart** — marks a session open in the journal (and syncs git state — see below).
-- **PreCompact** — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
+- **UserPromptSubmit** (`workflow-checkpoint.sh`) — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` for a new task, `/g-execute` once a plan is approved, `/g-review` when waves finish).
+- **PreToolUse** (`check-commit.sh`) — blocks `git commit` unless the review sentinel exists.
+- **PostToolUse** (`post-commit-cleanup.sh`, `observe.sh`) — clears the sentinel after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
+- **SessionStart** (`session-start.sh`, `observe.sh`) — checks local and remote git state (uncommitted changes, stash count, ahead/behind), marks the session open in the journal, and resets the context-depth counters on a genuine open — carrying them across a `compact` restart so auto-compaction can't silently reset the gate.
+- **SubagentStart / SubagentStop** (`agent-lifecycle.sh`) — records every agent dispatch into the same journal.
+- **PreCompact** (`pre-compact.sh`) — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
 
 The hooks are the reason you don't have to type commands for the day-to-day loop. Claude sees the state on every message and responds to it.
 
@@ -284,7 +283,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-doctor` | 11-point health check: all 5 hooks installed and registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
+| `/g-doctor` | 13-point health check: all 7 hooks installed and registered in settings.json, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
 | `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
 | `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
 | `/g-roadmap` | Four-phase milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → approve → ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Auto-triggers on any feature idea or empty milestone list. |
@@ -533,7 +532,7 @@ Auto-triggers:  — no ROADMAP.md exists in the project
 /g-status       Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-doctor       11-point health check — all 5 hooks installed and registered in
+/g-doctor       13-point health check — all 7 hooks installed and registered in
                      settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md
                      present and referenced, no stale sentinel
                      Reports ✓/✗ per check with a one-line fix instruction
@@ -685,3 +684,4 @@ git push
 | M20 — Single-Use Agent Doctrine (FAILED + learnings retry loop · context-poisoning fix) | ✅ Done — **v1.7.0** |
 | M21 — Decision Hygiene Loop (off-context ADR deliberation · post-decision session reset) | ✅ Done — **v1.8.0** |
 | M22 — Session Re-entry (`/g-resume` · selective re-hydration of the durable record) | ✅ Done — **v1.9.0** |
+| M23 — G-Forge 2.0 (production-readiness audit · hooks reconciliation · consistency sweep) | ✅ Done — **v2.0.0** |
