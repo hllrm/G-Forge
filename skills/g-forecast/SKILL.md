@@ -12,9 +12,9 @@ You are running a forward-looking risk pass on a plan before it executes. Output
 
 Determine the plan to forecast against in this strict order:
 
-1. **Explicit pending-plan handoff from `/g-plan`** — if `docs/plans/.pending-forecast.md` exists, read it (this is the temporary plan file `/g-plan` Step 3a writes before approval to hand a not-yet-saved plan over to `/g-forecast`). Use its contents as the plan.
-2. **Developer-passed slug or path** — if `$ARGUMENTS` is non-empty and resolves to `docs/plans/<arg>.md` or a path to an existing `.md` file, read it.
-3. **Most-recent pending plan** — Glob `docs/plans/*.md`, find the most recently modified plan file whose Progress table has any `pending` wave; use that.
+1. **Explicit pending-plan handoff from `/g-plan`** — if `g-docs/plans/.pending-forecast.md` exists, read it (this is the temporary plan file `/g-plan` Step 3a writes before approval to hand a not-yet-saved plan over to `/g-forecast`). Use its contents as the plan.
+2. **Developer-passed slug or path** — if `$ARGUMENTS` is non-empty and resolves to `g-docs/plans/<arg>.md` or a path to an existing `.md` file, read it.
+3. **Most-recent pending plan** — Glob `g-docs/plans/*.md`, find the most recently modified plan file whose Progress table has any `pending` wave; use that.
 
 If none of the above resolves to a plan:
 ```
@@ -40,7 +40,7 @@ Sum the components and clamp to 0–10. Record the breakdown.
 
 ## Step 2b — Incorporate blast-radius signal (if available)
 
-Check whether `docs/blast-radius/<plan-slug>.md` exists. If it does, read its rating and adjust the complexity score from Step 2:
+Check whether `g-docs/blast-radius/<plan-slug>.md` exists. If it does, read its rating and adjust the complexity score from Step 2:
 
 | Blast-radius rating | Complexity adjustment |
 |---------------------|------------------------|
@@ -77,8 +77,8 @@ This estimate is surfaced in the Step 7 report as `Estimated token cost: low –
 
 Read the corpus the same way `/g-patterns` does, but only for premortem seeding:
 
-- All files in `docs/retros/` — extract every `Avoid / do differently` bullet (apply the same sentinel filter as `/g-patterns`: discard `None recorded.`, `None.`, `(none)`)
-- `docs/patterns-deferred.md` if it exists — every deferred suggestion is a known unresolved failure mode
+- All files in `g-docs/retros/` — extract every `Avoid / do differently` bullet (apply the same sentinel filter as `/g-patterns`: discard `None recorded.`, `None.`, `(none)`)
+- `g-docs/patterns-deferred.md` if it exists — every deferred suggestion is a known unresolved failure mode
 - `git log --oneline -50` — note any rework markers (`revert:`, `fix-of-fix`, `take 2`, `retry`)
 
 Build a candidate-failure list: every distinct failure mode observed in the corpus is a candidate. Tag each with its observed frequency (count of distinct source files).
@@ -119,7 +119,7 @@ miss_risk             = clamp(0, 95, 10 + complexity_score × 3 + scenario_contr
 
 Each scenario's contribution is capped at 22.5 (15 × 1.5) so no single severe pattern alone drives the result into High territory on a trivial plan. The complexity multiplier is tuned so a max-complexity plan (10/10) contributes 30 percentage points before scenario evidence. Round to nearest 5%.
 
-**Cold-start formula** — if Step 3 produced no signals (empty `docs/retros/`, no `docs/patterns-deferred.md`, no rework in git log):
+**Cold-start formula** — if Step 3 produced no signals (empty `g-docs/retros/`, no `g-docs/patterns-deferred.md`, no rework in git log):
 
 ```
 miss_risk_cold = clamp(15, 60, 15 + complexity_score × 3)
@@ -162,7 +162,7 @@ Recommendations:
 
 ## Step 8 — Persist the forecast for the feedback loop
 
-Write the forecast to `docs/forecasts/<plan-slug>.md` (create directory if missing). Use this schema so `/g-retro` and `/g-patterns` can mine it later:
+Write the forecast to `g-docs/forecasts/<plan-slug>.md` (create directory if missing). Use this schema so `/g-retro` and `/g-patterns` can mine it later:
 
 ````markdown
 # Forecast: [Plan Name]
@@ -206,8 +206,8 @@ If invoked from `/g-plan` (Step 3b of g-plan): return to `/g-plan` with the fore
 
 ## Rules
 - This skill never blocks approval — its job is to surface risk, not gate it. The developer always decides whether the risk is acceptable.
-- Always persist the forecast to `docs/forecasts/<plan-slug>.md` — the feedback loop with `/g-retro` and `/g-patterns` depends on this file.
+- Always persist the forecast to `g-docs/forecasts/<plan-slug>.md` — the feedback loop with `/g-retro` and `/g-patterns` depends on this file.
 - Apply the same `None recorded.` sentinel filter as `/g-patterns` when reading retros — never seed scenarios from empty signals.
-- If `docs/retros/` is empty and `docs/patterns-deferred.md` is missing, premortem operates on plan surface only: emit a single scenario `cold-start — no history yet` with likelihood derived from complexity alone, and note in Recommendations that confidence is low until history accumulates.
+- If `g-docs/retros/` is empty and `g-docs/patterns-deferred.md` is missing, premortem operates on plan surface only: emit a single scenario `cold-start — no history yet` with likelihood derived from complexity alone, and note in Recommendations that confidence is low until history accumulates.
 - Never modify the plan file itself. The forecast is advisory — re-scoping is a developer decision communicated back to `/g-plan`.
 - Miss-risk percentage is a heuristic, not a prediction — present it as such ("forecast assumes the historical pattern set is representative").

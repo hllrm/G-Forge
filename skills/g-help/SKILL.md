@@ -15,7 +15,7 @@ Output exactly:
 Attempt to read each of the following files from the current working directory. If a file is missing, note it as "not found" and continue — never error out.
 
 1. `todo.md` — current tasks and handoff block
-2. `docs/plans/` — use Glob to find the most recent plan file (e.g. `docs/plans/*.md`); if multiple exist, use the one with the latest modification time or highest sort order
+2. `g-docs/plans/` — use Glob to find the most recent plan file (e.g. `g-docs/plans/*.md`); if multiple exist, use the one with the latest modification time or highest sort order
 3. `ROADMAP.md` — current milestone and status
 4. `.claude/g-forge-approved` — presence indicates the commit gate is open
 5. `.claude/hooks/workflow-checkpoint.sh` — presence indicates workflow hooks are installed
@@ -24,9 +24,9 @@ Attempt to read each of the following files from the current working directory. 
 8. `.claude/integration-tier` — active integration tier (default: `full`)
 9. `.claude/voice-profile` — active voice profile (default: `dev`)
 10. `.claude/telemetry-profile` — derived health profile from `/g-telemetry` (default: `stable`)
-11. `docs/telemetry/` — Glob for most recent snapshot file (informational — shows date of last `/g-telemetry` run)
-12. `docs/forecasts/` — Glob for most recent forecast file (informational — shows most recently forecast plan)
-13. `docs/identity.md` — Read if present (informational — shows the project's last synthesised personality snapshot)
+11. `g-docs/telemetry/` — Glob for most recent snapshot file (informational — shows date of last `/g-telemetry` run)
+12. `g-docs/forecasts/` — Glob for most recent forecast file (informational — shows most recently forecast plan)
+13. `g-docs/identity.md` — Read if present (informational — shows the project's last synthesised personality snapshot)
 
 ## Step 3 — Determine project name
 
@@ -41,7 +41,7 @@ Apply the following rules in order (first match wins):
 | `CLAUDE.md` is missing OR has no G-Forge Rules block, AND `project_brief.md` is missing | Not initialized |
 | `project_brief.md` is missing | Not initialized |
 | `CLAUDE.md` exists but has no G-Forge Rules block | Not initialized |
-| G-Forge Rules block exists, no plan file found in `docs/plans/` | Initialized |
+| G-Forge Rules block exists, no plan file found in `g-docs/plans/` | Initialized |
 | Plan file exists AND `.claude/g-forge-approved` is absent AND `todo.md` shows tasks remaining | Execution in progress |
 | Plan file exists AND `.claude/g-forge-approved` is absent AND `todo.md` shows all tasks done | Review pending |
 | Plan file exists AND `.claude/g-forge-approved` is absent | Active plan |
@@ -73,7 +73,7 @@ Phase: [phase]
 
 What's active:
   - [milestone from ROADMAP.md, e.g. "M2: Workflow Engine — in progress"]
-  - [plan file name if found, e.g. "docs/plans/wave-plan-2025-05-01.md"]
+  - [plan file name if found, e.g. "g-docs/plans/wave-plan-2025-05-01.md"]
   - [wave info if detectable from plan file, e.g. "Wave 3 of 4"]
   - [count of remaining tasks from todo.md, e.g. "3 tasks remaining in todo.md"]
   - [workflow hooks: installed / not installed]
@@ -86,9 +86,9 @@ Configuration:
   - Health profile: [stable / cautious / defensive / recovery] ([from /g-telemetry])
 
 Recent intelligence:
-  - Last telemetry: [date of most recent docs/telemetry/*.md, or "never run — try /g-telemetry"]
-  - Last forecast:  [most recent docs/forecasts/*.md slug, or "none — /g-forecast is auto-invoked by /g-plan"]
-  - Identity:       [present (date of docs/identity.md) / not yet synthesised — try /g-identity]
+  - Last telemetry: [date of most recent g-docs/telemetry/*.md, or "never run — try /g-telemetry"]
+  - Last forecast:  [most recent g-docs/forecasts/*.md slug, or "none — /g-forecast is auto-invoked by /g-plan"]
+  - Identity:       [present (date of g-docs/identity.md) / not yet synthesised — try /g-identity]
 
 Next step:
   [one clear action the developer should take right now, including the exact command to run]

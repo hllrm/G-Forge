@@ -13,7 +13,7 @@ Plan, execute, and review fire **automatically** — you do not need to type the
 After `/g-init`, two hooks are installed in `.claude/settings.json`:
 
 **`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports:
-- Whether an active plan exists in `docs/plans/`
+- Whether an active plan exists in `g-docs/plans/`
 - The current wave number and total waves (read from the plan's Progress table)
 - Whether `.claude/g-forge-approved` is set (commit gate state)
 
@@ -34,7 +34,7 @@ You can still invoke `/g-plan`, `/g-execute`, and `/g-review` manually at any ti
 
 ## Plan File Format
 
-Approved plans are saved to `docs/plans/<feature-slug>.md` by `g-plan` immediately after developer approval (before execution begins).
+Approved plans are saved to `g-docs/plans/<feature-slug>.md` by `g-plan` immediately after developer approval (before execution begins).
 
 ```markdown
 # Plan: [Feature Name]
@@ -90,7 +90,7 @@ Status values: `pending` | `in progress` | `complete`.
 
   └─ [approval gate — developer reviews and approves]
 
-  └─ plan saved to docs/plans/<feature-slug>.md
+  └─ plan saved to g-docs/plans/<feature-slug>.md
        (Tasks table + Wave Schedule + Progress table, all waves set to "pending")
 
 /g-execute   [sole executor for all wave-based dispatch]
@@ -156,7 +156,7 @@ wave-planner returns:
 ```
 /g-review
   └─ [gather diff: git diff main...HEAD]
-  └─ [gather done conditions: from docs/plans/*.md or milestones/ file]
+  └─ [gather done conditions: from g-docs/plans/*.md or milestones/ file]
 
   └─ code-lead (Opus)
        receives: diff, done conditions, branch name

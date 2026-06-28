@@ -133,6 +133,8 @@ Active context:   · Fresh project, just initialized
 
 Create `.claude/hooks/` directory if it does not exist.
 
+**Mark the project as G-Forge-managed first.** Every hook self-guards on `.claude/integration-tier` and stays inert without it (this is what keeps the global plugin from gating commits in non-G-Forge repos). So before wiring any hooks, if `.claude/integration-tier` does not already exist, write `full` to it now — Step 7a refines it from the developer's answer. This guarantees the marker exists the moment the hooks are registered, even if onboarding (Step 7a) is interrupted.
+
 All seven hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
 
 Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`. Call this `<plugin-hooks>`.
@@ -326,7 +328,7 @@ G-Forge initialized ✓
   ✓ ROADMAP.md — stub created (or already existed)
   ✓ milestones/M1.md — created (or already existed)
   ✓ todo.md — created (or already existed)
-  ✓ .claude/hooks/ — check-commit.sh, workflow-checkpoint.sh, post-commit-cleanup.sh, pre-compact.sh, and session-start.sh installed
+  ✓ .claude/hooks/ — 7 hooks installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint)
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]

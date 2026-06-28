@@ -73,7 +73,7 @@ After capturing the diff, check whether it includes changes to any dependency ma
 ## Step 3 — Gather done conditions
 
 Check for done conditions in this order:
-1. The relevant plan file (check `docs/plans/` for the most recent `.md` file, or a spec mentioned by the developer)
+1. The relevant plan file (check `g-docs/plans/` for the most recent `.md` file, or a spec mentioned by the developer)
 2. The current milestone file in `milestones/`
 3. Ask the developer: "What are the done conditions for this implementation?"
 
@@ -89,15 +89,15 @@ Dispatch the `code-lead` agent. Provide **all of the following** in the prompt s
 - The done conditions from Step 3
 - The current branch name (from `git branch --show-current`)
 - The task list (if known)
-- `output_file: docs/agent-output/review/code-lead-[YYYY-MM-DD].md`
+- `output_file: g-docs/agent-output/review/code-lead-[YYYY-MM-DD].md`
 
 code-lead will verify remaining done conditions structurally (file checks, grep, read) and dispatch review-orchestrator internally. It must NOT re-run tests or type-check when attested results are provided. Pass the telemetry profile from Step 0 to code-lead so its dispatch of review-orchestrator scales reviewer count and pre-review additions accordingly.
 
-If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s), the diff context, and `output_file: docs/agent-output/review/dependency-auditor-[YYYY-MM-DD].md`. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
+If `manifest_changed` is true, dispatch `dependency-auditor` **in parallel** with code-lead. Provide it the changed manifest file(s), the diff context, and `output_file: g-docs/agent-output/review/dependency-auditor-[YYYY-MM-DD].md`. Wait for both to return, then include dependency-auditor's findings in the materials passed to code-lead for its final verdict (so any dependency risks are factored into MERGE READY / HOLD). If dependency-auditor returns any HIGH severity findings, include them as blocking items in the HOLD verdict regardless of code-lead's position on other issues.
 
 Wait for code-lead's complete verdict.
 
-If code-lead returns HOLD, increment `.claude/review-holds` by 1 — this counter feeds the rework-rate telemetry metric (per `docs/telemetry-metrics.md` §4) regardless of the active profile. If the file does not exist, create it with value `1`. The increment is unconditional; only the *review-intensity adjustments above* depend on the profile. `/g-telemetry` resets the counter to `0` when a `stable` profile is derived.
+If code-lead returns HOLD, increment `.claude/review-holds` by 1 — this counter feeds the rework-rate telemetry metric (per `g-docs/telemetry-metrics.md` §4) regardless of the active profile. If the file does not exist, create it with value `1`. The increment is unconditional; only the *review-intensity adjustments above* depend on the profile. `/g-telemetry` resets the counter to `0` when a `stable` profile is derived.
 
 ## Step 5 — Tier 3 Smoke Test (MERGE READY path only)
 
@@ -107,7 +107,7 @@ If code-lead's verdict is **MERGE READY**:
 
 1. Check whether `.claude/tier3-active` exists. If it does, a listen-mode session is already in progress — skip straight to Step 6.
 2. Print the testing instrument:
-   - Check for `docs/qa-scope/<milestone-slug>.md`. If it exists, read it and print the in-scope test groups.
+   - Check for `g-docs/qa-scope/<milestone-slug>.md`. If it exists, read it and print the in-scope test groups.
    - If no QA scope doc: check whether the project has a QA panel (README, project docs). If it does, list the known affected test groups.
    - If no QA panel: retrieve or regenerate the test plan that was produced at milestone planning. Print it in full — the developer uses it as their checklist.
 3. Prompt the developer:

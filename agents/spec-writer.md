@@ -43,8 +43,8 @@ One sentence: what this produces.
 Include these additional done conditions when the task type warrants them:
 - **New or changed public exports**: "JSDoc/docstring written for every new or changed exported symbol."
 - **New user-facing feature, command, or config option**: "README section written or updated."
-- **New environment variable**: "Env var documented in [docs/env-vars.md | .env.example | README]."
-- **New external dependency or architectural pattern**: "ADR written in docs/decisions/."
+- **New environment variable**: "Env var documented in [g-docs/env-vars.md | .env.example | README]."
+- **New external dependency or architectural pattern**: "ADR written in g-docs/decisions/."
 - **Any significant change**: "CHANGELOG entry written under the appropriate version heading."
 Omit these if they do not apply to the task — do not add them as boilerplate.
 

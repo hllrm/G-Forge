@@ -225,7 +225,7 @@ Then for both:
 /g-specialize  →   stack architect agent + architecture rules
 
 Day-to-day (auto-triggered — no command needed):
-/g-plan        →   approved wave schedule  →  saved to docs/plans/
+/g-plan        →   approved wave schedule  →  saved to g-docs/plans/
 /g-execute     →   parallel agent swarming, wave by wave
 /g-review      →   MERGE READY or HOLD  →  milestone tasks auto-closed → /g-retro auto-runs → /g-doctor every other milestone
 git commit          →   gate clears, sentinel removed
@@ -241,7 +241,7 @@ Project hygiene:
 /g-update      →   pull latest G-Forge rules into this project
 ```
 
-Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orchestration-patterns.md)
+Full orchestration pattern reference: [g-docs/orchestration-patterns.md](g-docs/orchestration-patterns.md)
 
 ---
 
@@ -294,7 +294,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
 | `/g-init` | Scaffold CLAUDE.md, G-RULES.md, ROADMAP.md, milestones/, commit enforcement hooks |
 | `/g-specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
-| `/g-plan` | QA scope prerequisite (compile docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to docs/plans/ |
+| `/g-plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
 | `/g-update` | Pull latest plugin from GitHub, then realign all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
@@ -306,14 +306,14 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-optimize [path]` | Full-codebase or targeted performance audit — algorithmic complexity, N+1 queries, re-render waste, resource leaks, caching opportunities. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
 | `/g-refactor [path\|milestone]` | Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review gate. Accepts a scope path or an audit milestone file. Checks test coverage before execution and runs the full review gate after |
 | `/g-docs [path]` | Documentation audit and generation — scans for missing or stale code docs, README gaps, undocumented env vars, CHANGELOG gaps, and ADR omissions. Targeted scope fixes gaps immediately via doc-writer; whole-codebase scope produces a prioritised documentation debt report |
-| `/g-adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
-| `/g-retro` | Synthesize a session retrospective to `docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
-| `/g-patterns` | Mine `docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
-| `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `docs/forecasts/<slug>.md`. |
+| `/g-adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `g-docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
+| `/g-retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
+| `/g-patterns` | Mine `g-docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
+| `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `g-docs/forecasts/<slug>.md`. |
 | `/g-telemetry` | Compute 8 reliability metrics (hallucination, review catch, regression, rework, spec deviation, escalation, token efficiency, retry dependency); classify health profile (stable / cautious / defensive / recovery); write `.claude/telemetry-profile` for adaptive orchestration. `/g-execute` and `/g-review` Step 0 read the profile and scale wave size, model tier, and reviewer count accordingly. |
-| `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
-| `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
-| `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `docs/integration-tiers.md`. |
+| `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `g-docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
+| `/g-identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `g-docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
+| `/g-tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `g-docs/integration-tiers.md`. |
 | `/g-voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
 | `/g-train [project idea]` | Training mode — learn software development by building a real project. Sets up the learner profile, confirms the project, and writes `.claude/training-mode`. From that point on, PM runs the session in **mentor register** — a genuinely distinct mode: explains the "why" before every step, assigns you tasks alongside the agent swarms, checks in after each wave, and logs your progress to `.claude/training-progress.md`. The workflow is unchanged; the framing is different. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
 | `/g-trim` | Weekly read-only audit of `CLAUDE.md` and agent memory files. Surfaces orphaned `@references`, duplicate rules, stale content, dead file refs in MEMORY.md files, and overlong memory entries — all flagged for human review, never auto-modified. The only file it writes is `.claude/last-trim`. The workflow-checkpoint hook surfaces a nudge when 7 days have passed since the last audit. |
@@ -322,7 +322,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ## Agents
 
-17 agents ship with every install. Full reference: [docs/agents.md](docs/agents.md)
+17 agents ship with every install. Full reference: [g-docs/agents.md](g-docs/agents.md)
 
 | Agent | Tier | Role |
 |-------|------|------|
@@ -346,7 +346,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ### Agent output architecture
 
-All 15 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`docs/agent-output/wave-N/<task-slug>.md` for wave agents; `docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
+All 15 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`g-docs/agent-output/wave-N/<task-slug>.md` for wave agents; `g-docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
 
 ```
 RESULT: DONE|FAILED|BLOCKED  (or PASS|HOLD for review agents)
@@ -389,7 +389,7 @@ The full `G-RULES.md` is ~9,000 tokens and loads on every session that reference
 
 ### Agent compact returns
 
-Agents write full findings to `docs/agent-output/` and return a five-line summary. The main session reads the detail file only on HOLD or BLOCKED. This reduces per-agent context growth from ~1,500–3,000 tokens (inline output) to ~70 tokens (compact block). A six-agent review wave that previously added ~12,000 tokens to main-session context now adds ~420 tokens.
+Agents write full findings to `g-docs/agent-output/` and return a five-line summary. The main session reads the detail file only on HOLD or BLOCKED. This reduces per-agent context growth from ~1,500–3,000 tokens (inline output) to ~70 tokens (compact block). A six-agent review wave that previously added ~12,000 tokens to main-session context now adds ~420 tokens.
 
 ### Context depth management
 
@@ -548,7 +548,7 @@ You can still invoke them manually if needed:
 
 ```
 /g-plan         Step 0: QA scope prerequisite — confirm or compile
-                       docs/qa-scope/<milestone>.md (Tier 3 DoD for the milestone)
+                       g-docs/qa-scope/<milestone>.md (Tier 3 DoD for the milestone)
                      Step 1: project-manager challenges the feature request (3 questions,
                        one verdict — bug fixes and refactors skip this gate)
                      Dispatches task-decomposer → wave-planner
@@ -560,7 +560,7 @@ You can still invoke them manually if needed:
                        (blocking), cross-wave ordering violations (warning)
                      Runs /g-forecast premortem (complexity score + miss-risk)
                      Presents wave schedule + budget + forecast for approval
-                     Saves approved plan to docs/plans/<feature-slug>.md
+                     Saves approved plan to g-docs/plans/<feature-slug>.md
                      On approval: hands off to /g-execute
 
 /g-execute      Dispatches all Wave 1 tasks in parallel, waits for completion
@@ -589,7 +589,7 @@ You can still invoke them manually if needed:
 ### Going AFK — unattended milestone execution
 
 ```
-/g-afk          Pre-checks: approved plan must exist in docs/plans/
+/g-afk          Pre-checks: approved plan must exist in g-docs/plans/
                      Configures permissions.allow (no tool prompts) +
                        permissions.deny (safety net):
                        blocks git push, rm -rf, all publish commands,

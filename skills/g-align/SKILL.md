@@ -47,7 +47,7 @@ Compose an overall verdict:
 - **ALIGNED** — no axis is drifting, or only cosmetic divergence with a recorded rationale.
 - **DRIFTING** — one or more axes diverge from the brief without a recorded decision. Not a failure — a flag.
 
-Write the report to `docs/alignment/YYYY-MM-DD-<milestone-or-slug>.md` (create `docs/alignment/` if needed; use the active milestone id as the slug, else `adhoc`):
+Write the report to `g-docs/alignment/YYYY-MM-DD-<milestone-or-slug>.md` (create `g-docs/alignment/` if needed; use the active milestone id as the slug, else `adhoc`):
 
 ```markdown
 # Alignment check — [YYYY-MM-DD] — [milestone or "ad-hoc"]
@@ -80,7 +80,7 @@ Print the verdict and the Recommendation verbatim, then the report path:
 Alignment: [ALIGNED | DRIFTING]
 [Recommendation line(s)]
 
-Report: docs/alignment/YYYY-MM-DD-<slug>.md
+Report: g-docs/alignment/YYYY-MM-DD-<slug>.md
 ```
 
 If DRIFTING and the recommendation is to add/defer/record something, offer — do not perform:

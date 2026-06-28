@@ -35,7 +35,7 @@ Telemetry profile: [profile] — [one-line effect]
 Look for the plan in this order:
 
 1. A plan file explicitly provided as `$ARGUMENTS` (treat as a file path)
-2. `docs/plans/` — read the most recently modified `.md` file
+2. `g-docs/plans/` — read the most recently modified `.md` file
 3. `todo.md` — look for a wave schedule section
 4. If none found: tell the developer "No plan file found. Run `/g-plan` first, or pass the plan file path as an argument." and stop.
 
@@ -79,7 +79,7 @@ Dispatching [N] tasks in parallel:
 
 ### Parallel dispatch
 
-Before Wave 1, create `docs/agent-output/` if it does not exist. Before each wave create `docs/agent-output/wave-[N]/`.
+Before Wave 1, create `g-docs/agent-output/` if it does not exist. Before each wave create `g-docs/agent-output/wave-[N]/`.
 
 Dispatch all tasks in the current wave as parallel subagents **in a single message**. Never split a wave across multiple messages.
 
@@ -89,7 +89,7 @@ Use this compact template for every agent prompt. Derive `[task-slug]` by lowerc
 Task: [task name]
 Done condition: [done condition from plan]
 Files in scope: [file paths from plan, or "determine from task scope"]
-Output file: docs/agent-output/wave-[N]/[task-slug].md
+Output file: g-docs/agent-output/wave-[N]/[task-slug].md
 Constraint: touch only files in your task scope.
 [if defensive or recovery: telemetry clause from Step 0]
 
@@ -105,7 +105,7 @@ SUMMARY: [one sentence]
 FILES: [files changed, comma-separated]
 DONE_CONDITION: met|not met — [reason]
 LEARNINGS: [FAILED only — the approach you tried, where/why it broke, what is now ruled out, and a recommended DIFFERENT approach. Omit for DONE/BLOCKED.]
-DETAIL: docs/agent-output/wave-[N]/[task-slug].md
+DETAIL: g-docs/agent-output/wave-[N]/[task-slug].md
 ```
 
 `FAILED` = your approach didn't work; you are returning learnings so HQ can try a different one. `BLOCKED` = an external dependency makes the task impossible to proceed (missing upstream work, unavailable resource) — a different approach wouldn't help.

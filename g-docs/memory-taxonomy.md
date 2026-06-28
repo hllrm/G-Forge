@@ -47,7 +47,7 @@ Milestone-scoped state that must survive session restarts: active task ledger, w
 
 **Example content:**
 - `todo.md` Handoff block: tasks done, next up, active `file:line` context
-- QA scope file `docs/qa-scope/m9-memory-layers.md` listing impacted test groups
+- QA scope file `g-docs/qa-scope/m9-memory-layers.md` listing impacted test groups
 - "Decided mid-sprint: `context:` field is declaration-only — no runtime enforcement until M10"
 
 ---
@@ -62,7 +62,7 @@ Milestone-scoped state that must survive session restarts: active task ledger, w
 Durable technical decisions and structural rules that govern the entire codebase: ADRs, architecture rules files, layer maps, import direction constraints, state ownership rules, and the project brief.
 
 **Example content:**
-- `docs/decisions/004-memory-taxonomy.md` — ADR capturing why six tiers were chosen over a flat key-value store
+- `g-docs/decisions/004-memory-taxonomy.md` — ADR capturing why six tiers were chosen over a flat key-value store
 - `.claude/rules/architecture-vue-pinia.md` — layer map, import direction table, state ownership rules
 - `project_brief.md` — stack decisions, constraints, agreed MVP scope
 

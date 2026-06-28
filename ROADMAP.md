@@ -8,9 +8,9 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HANDOFF — g-forge | branch: claude/m23-release-u3rx0d
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · v2.0.0 (M23) — production-readiness audit: hooks reconciled across hooks.json/g-init/g-doctor/g-update to one canonical 7-hook set · legacy "G-Team" naming purged from all live content · hook tests moved to tests/ · docs/agent-output/ git-ignored · docs/agents.md restored dependency-auditor (16→17) · §A7→§A8 ref fixes · README hook/concept counts + roadmap synced
+Done this pass:   · v2.0.0 (M23) — production-readiness audit: hooks reconciled to one canonical 7-hook set across hooks.json/g-init/g-doctor/g-update · single-registrar + self-guard fix (manifest registers none; every hook guards on .claude/integration-tier; idempotent install; g-doctor dupe check) · legacy "G-Team" purged from live content · hook tests moved to tests/ · g-docs/agent-output git-ignored · g-docs/agents.md restored dependency-auditor (16→17) · §A7→§A8 ref fixes · g-init marker-ordering fix + 7-hook report · renamed docs/ → g-docs/ everywhere (no collision with a project's own docs/)
 Next up:          · M24 — open. No milestone in flight.
-Active context:   · v2.0.0 shipped on branch claude/m23-release-u3rx0d. Name kept as G-Forge; README given a targeted clarity refresh (not a from-scratch rewrite — the audit confirmed existing content was accurate). Counts ground truth: 17 agents · 35 skills · 37 commands (35 skill-backed + /g-forge router + /g-team alias) · 56 profiles (48 stack + 7 combo + 1 supplementary).
+Active context:   · v2.0.0 on branch claude/m23-release-u3rx0d. Name kept as G-Forge. Hooks: single registrar (.claude/settings.json via /g-init), manifest registers none, all 7 self-guard on .claude/integration-tier. G-Forge's docs namespace is now g-docs/ (plans, decisions, retros, agent-output, forecasts, …) so it never mixes with a project's docs/. Counts: 17 agents · 35 skills · 37 commands (35 skill-backed + /g-forge router + /g-team alias) · 56 profiles (48 stack + 7 combo + 1 supplementary).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

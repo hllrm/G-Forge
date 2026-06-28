@@ -91,7 +91,7 @@ printf '%d\n' "$PROMPT_COUNT" > "$PROMPT_COUNT_FILE" 2>/dev/null || true
 SESSION_MODE="conversation"
 _recent=$(git log --oneline --since="4 hours ago" 2>/dev/null | wc -l | tr -d '[:space:]')
 _dirty=$(git status --porcelain 2>/dev/null | wc -l | tr -d '[:space:]')
-_plans=$(ls docs/plans/*.md 2>/dev/null | wc -l | tr -d '[:space:]')
+_plans=$(ls g-docs/plans/*.md 2>/dev/null | wc -l | tr -d '[:space:]')
 case "$_recent" in ''|*[!0-9]*) _recent=0 ;; esac
 case "$_dirty"  in ''|*[!0-9]*) _dirty=0  ;; esac
 case "$_plans"  in ''|*[!0-9]*) _plans=0  ;; esac

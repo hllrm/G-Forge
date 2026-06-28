@@ -1,6 +1,6 @@
 ---
 name: g-patterns
-description: Mine docs/retros/ and todo-done.md for recurring failure patterns. Surface a systemic-health report bucketed by frequency and propose concrete profile-rule edits for any pattern observed ≥2 times.
+description: Mine g-docs/retros/ and todo-done.md for recurring failure patterns. Surface a systemic-health report bucketed by frequency and propose concrete profile-rule edits for any pattern observed ≥2 times.
 context: [sprint, institutional, architectural]
 ---
 
@@ -12,22 +12,22 @@ You are running an organisational-learning pass: read every retro and the closed
 
 Read in parallel:
 
-- All files in `docs/retros/` — every `.md` file
-- All files in `docs/forecasts/` if the directory exists — used in Step 2e for forecast-outcome mining (closes the loop with `/g-forecast` and `/g-retro`)
+- All files in `g-docs/retros/` — every `.md` file
+- All files in `g-docs/forecasts/` if the directory exists — used in Step 2e for forecast-outcome mining (closes the loop with `/g-forecast` and `/g-retro`)
 - `todo-done.md` — the full file if it exists (optional source)
 - `G-RULES.md` — full file (needed in Step 4 for edit-target mapping)
 - `git log --oneline -100` via Bash — used in Step 2 to detect rework commits
 - The list of installed architecture rules: `Glob .claude/rules/architecture-*.md`
 - The list of installed agents: `Glob .claude/agents/*.md`
 
-If `docs/retros/` is empty or missing AND `todo-done.md` is missing AND the git log is shorter than 10 commits:
+If `g-docs/retros/` is empty or missing AND `todo-done.md` is missing AND the git log is shorter than 10 commits:
 ```
 ✗ Corpus too thin to mine patterns. Run /g-retro at the end of sessions and accumulate
   closed tasks in todo-done.md to build the corpus.
 ```
 Stop.
 
-If `docs/retros/` is empty but `todo-done.md` exists or git history is non-trivial, continue — the skill operates on whatever corpus is available and notes the gap in the report.
+If `g-docs/retros/` is empty but `todo-done.md` exists or git history is non-trivial, continue — the skill operates on whatever corpus is available and notes the gap in the report.
 
 ## Step 2 — Extract failure-mode signals
 
@@ -60,7 +60,7 @@ Scan the git log gathered in Step 1 for rework commit markers:
 
 For each match, record: commit short SHA, subject, and a normalised label derived from the reverted change's subject.
 
-### 2d — Forecast-outcome signals (if `docs/forecasts/` exists)
+### 2d — Forecast-outcome signals (if `g-docs/forecasts/` exists)
 
 For each forecast file, read the `## Outcome` table populated by `/g-retro`. A row marked `Actually happened? = yes` is a **predicted-and-hit** signal — it is a high-confidence pattern because both the premortem and the retro confirmed it. A row marked `partial` is a medium-confidence signal. Rows marked `no` are negative evidence and are not patterns — discard them.
 
@@ -154,7 +154,7 @@ apply / defer / dismiss?
 Wait for the developer's choice.
 
 - **apply** — read the target file, locate the target section, perform the edit, confirm written. Step 4 will already have flagged missing target files (e.g. no stack profile installed) and marked those patterns `Needs human judgment`, so by Step 6 the target file is guaranteed to exist.
-- **defer** — log the suggestion to `docs/patterns-deferred.md` (append; create file if missing) with date, pattern label, target, and proposed change. Move on.
+- **defer** — log the suggestion to `g-docs/patterns-deferred.md` (append; create file if missing) with date, pattern label, target, and proposed change. Move on.
 - **dismiss** — no action. Note in the session output that the developer dismissed the pattern.
 
 Continue until every Emerging/Systemic pattern has been triaged. Isolated patterns and Reinforced patterns are surfaced only — no triage prompt.
@@ -167,7 +167,7 @@ After triage, print a one-block summary:
 PATTERN MINING COMPLETE
 
 Applied:   [count] edits to [list of files touched]
-Deferred:  [count] entries logged to docs/patterns-deferred.md
+Deferred:  [count] entries logged to g-docs/patterns-deferred.md
 Dismissed: [count]
 
 Next:      [if any edits were applied] Review the changes, run /g-review before commit.
@@ -178,11 +178,11 @@ If any rule files were edited, leave the working tree as-is — never commit fro
 
 ## Rules
 
-- Read-only on `docs/retros/`, `todo-done.md`, and `CHANGELOG.md` — these are historical records and must never be modified by this skill
+- Read-only on `g-docs/retros/`, `todo-done.md`, and `CHANGELOG.md` — these are historical records and must never be modified by this skill
 - Never auto-apply an edit — every proposed change requires explicit `apply` from the developer
 - Never propose edits to G-RULES.md sections A–I core rules without surfacing them clearly as cross-cutting changes; favour stack rules and agent prompts first
 - Always cite source retros by filename in the proposed edit's rationale — traceability is the whole point
 - One retro counts as one source even if multiple bullets in that retro map to the same pattern label — count by distinct source file, not by raw bullet count
-- If `docs/retros/` is empty, stop immediately and instruct the developer to build the corpus via `/g-retro` — never fabricate patterns from a thin corpus
+- If `g-docs/retros/` is empty, stop immediately and instruct the developer to build the corpus via `/g-retro` — never fabricate patterns from a thin corpus
 - Reinforced patterns (worked well) are surfaced but never converted to rule edits — they are evidence of healthy behaviour, not a defect to fix
 - When multiple ≥2-frequency patterns target the same file, present them one at a time and let the developer triage each independently — never batch-apply
