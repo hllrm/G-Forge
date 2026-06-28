@@ -10,6 +10,11 @@
 
 The maintainer chose the light touch. Implemented in `skills/g-adr/SKILL.md`:
 
+- **Entry triage** (Step 1) — the front-door gap the post-mortem actually surfaced: place
+  the decision as an **ADR**, a **brief row** (a one-line tech-decisions entry, for contained
+  reversible choices), or **nothing**, before running the interview. Reversibility is the
+  tell; propose-don't-impose. This is what keeps the corpus rare and high-signal — and what
+  stops a heavyweight ADR being run on a lightweight decision (the originating misuse).
 - **Pre-deliberated capture mode** (Step 2) — "I've worked it out" vs "interview me," the
   low-risk cadence change that touches *how* answers are gathered, not *which* questions.
 - **Mandatory reversibility check + premortem** (new Step 8) — reversibility (two-way vs

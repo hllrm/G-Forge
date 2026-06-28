@@ -1,6 +1,6 @@
 ---
 name: g-adr
-description: Capture an architectural decision record. Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
+description: Capture an architectural decision record. First triages whether the decision merits an ADR or just a one-line entry in the brief's tech-decisions table (keeping the corpus rare and high-signal). Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
 argument-hint: [short decision title]
 ---
 
@@ -10,7 +10,9 @@ Architectural decisions undocumented become invisible. New team members re-litig
 
 > **Why this skill is built the way it is.** Weighing options is exactly the high-branching reasoning that poisons a context (G-RULES §C): three-way pattern debates, rejected alternatives, and wrong first guesses all stay in-window and drag on everything HQ does next. The single-use doctrine applies to HQ's *own* deliberation, not just dispatched agents. So this skill offloads the weighing to a throwaway subagent and promotes only the finished answer — and, once a consequential decision is finalized, it resets the residue: retro, then verify from a fresh session.
 
-## Step 1 — Establish the title
+## Step 1 — Establish the title, then triage the entry
+
+### Title
 
 **If an argument was provided** (e.g. `/g-adr "use PostgreSQL instead of SQLite"`):
 - Use it as the working title. Confirm: "Recording ADR: '[title]' — is that the right framing?"
@@ -19,7 +21,17 @@ Architectural decisions undocumented become invisible. New team members re-litig
 **If no argument was provided**, ask:
 > "What decision are you recording? Give it a short, verb-first title — e.g. 'Use Pinia over Vuex', 'Adopt server-side rendering for marketing pages', 'Keep auth stateless with JWTs'."
 
-Wait for the title. Proceed.
+Wait for the title.
+
+### Entry triage — ADR, brief row, or nothing?
+
+ADRs are only valuable while they stay **rare and high-signal**; a full record on a small, local choice dilutes the corpus. Before running the interview, place the decision:
+
+- **ADR** — a significant architectural choice: a new stack component or external dependency, a pattern applied project-wide, a structural constraint, or replacing an existing approach. → proceed to Step 2.
+- **Brief row** — contained, local, and reversible (one component, undoable in roughly a day, nothing else commits to it). This is **not** an ADR; it belongs as a one-line entry in `project_brief.md`'s tech-decisions table. → offer to add that line, then stop — do not run the interview. (No `project_brief.md`? Note it in the commit/chat, or record a minimal ADR if the developer prefers.)
+- **Nothing** — a routine implementation detail with no lasting rationale. → say so; record nothing.
+
+**Propose, don't impose:** state the call with one line of evidence and let the developer confirm or override — e.g. "This looks like a **brief row** — contained and reversible. Record it as a tech-decisions line instead of a full ADR, or override and record the ADR anyway?" On override toward ADR, proceed. **Reversibility is the tell** — a contained, reversible change is almost always a brief row, not an ADR.
 
 ## Step 2 — Gather raw inputs
 
