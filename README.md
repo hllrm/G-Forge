@@ -687,3 +687,11 @@ git push
 | M21 — Decision Hygiene Loop (off-context ADR deliberation · post-decision session reset) | ✅ Done — **v1.8.0** |
 | M22 — Session Re-entry (`/g-resume` · selective re-hydration of the durable record) | ✅ Done — **v1.9.0** |
 | M23 — G-Forge 2.0 (production-readiness audit · hooks reconciliation · consistency sweep) | ✅ Done — **v2.0.0** |
+
+---
+
+## License
+
+G-Forge is free, open-source software, released under the **GNU General Public License v3.0** (GPL-3.0) — see [LICENSE](LICENSE).
+
+Copyright © 2026 Gianmarco Palma. You're free to use, study, modify, and redistribute it under the GPL-3.0 terms; derivative works must stay under GPL-3.0 and preserve this notice. Full license text: <https://www.gnu.org/licenses/gpl-3.0.txt>.

@@ -5,7 +5,7 @@ description: Health check for G-Forge project setup. Verifies all 7 hooks instal
 
 Announce: "Using g-doctor to check project health."
 
-Run all 16 checks below against the current working directory, then output the report in the exact format specified. Checks 1–14 are required (✓/✗). Checks 15–16 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
+Run all 17 checks below against the current working directory, then output the report in the exact format specified. Checks 1–14 are required (✓/✗). Checks 15–17 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
 
 ## Checks
 
@@ -117,6 +117,12 @@ Count the total lines in `CLAUDE.md`.
 - Advisory (>150 lines): ⚠ CLAUDE.md is [N] lines — may contain inline rules content
   → Run `/g-update` to migrate inline rules to `.claude/rules/` files.
 
+**17. No leftover legacy `g-team` plugin** (advisory)
+G-Forge was formerly named `g-team`; the rename created a new plugin rather than replacing the old one, so a leftover `g-team` install duplicates every `/g-*` command. Check `~/.claude/plugins/cache/g-team` and any `"g-team"` entry in `~/.claude/plugins/config.json`.
+- Pass (absent): ✓ No legacy g-team plugin — commands are g-forge only
+- Advisory (present): ⚠ Legacy g-team plugin still installed — every /g-* command is duplicated
+  → Remove it via `/plugin` → Installed → g-team → Uninstall (then re-run `/g-update`).
+
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook and rules infrastructure only.
 
 ## Output format
@@ -157,6 +163,8 @@ G-Forge Doctor ─────────────────────�
   [✓/⚠ line for check 15]
     [→ fix instruction if advisory]
   [✓/⚠ line for check 16]
+    [→ fix instruction if advisory]
+  [✓/⚠ line for check 17]
     [→ fix instruction if advisory]
 ────────────────────────────────────────────────
 [N/14 required checks passed]
