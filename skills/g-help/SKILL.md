@@ -14,7 +14,7 @@ Output exactly:
 
 Attempt to read each of the following files from the current working directory. If a file is missing, note it as "not found" and continue — never error out.
 
-1. `todo.md` — current tasks and handoff block
+1. `todo.md` — current tasks · `ROADMAP.md` `## Active Session` — the handoff
 2. `g-docs/plans/` — use Glob to find the most recent plan file (e.g. `g-docs/plans/*.md`); if multiple exist, use the one with the latest modification time or highest sort order
 3. `ROADMAP.md` — current milestone and status
 4. `.claude/g-forge-approved` — presence indicates the commit gate is open

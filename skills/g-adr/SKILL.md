@@ -206,9 +206,9 @@ Apply this step only when the ADR is **Accepted** and consequential (a real stac
 
 1. **Promote the record — run `/g-retro`** (the same `/g-retro` the context gate triggers at red). Use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it; topic slug `adr-[NNN]-[short]`. The observer journal already captured the session; the retro distills it into the durable record. **Skip if a retro has already run or is scheduled this session** — e.g. the §A7 red gate already fired, or you reached `/g-adr` via `/g-review`'s milestone close, which runs `/g-retro` itself. Don't double-retro.
 
-2. **Write the handoff** — the same `## Handoff` block §A7 writes on reset. If `todo.md` exists, set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
+2. **Write the handoff** — the same `## Active Session` block §A7 writes on reset, in `ROADMAP.md`. Set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
    > `⚠ FIRST: verify ADR-[NNN] against the actual repo state before building on it (clean-slate check).`
-   If `todo.md` does not exist, carry the task in the chat recommendation only.
+   If `ROADMAP.md` has no `## Active Session` block, insert one after the title (or carry the task in the chat recommendation only if there is no `ROADMAP.md`).
 
 3. **Recommend a fresh session** (the same recommendation the red gate makes). Tell the developer:
    > "ADR-[NNN] is finalized. This session's context now carries the deliberation that produced it — that's residue I shouldn't keep building on, and the ADR itself is an airtight answer that should be *checked*, not trusted from memory. Recommend: **start a fresh session and run `/g-resume`** — it re-hydrates a clean window with the handoff, this retro, and ADR-[NNN], and offers to verify the decision against the actual repo as the first task. You lose the residue, not the knowledge."

@@ -69,10 +69,20 @@ Report:
 
 ## Step 3 — Create ROADMAP.md
 
-Create `ROADMAP.md` if it does not exist:
+Create `ROADMAP.md` if it does not exist. It carries the **`## Active Session` handoff** — the single canonical cold-start the whole workflow reads (`workflow-checkpoint.sh`, `/g-resume`, `pre-compact.sh`, `/g-retro`). `todo.md` never holds a handoff. Write the handoff block raw under the heading (no code fence), so the `━` separators and the `Active context:` line are greppable:
 
 ```
 # Roadmap
+
+## Active Session
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HANDOFF — [project] | branch: [branch]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Done this pass:   · (nothing yet)
+Next up:          · Define M1 scope in milestones/M1.md
+Active context:   · Fresh project, just initialized
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## Current Milestone
 - **M1** — [Define milestone name] — 🚧 In progress
@@ -110,17 +120,9 @@ Create `milestones/M1.md` if it does not exist:
 
 ## Step 5 — Create todo.md
 
-Create `todo.md` if it does not exist:
+Create `todo.md` if it does not exist. It is the tactical task ledger only — **no handoff block** (the handoff lives in `ROADMAP.md`'s `## Active Session`):
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — [project] | branch: [branch]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · (nothing yet)
-Next up:          · Define M1 scope in milestones/M1.md
-Active context:   · Fresh project, just initialized
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 ## Tasks
 | # | Task | Notes |
 |---|------|-------|

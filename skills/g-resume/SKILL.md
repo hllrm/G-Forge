@@ -15,11 +15,11 @@ Retrieval here is selective and honest — there is no vector store. It is deter
 Gather, in parallel:
 - **Branch** — `git branch --show-current`. If it matches `feat/<slug>` / `fix/<slug>` / `refactor/<slug>` / `chore/<slug>`, extract `<slug>`.
 - **Active milestone** — the milestone marked 🔄 / 🚧 in `ROADMAP.md` (name + scope).
-- **Handoff** — the `## Handoff` block in `todo.md` (the "Next up" and "Active context" lines). Also read `.claude/compact-state.md` if it exists (the PreCompact snapshot) — it is a handoff written mid-session before a compaction.
+- **Handoff** — the `## Active Session` block in `ROADMAP.md` (the "Next up" and "Active context" lines). Also read `.claude/compact-state.md` if it exists (the PreCompact snapshot) — it is the same block captured mid-session before a compaction.
 - **First task** — the lead item of "Next up". Watch specifically for a `verify ADR-NNN` task (written by `/g-adr`'s decision-hygiene reset) — that is a first-class re-entry signal.
 - **Recently touched files** — `git log --name-only -n 10 --pretty=format:` (unique basenames) — used to match decisions to the active work.
 
-If none of `todo.md`, `.claude/compact-state.md`, `ROADMAP.md` exist, this isn't a G-Forge project mid-flight — say so in one line and stop: `Nothing to re-hydrate — no handoff or roadmap found.`
+If neither `ROADMAP.md` nor `.claude/compact-state.md` exists, this isn't a G-Forge project mid-flight — say so in one line and stop: `Nothing to re-hydrate — no handoff or roadmap found.`
 
 ## Step 2 — Retrieve the relevant slice (selective)
 
@@ -68,4 +68,4 @@ End by pointing at the first task — do not start it unprompted unless it is a 
 - Relevance is judged, not dumped — gather candidates by keys (grep/glob), then keep only what serves the first task. When unsure, prefer the pointer over the paste.
 - Never re-litigate a decision that an in-force ADR already settled — surface it as a constraint, not an open question. (Verifying an ADR named in the handoff is the one exception, and that is the task itself.)
 - If the durable record is thin (no retros/ADRs yet), re-hydrate from the handoff + roadmap + journal alone and say so — degrade gracefully.
-- Auto-trigger condition (full tier only): the **first prompt of a session** when a handoff is pending (`todo.md` Handoff or `.claude/compact-state.md` present) — `workflow-checkpoint.sh` surfaces the nudge.
+- Auto-trigger condition (full tier only): the **first prompt of a session** when a handoff is pending (`ROADMAP.md` `## Active Session` handoff or `.claude/compact-state.md` present) — `workflow-checkpoint.sh` surfaces the nudge.

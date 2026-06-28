@@ -11,7 +11,7 @@ Produce a single structured status block. Fast — no interviews, no back-and-fo
 
 - `ROADMAP.md` — extract the current milestone name and its status (in progress / done)
 - `g-docs/plans/` — find the most recently modified `.md` file; extract wave count and task list if present
-- `todo.md` — extract the Handoff block (first section), specifically the first "Next up" line
+- `ROADMAP.md` — extract the `## Active Session` handoff, specifically the first "Next up" line
 - `.claude/g-forge-approved` — note whether this file exists
 
 **Step 3.** Output exactly this block, filling each field or writing "—" if the information is unavailable:
@@ -23,7 +23,7 @@ G-Forge Status
 Milestone:    [M1 — Name · 🚧 In progress / ✅ Done]
 Plan:         [g-docs/plans/filename.md · Wave N of M / none]
 Review gate:  [open (MERGE READY) / locked]
-Handoff:      [first "Next up" line from todo.md / —]
+Handoff:      [first "Next up" line from ROADMAP `## Active Session` / —]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
