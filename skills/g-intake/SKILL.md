@@ -20,7 +20,7 @@ The idea is in `$ARGUMENTS` or the developer's last message. Restate it in one p
 
 Read in parallel:
 - `project_brief.md` — **Goals**, **Non-goals**, **MVP**, **Roadmap**, **Tech decisions**. (If absent, note it — triage continues against the roadmap alone, and classification falls back to on-roadmap / not-on-roadmap.)
-- `ROADMAP.md` — active milestone (🔄/🚧), unstarted milestones (⬜), and the backlog.
+- `ROADMAP.md` — active milestone (🔄), unstarted milestones (⬜), and the backlog.
 - Current manifest version (`.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`).
 
 ## Step 3 — Classify

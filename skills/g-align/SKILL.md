@@ -26,7 +26,7 @@ If `project_brief.md` does not exist, stop with one line: `No project_brief.md �
 ## Step 2 — Observe the actual trajectory
 
 Read in parallel:
-- `ROADMAP.md` — every milestone with status (✅ done · 🔄/🚧 active · ⬜ not started) and its scope.
+- `ROADMAP.md` — every milestone with status (✅ Complete · 🔄 In progress · ⬜ Not started) and its scope.
 - `git log --oneline -40` via Bash — what has actually been built recently.
 - The observer journal — `.claude/journal/*.jsonl`, last ~5 days — for the texture of recent work (commits, reverts, destructive flags, test cadence).
 - The current manifest version (`.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, or `Cargo.toml`).

@@ -99,15 +99,19 @@ Next up:          · Define M1 scope in milestones/M1.md
 Active context:   · Fresh project, just initialized
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-## Current Milestone
-- **M1** — [Define milestone name] — 🚧 In progress
+## Milestones
+
+### M1 — [Define milestone name]
+**Status:** 🔄 In progress
+**Goal:** [one line — what M1 delivers]
+**Scope:**
+- [ ] Task 1
 
 ## Backlog
 - M2 — [Define next milestone]
-
-## Done
-(none yet)
 ```
+
+Use the same skeleton `/g-roadmap` writes — `## Milestones` with a `### MN` block per milestone — and the same status key: ⬜ Not started · 🔄 In progress · ✅ Complete. Completed milestones stay under `## Milestones` marked ✅ (there is no separate `## Done` section).
 
 If a `project_brief.md` exists, read it and use the project goals to fill in M1 and M2 with meaningful content.
 
@@ -130,7 +134,7 @@ Create `milestones/M1.md` if it does not exist:
 [Specific, mechanically checkable condition]
 
 ## Status
-🚧 In progress
+🔄 In progress
 ```
 
 ## Step 5 — Create todo.md

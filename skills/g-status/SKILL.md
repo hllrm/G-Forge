@@ -20,7 +20,7 @@ Produce a single structured status block. Fast — no interviews, no back-and-fo
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 G-Forge Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Milestone:    [M1 — Name · 🚧 In progress / ✅ Done]
+Milestone:    [M1 — Name · 🔄 In progress / ✅ Complete / ⬜ Not started]
 Plan:         [g-docs/plans/filename.md · Wave N of M / none]
 Review gate:  [open (MERGE READY) / locked]
 Handoff:      [first "Next up" line from ROADMAP `## Active Session` / —]
