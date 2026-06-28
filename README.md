@@ -56,13 +56,13 @@ You don't configure G-Forge per session. You configure it once via G-RULES.md an
 
 Five shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
 
-- **SessionStart** — fires once when you open a session. Checks local and remote git state, surfaces uncommitted changes, stash count, ahead/behind counts. Resets the context depth counter.
+- **SessionStart** — fires when you open a session. Checks local and remote git state, surfaces uncommitted changes, stash count, ahead/behind counts. Resets the context-depth counters on a genuine open, but carries them across a `compact` restart so the gate isn't silently reset by auto-compaction.
 - **UserPromptSubmit** — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` if you have a new task, `/g-execute` if a plan is approved, `/g-review` when waves finish).
 - **PreToolUse** — blocks `git commit` unless the sentinel exists.
 - **PostToolUse** — clears the sentinel after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
 - **SubagentStart / SubagentStop** — records agent dispatches into the same journal.
 - **SessionStart** — marks a session open in the journal (and syncs git state — see below).
-- **PreCompact** — writes a handoff snapshot before context compaction so the next session knows exactly where to resume.
+- **PreCompact** — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
 
 The hooks are the reason you don't have to type commands for the day-to-day loop. Claude sees the state on every message and responds to it.
 
@@ -248,24 +248,24 @@ Full orchestration pattern reference: [docs/orchestration-patterns.md](docs/orch
 
 Once `/g-init` is run in a project, five hooks are installed:
 
-**`session-start.sh`** (`SessionStart`) — fires once when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Also resets the per-session prompt counter used for context depth tracking.
+**`session-start.sh`** (`SessionStart`) — fires when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Resets the per-session prompt + compaction counters used for context-depth tracking — **except on a `compact` start** (the same session continuing after auto-compaction), where the counters carry across so the gate isn't silently zeroed.
 
 **`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count, context depth, and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
 
-Context depth uses mode-aware thresholds. Sessions are classified as `implementation` (recent commits, dirty tree, or active plan files) or `conversation` (clean):
+Context depth uses mode-aware thresholds. **The goal is to reset before the window ever compacts** — a compaction means the gate fired too late. Sessions are classified as `implementation` (recent commits, dirty tree, or active plan files) or `conversation` (clean). Baselines start lenient and **auto-calibrate downward per project** — each compaction grows a persistent offset (floored) so the gate fires earlier next time until compaction stops:
 
-| Mode | 🟡 Amber | 🔴 Red |
+| Mode | 🟡 Amber (baseline) | 🔴 Red (baseline) |
 |---|---|---|
-| implementation | ~25 exchanges | ~40 exchanges |
-| conversation | ~35 exchanges | ~55 exchanges |
+| implementation | ~30 exchanges | ~45 exchanges |
+| conversation | ~45 exchanges | ~65 exchanges |
 
-At amber, Claude runs `/context`, checks remaining window, and warns the user directly: *"Context is getting full — finish what's in flight then /g-retro before anything new."* At red, it's enforced: no new scope, `/g-retro` auto-triggers when the current task finishes, user is told to open a fresh session.
+Amber is **active monitoring**, not a one-time warning: Claude runs `/context` every turn and resets the moment remaining capacity drops below ~25% — capacity-driven, not waiting for the red exchange count (only `/context` reads true context pressure, and only the model can run it). `/g-execute` adds the same `/context` check at every wave boundary — the heaviest token-burn point — catching fast-burning sessions the exchange count misses. At red it's enforced: no new scope, `/g-retro` auto-triggers, the user is told to open a fresh session. If a compaction still slips through, it's recorded as a backstop and tightens the threshold so it doesn't recur.
 
 **`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-forge-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
 
 **`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-forge-approved` after a successful commit.
 
-**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and handoff block from `todo.md`.
+**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and handoff block from `todo.md`. Also records the compaction: it bumps a per-session count (the red backstop) and grows the persistent calibration offset so the context gate fires earlier next time.
 
 The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
@@ -305,7 +305,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-optimize [path]` | Full-codebase or targeted performance audit — algorithmic complexity, N+1 queries, re-render waste, resource leaks, caching opportunities. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
 | `/g-refactor [path\|milestone]` | Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review gate. Accepts a scope path or an audit milestone file. Checks test coverage before execution and runs the full review gate after |
 | `/g-docs [path]` | Documentation audit and generation — scans for missing or stale code docs, README gaps, undocumented env vars, CHANGELOG gaps, and ADR omissions. Targeted scope fixes gaps immediately via doc-writer; whole-codebase scope produces a prioritised documentation debt report |
-| `/g-adr [title]` | Capture an architectural decision record. Gathers context interactively, then **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean) and promotes only the finalized draft to `docs/decisions/NNN-title.md`. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
+| `/g-adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
 | `/g-retro` | Synthesize a session retrospective to `docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
 | `/g-patterns` | Mine `docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
 | `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `docs/forecasts/<slug>.md`. |
@@ -392,14 +392,14 @@ Agents write full findings to `docs/agent-output/` and return a five-line summar
 
 ### Context depth management
 
-A prompt counter in `.claude/session-prompt-count` is incremented on every message (reset each session open). The session is classified as `implementation` or `conversation` based on git signals, and mode-appropriate thresholds apply:
+A prompt counter in `.claude/session-prompt-count` is incremented on every message. It is reset on a genuine session open (startup/resume/clear) but **carries across a `compact` start** — so a session that auto-compacts no longer silently zeroes the counter that triggers its own reset. The session is classified as `implementation` or `conversation` based on git signals; baselines start lenient and auto-calibrate downward (each compaction grows a persistent, floored offset in `.claude/context-threshold-offset`):
 
-| Mode | 🟡 Amber | 🔴 Red |
+| Mode | 🟡 Amber (baseline) | 🔴 Red (baseline) |
 |------|---------|-------|
-| Implementation | 25 exchanges | 40 exchanges |
-| Conversation | 35 exchanges | 55 exchanges |
+| Implementation | 30 exchanges | 45 exchanges |
+| Conversation | 45 exchanges | 65 exchanges |
 
-At amber, Claude runs `/context` to check real remaining window, then warns you to finish what's in flight before starting anything new. At red, it's enforced: no new scope, `/g-retro` auto-triggers, and a handoff block is written before the session ends. This prevents the worst-case scenario — a mid-wave context exhaustion that leaves implementation in an inconsistent state.
+The goal is to reset **before** the window compacts, never after. Amber is active monitoring: Claude runs `/context` every turn and resets the moment remaining capacity drops below ~25% — capacity-driven rather than waiting for the red exchange count, since only `/context` reads true context pressure. `/g-execute` runs the same check at every wave boundary (the heaviest token-burn event), catching fast-burning sessions the exchange count misses. At red it's enforced: no new scope, `/g-retro` auto-triggers, and a handoff block is written before the session ends. This prevents the worst-case scenario — a mid-wave context exhaustion that leaves implementation in an inconsistent state.
 
 ### Pre-plan context budget check
 
