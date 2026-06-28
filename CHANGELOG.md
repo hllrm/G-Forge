@@ -28,6 +28,8 @@ shippability pass: no leftover cruft, no stale docs, no claims the repo doesn't 
 
 ### Added
 
+- **`/g-help <topic>` topic mode + an archive map.** `/g-help` now takes an optional topic/question (`/g-help where are the ADRs`, `/g-help how do I review`) and answers it — routing to the right command, archive path, or rule — instead of always dumping the full dashboard. With no argument it also prints an **Archives & lenses** map: where every durable record lives (ROADMAP handoff, `g-docs/decisions`, `g-docs/retros`, `g-docs/agent-output`, `g-docs/forecasts`, `g-docs/blast-radius`, `g-docs/telemetry`, `g-docs/identity`, `.claude/journal`). The command list also now includes `/g-train` and `/g-trim`.
+- **`/g-roadmap` premortem + re-prioritization on milestone change.** Adding or modifying a milestone is no longer a silent append — a new mandatory Step 3b runs a premortem on the changed milestone(s) (top failure scenarios + mitigations, seeded by `/g-patterns` history and dependency findings) and re-prioritizes the whole non-completed sequence before the buy-in gate.
 - **License declared in the README.** A `## License` section states G-Forge is free, open-source software under **GPL-3.0**, with copyright and a link to the full license text. (The `LICENSE` file was already GPL-3.0.)
 
 ### Fixed
