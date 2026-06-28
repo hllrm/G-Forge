@@ -1,9 +1,23 @@
 ---
 name: g-help
-description: Context-aware help. Reads current project state and tells you exactly where you are in the workflow and what to do next.
+description: Context-aware help. With no argument, reads current project state and tells you where you are and what to do next, plus a map of every archive. With a topic or question argument (`/g-help <topic>`), answers it and points you at the right command or archive.
+argument-hint: "[topic or question]"
 ---
 
 You are running the g-help skill. Follow every step below precisely.
+
+## Step 0 — Topic mode (if `$ARGUMENTS` is non-empty)
+
+If the developer passed a topic or question in `$ARGUMENTS` (e.g. `/g-help how do I review`, `/g-help where are the ADRs`, `/g-help what happened last session`, `/g-help blast radius`), **answer that instead of dumping the full status**:
+
+1. Announce: `> Using g-help to answer: "[the topic]".`
+2. Resolve it to the right lens — a **command**, an **archive path**, or a **rule/doc** — and answer concisely:
+   - "how / what command for X" → name the command and one line on what it does (use the grouped list in Step 5). E.g. review → `/g-review`; capture a decision → `/g-adr`.
+   - "where is / show me X" → point at the archive path from the **Archives & lenses** map below, and if a concrete file is being asked for, Glob/Read the most relevant one and summarise it. E.g. decisions → `g-docs/decisions/`; last session → newest `g-docs/retros/*.md` + `.claude/journal/`; agent findings → `g-docs/agent-output/`; what's next → `ROADMAP.md` `## Active Session`.
+   - "what is / how does X work" (a concept like the commit gate, tiers, the wave model, the context gate) → answer from `G-RULES.md` / `.claude/rules/` and the docs, then point at the file.
+3. End with the single most useful next command. Keep it tight — topic mode is an answer, not the full dashboard. Skip Steps 2–5 unless the answer genuinely needs the full state.
+
+If `$ARGUMENTS` is empty, ignore this step and run the full assessment (Steps 1–5).
 
 ## Step 1 — Announce
 
@@ -93,6 +107,19 @@ Recent intelligence:
 Next step:
   [one clear action the developer should take right now, including the exact command to run]
 
+Archives & lenses (where to read what's going on — only list paths that exist):
+  State:     ROADMAP.md ## Active Session — the handoff (where you are / what's next)
+             ROADMAP.md — milestone plan · project_brief.md — goals & constraints
+             todo.md / todo-done.md — active task ledger / archive
+  Decisions: g-docs/decisions/ — ADRs (decisions + rationale) · CHANGELOG.md — version history
+             g-docs/env-vars.md — env var reference
+  Work:      g-docs/plans/ — approved wave plans
+             g-docs/agent-output/ — full agent findings (wave + review), per task
+             g-docs/retros/ — session retrospectives · .claude/journal/ — raw observer log
+  Intel:     g-docs/forecasts/ — premortems · g-docs/blast-radius/ — dependency impact
+             g-docs/telemetry/ — reliability snapshots · g-docs/identity.md — project personality
+  Tip:       `/g-help <topic>` answers a specific question and points at the right lens.
+
 All commands (grouped by purpose):
 
   Setup:
@@ -126,12 +153,14 @@ All commands (grouped by purpose):
     /g-brief       — refresh project_brief.md as project evolves
     /g-status      — quick one-line state snapshot
     /g-resume      — re-hydrate a fresh session with the right slice of the durable record
-    /g-doctor      — health check: hooks, settings, rules block
+    /g-doctor      — health check: hooks, settings, rules block, duplicate/legacy installs
     /g-update      — realign all g-forge files to current plugin version
     /g-retro       — synthesize session retro from the observer journal (no interview)
     /g-adr         — capture an architectural decision record
-    /g-help        — context-aware help (this skill)
+    /g-trim        — weekly read-only audit of CLAUDE.md + agent memory for bloat
+    /g-help        — context-aware help (this skill); `/g-help <topic>` answers a question
     /g-listen      — Tier 3 listen mode for smoke testing
+    /g-train       — training mode: PM mentors you through the workflow
     /g-afk         — autonomous milestone executor (requires approved plan)
 
   Audit / refactor:
