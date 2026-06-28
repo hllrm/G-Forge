@@ -9,7 +9,7 @@
       "name": "g-forge",
       "source": "./",
       "description": "Multi-agent Claude Code plugin - planned execution, production architecture, enforced review. Single-use agents with a learnings-driven retry loop, plus a decision-hygiene loop that deliberates ADRs off-context and resets the session after (no context poisoning). Three integration tiers (full / balanced / light) and three voice profiles (dev / mid / eli5). Silent-observer journal + brief-alignment drift checks + proactive feature-drop triage + selective session re-hydration (/g-resume). 17 agents, 35 skills, 48 stack profiles, 7 combo profiles, 1 supplementary profile (frontend-data-flow).",
-      "version": "1.10.0",
+      "version": "1.9.1",
       "author": {
         "name": "hllrm"
       },
