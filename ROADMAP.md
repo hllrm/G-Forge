@@ -237,16 +237,57 @@ Active context:   · v1.9.2 merged to main. M23 is the next milestone — see it
 ### M23 — G-Forge 2.0 (Production-Readiness Audit)
 **Status:** ⬜ Planned
 **Version:** v2.0.0
-**Goal:** A ruthless consistency / clarity / shippability pass — "no shit." No half-measures, no leftover cruft, no stale docs, no claims the repo doesn't back up. Fix what's found; don't just report. Bump to v2.0.0 only when you'd stake "production ready" on it.
-**Scope:**
-- **`.gitignore` + repo clean** — tighten `.gitignore` (exclude all generated runtime: `.claude/` state, scratch, agent-output, journals, sentinels, OS files; nothing real). Remove dead/stray files; move shipped test scripts (`hooks/test-check-commit.sh`, `hooks/test-observe.sh`) out of `hooks/` into a `tests/` dir or exclude them. Sweep orphaned refs / dead links.
-- **Agents ↔ hooks reconciliation** — every agent a skill references exists (17 present); every hook in `hooks/hooks.json` matches `/g-init`'s install table AND `/g-doctor`'s checks (paths, names, registration); nothing referenced-but-missing or installed-but-unregistered.
-- **README v2** — rewritten from scratch (not patched), drafted under a PLACEHOLDER name, real name swapped in one pass once content is approved.
-- **Consistency / clarity sweep** — purge legacy "G-Team" naming (in `hooks/*.sh`, `hooks/hooks.json`, `ROADMAP.md`; leave historical retros); reconcile count claims (marketplace.json says "17 agents, 35 skills" vs 37 commands / 35 skill dirs) everywhere they appear; verify docs match recent behavior (the 9-step `/g-adr`; the compaction-preventing §A7 gate); one consistent voice across `commands/`, `skills/`, `agents/`, `rules/`, `docs/`.
-- **Standing rule** — CHANGELOG + README kept in sync as part of "done" for every change.
-**Done:** repo clean; `.gitignore` correct; agents↔hooks fully reconciled; zero legacy naming; all counts/claims true; README v2 approved and named; CHANGELOG + docs in sync; `/g-doctor` green.
-
 **Depends on:** all prior milestones (this audits the whole surface).
+
+Self-contained kickoff — paste the block below into a fresh session (or open cold and run `/g-resume`, which points here):
+
+```
+G-Forge 2.0 — production-readiness audit. The bar: "no shit." Ruthless pass for
+consistency, clarity, and shippability. No half-measures, no leftover cruft, no
+stale docs, no claims the repo doesn't back up. Fix what you find; don't just report.
+
+Work on a fresh branch (e.g. claude/g-forge-2.0-audit). Do NOT push to main without
+explicit approval. Use G-Forge's own tooling where it fits (/g-audit, /g-docs,
+/g-doctor, /g-review). Keep CHANGELOG.md AND README in sync as part of "done" for
+every change — standing rule, not an afterthought.
+
+EXPLICIT DELIVERABLES
+1. .gitignore — review and tighten. Confirm it excludes everything generated
+   (.claude/ runtime, scratch, agent-output, journals, sentinels, OS files) and
+   nothing that is real plugin content. (Current file uses legacy "G-Team" wording.)
+2. Clean the repo — remove dead/stray files; decide what should not ship. Known:
+   hooks/test-check-commit.sh and hooks/test-observe.sh ship in hooks/ — move to a
+   tests/ dir or exclude. Sweep orphaned references, dead links, placeholder files.
+3. Agents <> hooks reconciliation — every agent a skill references exists (17
+   present); every hook in hooks/hooks.json matches g-init's install table AND
+   g-doctor's checks (paths, names, registration); nothing referenced-but-missing
+   or installed-but-unregistered.
+4. README v2 — rewrite from scratch (don't patch). Start under a PLACEHOLDER project
+   name; keep the real name out until content is approved, then swap it in one pass.
+
+CONSISTENCY / CLARITY SWEEP (seeded findings — start here, don't stop here)
+- Legacy "G-Team" strings still in: hooks/hooks.json, hooks/pre-compact.sh,
+  hooks/check-commit.sh, hooks/post-commit-cleanup.sh, hooks/workflow-checkpoint.sh,
+  ROADMAP.md. Rename to G-Forge (leave historical retros untouched).
+- Count claims vs reality: marketplace.json says "17 agents, 35 skills" but there
+  are 37 commands and 35 skill dirs. Reconcile everywhere they appear (marketplace.json,
+  README, CHANGELOG, /g-help) against ground truth.
+- Docs vs recent behavior: /g-adr is now a 9-step flow (entry triage, capture mode,
+  reversibility + premortem); the §A7 context gate now prevents compaction
+  (auto-calibrating thresholds, amber active-monitoring, wave /context checks). Check
+  every doc that describes these (README, G-RULES, docs/orchestration-patterns.md,
+  skill/command descriptions) for stale step numbers / thresholds.
+- One voice: descriptions, headers, terminology consistent across commands/, skills/,
+  agents/, rules/, docs/.
+
+VERSION: major — bump to 2.0.0 only when the audit is genuinely complete and you'd
+stake "production ready" on it. Developer approves the bump.
+
+DONE = repo clean; .gitignore correct; agents<>hooks fully reconciled; zero legacy
+naming; all counts/claims true; README v2 approved and named; CHANGELOG + docs in
+sync; /g-doctor green. If something can't be made production-ready in scope, say so
+plainly with the reason — don't paper over it.
+```
 
 ---
 
