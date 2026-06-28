@@ -35,7 +35,7 @@ Telemetry profile: [profile] — [one-line effect]
 Look for the plan in this order:
 
 1. A plan file explicitly provided as `$ARGUMENTS` (treat as a file path)
-2. `docs/plans/` — read the most recently modified `.md` file
+2. `g-docs/plans/` — read the most recently modified `.md` file
 3. `todo.md` — look for a wave schedule section
 4. If none found: tell the developer "No plan file found. Run `/g-plan` first, or pass the plan file path as an argument." and stop.
 
@@ -79,7 +79,7 @@ Dispatching [N] tasks in parallel:
 
 ### Parallel dispatch
 
-Before Wave 1, create `docs/agent-output/` if it does not exist. Before each wave create `docs/agent-output/wave-[N]/`.
+Before Wave 1, create `g-docs/agent-output/` if it does not exist. Before each wave create `g-docs/agent-output/wave-[N]/`.
 
 Dispatch all tasks in the current wave as parallel subagents **in a single message**. Never split a wave across multiple messages.
 
@@ -89,7 +89,7 @@ Use this compact template for every agent prompt. Derive `[task-slug]` by lowerc
 Task: [task name]
 Done condition: [done condition from plan]
 Files in scope: [file paths from plan, or "determine from task scope"]
-Output file: docs/agent-output/wave-[N]/[task-slug].md
+Output file: g-docs/agent-output/wave-[N]/[task-slug].md
 Constraint: touch only files in your task scope.
 [if defensive or recovery: telemetry clause from Step 0]
 
@@ -105,7 +105,7 @@ SUMMARY: [one sentence]
 FILES: [files changed, comma-separated]
 DONE_CONDITION: met|not met — [reason]
 LEARNINGS: [FAILED only — the approach you tried, where/why it broke, what is now ruled out, and a recommended DIFFERENT approach. Omit for DONE/BLOCKED.]
-DETAIL: docs/agent-output/wave-[N]/[task-slug].md
+DETAIL: g-docs/agent-output/wave-[N]/[task-slug].md
 ```
 
 `FAILED` = your approach didn't work; you are returning learnings so HQ can try a different one. `BLOCKED` = an external dependency makes the task impossible to proceed (missing upstream work, unavailable resource) — a different approach wouldn't help.
@@ -181,7 +181,7 @@ Do not output a "run /g-review" suggestion and stop. The review is part of the w
 - Never implement anything yourself — your job is coordination only.
 - The telemetry profile read in Step 0 is **advisory at dispatch time only** — it never blocks or auto-rewrites the plan. If the profile is `recovery` and the developer-approved plan has multi-agent waves, run them serially per the wave-size cap; do not silently rewrite the plan file.
 - **Sub-batch semantics** — when wave-size cap forces sub-batches (e.g. W3.1, W3.2), sub-batches run strictly serially within the wave. A BLOCKED signal in any sub-batch stops the wave immediately, mirroring the inter-wave gate. The Progress table is updated to `complete` only after all sub-batches in the wave return without BLOCKED.
-- **Escalation logging** — whenever Three-Strikes (G-RULES.md §A7) escalates a task to a higher model tier, append a single line to `.claude/escalation-log` in the format `YYYY-MM-DD <task-label>`. Create the file if missing. This feeds the escalation-frequency telemetry metric — without this write, the metric cannot increment.
+- **Escalation logging** — whenever Three-Strikes (G-RULES.md §A8) escalates a task to a higher model tier, append a single line to `.claude/escalation-log` in the format `YYYY-MM-DD <task-label>`. Create the file if missing. This feeds the escalation-frequency telemetry metric — without this write, the metric cannot increment.
 - If a task has no done condition in the plan, flag it to the developer before dispatching.
 - **Never instruct subagents to run `git commit`.** Committing is HQ's responsibility after `/g-review` issues MERGE READY. Agent prompts must not include commit instructions — only implement, test, and return results.
 - **Agents are single-use (G-RULES §C).** One approach, one attempt. Never continue or re-prompt a `FAILED` agent — discard it and redeploy a fresh one seeded only by the distilled learnings. The failed agent's context never re-enters the loop; that is what keeps each retry clean (no context poisoning). The retry ceiling is Three-Strikes (§A8): three fresh attempts with different mechanisms, then escalate to the human.

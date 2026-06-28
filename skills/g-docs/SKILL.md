@@ -27,7 +27,7 @@ Read `CLAUDE.md` and `project_brief.md` to establish:
 - Language(s) in use — determines the expected doc format (JSDoc, docstrings, doc comments)
 - Whether a public API is exposed (REST, GraphQL, SDK) — determines if an API reference is expected
 - Whether env vars are used (`process.env`, `os.environ`, `std::env`) — determines if an env var reference is expected
-- Whether `docs/decisions/` exists — determines if ADR audit applies
+- Whether `g-docs/decisions/` exists — determines if ADR audit applies
 
 ## Step 3 — Parallel documentation scan
 
@@ -84,7 +84,7 @@ For each file >100 lines, read the first 5 lines. If no comment or docstring is 
 
 **README completeness**
 
-Read `README.md` (or `docs/README.md`). Check for the presence of each required section:
+Read `README.md` (or `g-docs/README.md`). Check for the presence of each required section:
 - What the project is (one-sentence description)
 - Why someone would use it / what problem it solves
 - Installation or setup instructions
@@ -105,7 +105,7 @@ grep -rn "process\.env\.\|os\.environ\[\|os\.getenv(\|std::env::var(\|Environmen
   --exclude-dir=node_modules \
   [scope]
 ```
-Extract every distinct env var name. Then check whether each is documented in any of: `README.md`, `docs/env-vars.md`, `.env.example`, or a configuration reference section. Undocumented = gap.
+Extract every distinct env var name. Then check whether each is documented in any of: `README.md`, `g-docs/env-vars.md`, `.env.example`, or a configuration reference section. Undocumented = gap.
 
 **CHANGELOG currency**
 ```bash
@@ -117,9 +117,9 @@ Read `CHANGELOG.md`. If the most recent entry is more than 5 commits behind HEAD
 **ADR coverage**
 ```bash
 # Check for existing ADRs
-find . -path "*/docs/decisions/*.md" -not -path "*/node_modules/*" | sort
+find . -path "*/g-docs/decisions/*.md" -not -path "*/node_modules/*" | sort
 ```
-If `docs/decisions/` is empty or missing but the project has a CLAUDE.md with architectural rules, flag: "Architectural decisions present in CLAUDE.md have no corresponding ADRs — the rationale behind these choices is undocumented."
+If `g-docs/decisions/` is empty or missing but the project has a CLAUDE.md with architectural rules, flag: "Architectural decisions present in CLAUDE.md have no corresponding ADRs — the rationale behind these choices is undocumented."
 
 Also grep for patterns indicating undocumented decisions in the diff scope:
 ```bash
@@ -170,7 +170,7 @@ For each gap identified, dispatch `doc-writer` with:
 
 After doc-writer completes each gap, report:
 ```
-✅ docs/env-vars.md — DATABASE_URL, REDIS_URL, JWT_SECRET documented
+✅ g-docs/env-vars.md — DATABASE_URL, REDIS_URL, JWT_SECRET documented
 ✅ src/services/UserService.ts — JSDoc added to createUser, updateUser
 ⚠ README.md — Contributing section still missing (requires human input on process)
 ```
@@ -195,7 +195,7 @@ Generated: [date]
 - CHANGELOG.md: 7 commits since last entry (Major · Medium)
 
 ### P2 — Schedule
-- docs/decisions/: no ADRs found despite 3 architectural patterns in CLAUDE.md (Major · Low)
+- g-docs/decisions/: no ADRs found despite 3 architectural patterns in CLAUDE.md (Major · Low)
 - src/lib/: 4 modules >100 lines without module headers (Minor · Low)
 
 ---

@@ -22,7 +22,7 @@ Determine what is being planned before asking anything else:
 
 Ask the developer: "Does this project have a QA panel or structured manual test UI?"
 
-**If yes:** Ask which groups or areas are impacted by this milestone's changes. Then ask what passing looks like for each in-scope group. Compile a QA scope document at `docs/qa-scope/<milestone-slug>.md` using the schema in the **QA Scope Format** section below. This becomes the Tier 3 DoD for the milestone.
+**If yes:** Ask which groups or areas are impacted by this milestone's changes. Then ask what passing looks like for each in-scope group. Compile a QA scope document at `g-docs/qa-scope/<milestone-slug>.md` using the schema in the **QA Scope Format** section below. This becomes the Tier 3 DoD for the milestone.
 
 **If no:** Ask the developer to state the Tier 3 DoD for this milestone in one or two sentences. Record it in the plan header under `> Tier 3 DoD:`.
 
@@ -191,13 +191,13 @@ Once all blockers are resolved (either fixed or explicitly overridden), proceed 
 
 ## Step 3a — Write the pending-forecast handoff
 
-Before invoking `/g-forecast`, write the in-memory task list and wave schedule to `docs/plans/.pending-forecast.md` using the same Plan File Format defined later in this skill. This is a temporary handoff file — `/g-forecast` Step 1 reads it preferentially when present, so the forecast targets *this* plan (which has not yet been approved or saved as the official `<slug>.md`) and not a stale older plan.
+Before invoking `/g-forecast`, write the in-memory task list and wave schedule to `g-docs/plans/.pending-forecast.md` using the same Plan File Format defined later in this skill. This is a temporary handoff file — `/g-forecast` Step 1 reads it preferentially when present, so the forecast targets *this* plan (which has not yet been approved or saved as the official `<slug>.md`) and not a stale older plan.
 
-Delete `docs/plans/.pending-forecast.md` at the end of Step 4 — whether the developer approves, edits, or rejects the plan. It must never persist past the approval gate.
+Delete `g-docs/plans/.pending-forecast.md` at the end of Step 4 — whether the developer approves, edits, or rejects the plan. It must never persist past the approval gate.
 
 ## Step 3b — Run `/g-forecast` for scope-realism and premortem
 
-Use Glob to find `skills/g-forecast/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. `/g-forecast` will pick up `docs/plans/.pending-forecast.md` per its Step 1 case 1.
+Use Glob to find `skills/g-forecast/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. `/g-forecast` will pick up `g-docs/plans/.pending-forecast.md` per its Step 1 case 1.
 
 The forecast returns: a complexity score (0–10), a miss-risk percentage with risk tag, and a ranked top-5 premortem of likely failure scenarios with mitigations. It is **advisory** — it never blocks the approval gate. Its job is to surface risk so the developer can decide whether to proceed, mitigate, or re-scope.
 
@@ -242,11 +242,11 @@ Ready to execute? Reply 'approved' to begin, or describe changes.
 
 **Do not proceed without explicit developer approval.** If the developer requests changes, update the plan and re-present. Repeat until approved.
 
-When the developer responds (approval, edit, or reject), delete `docs/plans/.pending-forecast.md` if it exists — the handoff file from Step 3a must never persist past this gate.
+When the developer responds (approval, edit, or reject), delete `g-docs/plans/.pending-forecast.md` if it exists — the handoff file from Step 3a must never persist past this gate.
 
 ## Step 4a — Save approved plan to disk
 
-Once the developer approves, immediately write the plan to `docs/plans/<feature-slug>.md` using the schema defined in the **Plan File Format** section below. Slugify the feature name for the filename (e.g. `user-auth-flow.md`). Create the `docs/plans/` directory if it does not exist. Do this before handing off to g-execute.
+Once the developer approves, immediately write the plan to `g-docs/plans/<feature-slug>.md` using the schema defined in the **Plan File Format** section below. Slugify the feature name for the filename (e.g. `user-auth-flow.md`). Create the `g-docs/plans/` directory if it does not exist. Do this before handing off to g-execute.
 
 ## Step 5 — On approval
 
@@ -254,7 +254,7 @@ Once the developer approves, use Glob to find `skills/g-execute/SKILL.md` inside
 
 ## Plan File Format
 
-All plans produced by this skill are saved to `docs/plans/<feature-slug>.md` immediately after developer approval (before execution begins). Use the feature name slugified as the filename (e.g. `user-auth-flow.md`).
+All plans produced by this skill are saved to `g-docs/plans/<feature-slug>.md` immediately after developer approval (before execution begins). Use the feature name slugified as the filename (e.g. `user-auth-flow.md`).
 
 ### Schema
 
@@ -289,7 +289,7 @@ All plans produced by this skill are saved to `docs/plans/<feature-slug>.md` imm
 
 ## QA Scope Format
 
-Written to `docs/qa-scope/<milestone-slug>.md`. One file per milestone, compiled through conversation with the developer.
+Written to `g-docs/qa-scope/<milestone-slug>.md`. One file per milestone, compiled through conversation with the developer.
 
 ````markdown
 # QA Scope: [Milestone Name]

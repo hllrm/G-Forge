@@ -1,6 +1,6 @@
 ---
 name: g-adr
-description: Capture an architectural decision record. First triages whether the decision merits an ADR or just a one-line entry in the brief's tech-decisions table (keeping the corpus rare and high-signal). Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
+description: Capture an architectural decision record. First triages whether the decision merits an ADR or just a one-line entry in the brief's tech-decisions table (keeping the corpus rare and high-signal). Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to g-docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
 argument-hint: [short decision title]
 ---
 
@@ -107,14 +107,14 @@ Show the draft plus the WEAKNESSES list. If the developer wants substantive chan
 ## Step 5 — Determine ADR number
 
 ```bash
-find . -path "*/docs/decisions/*.md" -not -path "*/node_modules/*" | sort
+find . -path "*/g-docs/decisions/*.md" -not -path "*/node_modules/*" | sort
 ```
 
-If `docs/decisions/` does not exist, create it. Next number = highest existing + 1, zero-padded to 3 digits. If none exist, start at 001.
+If `g-docs/decisions/` does not exist, create it. Next number = highest existing + 1, zero-padded to 3 digits. If none exist, start at 001.
 
 ## Step 6 — Write the ADR
 
-Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQLite" → `001-use-postgresql-instead-of-sqlite.md`). Write to `docs/decisions/[NNN]-[kebab-title].md`:
+Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQLite" → `001-use-postgresql-instead-of-sqlite.md`). Write to `g-docs/decisions/[NNN]-[kebab-title].md`:
 
 ```markdown
 # ADR-[NNN]: [Title]
@@ -169,7 +169,7 @@ Check downstream files:
 
 Report:
 ```
-ADR-[NNN] written: docs/decisions/[NNN]-[title].md
+ADR-[NNN] written: g-docs/decisions/[NNN]-[title].md
 Status: [Accepted | Proposed | ...]
 
 [Follow-up actions if any, or "No follow-up actions identified."]
@@ -206,9 +206,9 @@ Apply this step only when the ADR is **Accepted** and consequential (a real stac
 
 1. **Promote the record — run `/g-retro`** (the same `/g-retro` the context gate triggers at red). Use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it; topic slug `adr-[NNN]-[short]`. The observer journal already captured the session; the retro distills it into the durable record. **Skip if a retro has already run or is scheduled this session** — e.g. the §A7 red gate already fired, or you reached `/g-adr` via `/g-review`'s milestone close, which runs `/g-retro` itself. Don't double-retro.
 
-2. **Write the handoff** — the same `## Handoff` block §A7 writes on reset. If `todo.md` exists, set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
+2. **Write the handoff** — the same `## Active Session` block §A7 writes on reset, in `ROADMAP.md`. Set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
    > `⚠ FIRST: verify ADR-[NNN] against the actual repo state before building on it (clean-slate check).`
-   If `todo.md` does not exist, carry the task in the chat recommendation only.
+   If `ROADMAP.md` has no `## Active Session` block, insert one after the title (or carry the task in the chat recommendation only if there is no `ROADMAP.md`).
 
 3. **Recommend a fresh session** (the same recommendation the red gate makes). Tell the developer:
    > "ADR-[NNN] is finalized. This session's context now carries the deliberation that produced it — that's residue I shouldn't keep building on, and the ADR itself is an airtight answer that should be *checked*, not trusted from memory. Recommend: **start a fresh session and run `/g-resume`** — it re-hydrates a clean window with the handoff, this retro, and ADR-[NNN], and offers to verify the decision against the actual repo as the first task. You lose the residue, not the knowledge."

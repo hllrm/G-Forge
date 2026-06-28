@@ -11,14 +11,14 @@ Undocumented decisions become invisible. Undocumented APIs block adoption. Undoc
 - Document the WHY. Never restate the type signature or function name in prose. If a comment would only say "gets the user by ID", omit it — the name already says that.
 
 **Architecture level — required for significant decisions:**
-- Every significant technical decision — new stack component, new external dependency, new pattern applied project-wide, replacement of an existing approach — must have an ADR in `docs/decisions/`.
+- Every significant technical decision — new stack component, new external dependency, new pattern applied project-wide, replacement of an existing approach — must have an ADR in `g-docs/decisions/`.
 - Run `/g-adr` to capture decisions interactively. Capture immediately, while context is fresh.
 - CLAUDE.md carries architecture *rules*. ADRs carry the *rationale* behind those rules. Both are required.
 
 **Project level — required for every project:**
 - README must contain: what the project is (one sentence), why someone would use it, installation/setup, quickstart example, configuration reference, and a link to or description of the public API (if one exists).
 - CHANGELOG must have an entry for every release covering: new features, bug fixes, breaking changes, deprecations. Update CHANGELOG in the same PR as the change — never retroactively.
-- Environment variables: every env var read by the application must be documented in `docs/env-vars.md`, `.env.example`, or a dedicated README section. Include: var name, purpose, required/optional, example value, default if optional.
+- Environment variables: every env var read by the application must be documented in `g-docs/env-vars.md`, `.env.example`, or a dedicated README section. Include: var name, purpose, required/optional, example value, default if optional.
 
 **API level — required when a public API is exposed:**
 - REST APIs: maintain an OpenAPI spec (`openapi.yaml` or equivalent). Update the spec in the same PR as the endpoint change.

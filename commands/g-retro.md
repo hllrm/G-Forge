@@ -1,5 +1,5 @@
 ---
-description: Synthesize a session retrospective from the silent-observer journal (no interview) to docs/retros/YYYY-MM-DD-topic.md. Reads the passive activity log, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context.
+description: Synthesize a session retrospective from the silent-observer journal (no interview) to g-docs/retros/YYYY-MM-DD-topic.md. Reads the passive activity log, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context.
 argument-hint: [topic slug]
 ---
 

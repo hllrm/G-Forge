@@ -1,6 +1,6 @@
 ---
 name: g-retro
-description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and todo.md, and writes docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
+description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and todo.md, and writes g-docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
 context: [task, sprint, institutional]
 ---
 
@@ -14,7 +14,7 @@ If the user provided a topic argument, use it as the slug (lowercase, hyphen-sep
 
 Otherwise infer a slug automatically — do **not** stop to ask:
 1. If the current branch matches `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, or `chore/<slug>`, use `<slug>`.
-2. Else read `todo.md` (Handoff block) and `git log --oneline -5` and infer a short descriptive slug capturing the session's main theme (e.g. `precompact-hook`, `m3-wave2`).
+2. Else read the `## Active Session` handoff in `ROADMAP.md` and `git log --oneline -5` and infer a short descriptive slug capturing the session's main theme (e.g. `precompact-hook`, `m3-wave2`).
 3. Keep it under 30 characters.
 
 State the chosen topic in one line and proceed: `Retro topic: [topic]`. If the developer corrects it afterward, rename the file.
@@ -24,7 +24,8 @@ State the chosen topic in one line and proceed: `Retro topic: [topic]`. If the d
 Read the following in parallel:
 
 - **The observer journal** — `.claude/journal/*.jsonl`. Read today's file in full and the two most recent prior days (the work being retro'd may span sessions). Each line is `{"ts","kind","detail"}` with `kind` ∈ `session · agent · commit · branch · test · push · merge · revert · destructive · note`.
-- `todo.md` — full file (Handoff block + Tasks table).
+- `ROADMAP.md` — the `## Active Session` handoff (Done this pass / Next up / Active context) and the active milestone.
+- `todo.md` — the Tasks table (tactical ledger; no handoff lives here).
 - `todo-done.md` — last 10 entries (read from the end of the file).
 - `git log --oneline -15` via Bash.
 - `git branch --show-current` via Bash.
@@ -41,14 +42,14 @@ Derive each section from evidence. Do not ask the developer questions — read t
   - *Worked well*: clean signal — tests run before commits (`test` entries preceding `commit` entries), no reverts, no `destructive` flags, agents finishing without re-dispatch.
   - *Avoid / do differently*: friction signal — `revert` entries, repeated `test` failures before a commit, `destructive` flags, the same agent dispatched repeatedly on one task, or commits with `fix-of-fix`/`take 2`/`retry` messages.
   - If a category has no signal, write `None observed.`
-- **Cold-start context** — branch, active milestone (from `todo.md` Handoff or `ROADMAP.md`), next-up line (verbatim from `todo.md`), key files touched (unique basenames across the git log this session), and carry-over context (from the Handoff "Active context" line).
+- **Cold-start context** — branch, active milestone (from `ROADMAP.md`), next-up line (verbatim from the `## Active Session` handoff in `ROADMAP.md`), key files touched (unique basenames across the git log this session), and carry-over context (from the handoff "Active context" line).
 
 ## Step 4 — Forecast outcome reconciliation (conditional, evidence-based)
 
 Derive the active plan slug deterministically:
 1. Branch name `feat/<slug>` etc. → `<slug>`.
-2. `docs/forecasts/<candidate>.md` exists → that is the active plan.
-3. Fallback: most-recently-modified `docs/forecasts/*.md` whose `docs/plans/<slug>.md` has an incomplete wave. If none, skip this step silently.
+2. `g-docs/forecasts/<candidate>.md` exists → that is the active plan.
+3. Fallback: most-recently-modified `g-docs/forecasts/*.md` whose `g-docs/plans/<slug>.md` has an incomplete wave. If none, skip this step silently.
 
 If a forecast file is found, reconcile its predicted scenarios against the journal evidence rather than asking the developer:
 - For each predicted scenario, mark `happened` / `did not happen` / `unverified` based on journal + git signals (e.g. a forecasted "auth refactor will cause regressions" is `happened` if reverts or HOLD-related rework appear around the auth files).
@@ -56,7 +57,7 @@ If a forecast file is found, reconcile its predicted scenarios against the journ
 
 ## Step 5 — Write the retro file
 
-Create `docs/retros/` if it does not exist. Use today's date (`YYYY-MM-DD`) and the topic slug: `docs/retros/YYYY-MM-DD-[topic].md`.
+Create `g-docs/retros/` if it does not exist. Use today's date (`YYYY-MM-DD`) and the topic slug: `g-docs/retros/YYYY-MM-DD-[topic].md`.
 
 Write the file with this exact structure:
 
@@ -78,9 +79,9 @@ Write the file with this exact structure:
 ## Cold-start context
 **Branch:** [current branch]
 **Active milestone:** [milestone name and status]
-**Next up:** [Handoff "Next up" line from todo.md, verbatim]
+**Next up:** [the "Next up" line from the ROADMAP `## Active Session` handoff, verbatim]
 **Key files touched:** [comma-separated basenames from git log this session]
-**Carry-over context:** [Handoff "Active context" line from todo.md]
+**Carry-over context:** [the "Active context" line from the ROADMAP `## Active Session` handoff]
 
 ## Journal basis
 [count of journal events read, by kind — e.g. "8 commit · 3 test · 12 agent · 1 revert", or "No journal — git + todo only"]
@@ -88,12 +89,25 @@ Write the file with this exact structure:
 
 Do not add extra sections.
 
+## Step 5b — Refresh the ROADMAP handoff
+
+`/g-retro` is the session-end ritual, so it **owns** refreshing the single canonical handoff — the `## Active Session` block in `ROADMAP.md` — from the cold-start it just synthesized. This is what guarantees the next session opens with an accurate target.
+
+Rewrite that block (replace, never append) using the canonical format defined in **G-RULES §I** (Project Tracking) — don't restate the format here, fill it from this retro:
+- **Done this pass** ← one-line summary of "What was done"
+- **Next up** ← the lead next action
+- **Active context** ← the carry-over context line
+
+If `ROADMAP.md` has no `## Active Session` block yet (older project), insert one directly after the top `# ` title. Committing the change is the developer's choice (same as the retro file), but the block must be written.
+
+This is the only place the handoff *write* is spelled out. The §A7 reset, `/g-review`'s milestone close, and `/g-adr`'s decision-hygiene handoff all run `/g-retro` — they delegate the write here rather than re-implementing it. The one routine exception is a plain end-of-pass update with no retro, which HQ does directly per §A3 (same block, same §I format).
+
 ## Step 6 — Surface for verification
 
 Report the file path and print the **Cold-start context** and **Patterns** sections verbatim so the developer can correct anything the synthesis got wrong:
 
 ```
-Retro written: docs/retros/YYYY-MM-DD-[topic].md  (synthesized from [N] journal events)
+Retro written: g-docs/retros/YYYY-MM-DD-[topic].md  (synthesized from [N] journal events)
 
 --- Patterns ---
 [paste]
@@ -107,7 +121,7 @@ If the developer corrects a section, edit the file and re-print only the correct
 ## Step 7 — Pattern suggestions (informational)
 
 After writing, surface any ≥2-occurrence patterns this retro contributes to — same as before:
-1. Read every retro under `docs/retros/`, including the one just written.
+1. Read every retro under `g-docs/retros/`, including the one just written.
 2. Apply the `None recorded.` / `None observed.` sentinel filter.
 3. Extract `Avoid / do differently` bullets, group by normalised label, count distinct source files.
 

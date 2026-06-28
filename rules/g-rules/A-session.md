@@ -10,7 +10,7 @@
 - Business logic / public API / bug fix → tests required. Pure UI render → skip is OK, state why explicitly. Silence = not acceptable.
 - Pure functions inside a component → extract to the project's lib/utils layer first, then test
 - After each commit: update `todo.md` (remove closed rows + Details), append to `todo-done.md`, commit immediately — never leave either file dirty
-- End of pass: rewrite `## Handoff` block in `todo.md` (replace, never append), commit, post the same block in chat
+- End of pass: rewrite the `## Active Session` handoff block in `ROADMAP.md` (replace, never append), commit, post the same block in chat. This is the single canonical handoff — `ROADMAP.md` is committed, so a fresh session (even a fresh clone) targets one document for "where am I / what's next." `todo.md` holds only the tactical task ledger, never a handoff.
 
 **A4 Token optimisation**
 - Grep before Read — find line numbers, then read only those lines (`limit` + `offset`)
@@ -28,7 +28,7 @@
 
 At 🟡 **amber** — this is **active monitoring**, not a one-time warning: run `/context` **this turn and every turn from now**, and the moment remaining capacity drops below the floor (**~25%**), reset immediately — finish in-flight work, `/g-retro`, fresh session — *without waiting for the red exchange count*. Capacity-driven reset is the actual prevention; the exchange count only decides when to start polling. Surface a direct, visible warning to the user, not a buried status line.
 
-At 🔴 **red**: enforce without waiting for the user. Accept no new scope. Complete only the task currently executing. When it finishes, automatically trigger `/g-retro`. After /g-retro completes, tell the user: *"Session context exhausted — open a fresh session and run `/g-resume` to continue."* The handoff block in `todo.md` must be written and committed before the session ends — this is non-negotiable.
+At 🔴 **red**: enforce without waiting for the user. Accept no new scope. Complete only the task currently executing. When it finishes, automatically trigger `/g-retro` — which writes the `## Active Session` handoff (its Step 5b). After /g-retro completes, tell the user: *"Session context exhausted — open a fresh session and run `/g-resume` to continue."* Confirm that handoff is written and committed before the session ends — this is non-negotiable.
 
 **Additional guard — `/context` at every wave boundary.** A wave (`/g-execute`) is the heaviest token-burn event there is and already a hold point, so checking `/context` right after each wave completes is essentially free and catches fast-burning sessions the exchange count misses. Below the ~25% floor → reset before dispatching the next wave; the remaining waves resume in the fresh session.
 

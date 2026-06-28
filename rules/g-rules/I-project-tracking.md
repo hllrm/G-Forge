@@ -5,13 +5,14 @@
 | File | Written by | Purpose |
 |------|-----------|---------|
 | `project_brief.md` | `/g-kickoff` | Project goals, constraints, stack decisions |
-| `ROADMAP.md` | `/g-roadmap` | Milestone plan — current, backlog, done |
+| `ROADMAP.md` | `/g-roadmap`, HQ | Milestone plan (current, backlog, done) **+ the `## Active Session` handoff** — the single canonical cold-start (Done this pass / Next up / Active context), rewritten each pass |
 | `milestones/M*.md` | `/g-roadmap`, `/g-plan` | Per-milestone scope, tasks, done conditions |
-| `todo.md` | HQ | Active task ledger — Handoff + Tasks + Details |
+| `todo.md` | HQ | Active task ledger — Tasks + Details (tactical; the handoff lives in `ROADMAP.md`) |
 | `todo-done.md` | HQ | Archive of closed tasks and pass reports |
-| `docs/decisions/NNN-title.md` | `/g-adr` | Architectural Decision Records — rationale behind significant technical choices |
-| `docs/env-vars.md` | `doc-writer`, `/g-docs` | Environment variable reference — name, purpose, required/optional, example |
+| `g-docs/decisions/NNN-title.md` | `/g-adr` | Architectural Decision Records — rationale behind significant technical choices |
+| `g-docs/env-vars.md` | `doc-writer`, `/g-docs` | Environment variable reference — name, purpose, required/optional, example |
 | `CHANGELOG.md` | HQ, `doc-writer` | Version history — features, fixes, breaking changes, deprecations |
+| `g-wiki/` | `/g-wiki` | Human-facing project wiki — narrative architecture + how-to. **Committed** project content (not a runtime artifact); refreshed at each milestone close. Distinct from `g-docs/` (operational records) and `/g-docs` (code-level doc hygiene). |
 
 ### Commit gate infrastructure
 
@@ -23,18 +24,13 @@ Three hook scripts installed by `/g-init` under `.claude/hooks/`:
 
 Never bypass the commit gate with `--no-verify` or by manually writing the sentinel.
 
-### todo.md structure
+### The handoff lives in ROADMAP.md
 
-**`todo.md`** — three sections only:
-1. `## Handoff` — one block, replaced (never appended) each pass. Cold-start context.
-2. `## Tasks` — `| # | Task | Notes |` table. Notes column: `*` when a Details section exists.
-3. `## Details` — `### N — Title` subsections for asterisked rows only.
-
-**`todo-done.md`** — archive. All closed tasks, pass reports, and summaries. Never inflate `todo.md` with history.
-
-Rules: closing a task = remove row + Details from `todo.md`, append to `todo-done.md`. Both files committed every session. Every edit to either file commits immediately — never left dirty.
+There is **one** handoff, and it lives in `ROADMAP.md` under a `## Active Session` heading — not in `todo.md`. `ROADMAP.md` is committed, so a fresh session (or a fresh clone) has exactly one document to target for "where am I / what's next," with no redirect to a second file. The handoff is rewritten (replaced, never appended) each pass and committed; the same block is posted in chat (chat is for paste, the file is the persistent record).
 
 ```
+## Active Session
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HANDOFF — <project> | branch: <branch>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -44,4 +40,14 @@ Active context:   · <file:line, state, in-flight logic>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Same content in both the committed file and the chat message — chat is for paste, file is the persistent record.
+`workflow-checkpoint.sh` reads the `Active context:` line on every prompt; `pre-compact.sh` snapshots the whole block; `/g-resume` re-hydrates from it; `/g-retro` refreshes it at session end. One writer-target, one read-target.
+
+### todo.md structure
+
+**`todo.md`** — two sections only (tactical task ledger, no handoff):
+1. `## Tasks` — `| # | Task | Notes |` table. Notes column: `*` when a Details section exists.
+2. `## Details` — `### N — Title` subsections for asterisked rows only.
+
+**`todo-done.md`** — archive. All closed tasks, pass reports, and summaries. Never inflate `todo.md` with history.
+
+Rules: closing a task = remove row + Details from `todo.md`, append to `todo-done.md`. Both files committed every session. Every edit to either file commits immediately — never left dirty.

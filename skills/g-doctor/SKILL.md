@@ -1,11 +1,11 @@
 ---
 name: g-doctor
-description: Health check for G-Forge project setup. Verifies all 4 hooks installed, all hooks registered in settings.json, G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
+description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
 ---
 
 Announce: "Using g-doctor to check project health."
 
-Run all 13 checks below against the current working directory, then output the report in the exact format specified. Checks 1–11 are required (✓/✗). Checks 12–13 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
+Run all 17 checks below against the current working directory, then output the report in the exact format specified. Checks 1–14 are required (✓/✗). Checks 15–17 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
 
 ## Checks
 
@@ -79,17 +79,49 @@ Check if `.claude/hooks/session-start.sh` exists AND `.claude/settings.json` con
 - Fail (not registered): ✗ SessionStart hook not registered in settings.json
   → Run `/g-init` or `/g-update` to register the SessionStart hook.
 
-**12. CLAUDE.md architecture rules format** (advisory)
+**12. observer hooks installed and registered**
+Check if `.claude/hooks/observe.sh` exists AND `.claude/settings.json` contains a `PostToolUse` hook entry pointing to `observe.sh` AND a `SessionStart` hook entry pointing to `observe.sh`.
+- Pass: ✓ Observer hook installed and registered
+- Fail (file missing): ✗ Observer hook script missing
+  → Run `/g-init` or `/g-update` to install observe.sh.
+- Fail (not registered): ✗ Observer hook not registered in settings.json
+  → Run `/g-init` or `/g-update` to register the PostToolUse + SessionStart observer hooks.
+
+**13. agent lifecycle hooks installed and registered**
+Check if `.claude/hooks/agent-lifecycle.sh` exists AND `.claude/settings.json` contains a `SubagentStart` hook entry AND a `SubagentStop` hook entry pointing to `agent-lifecycle.sh`.
+- Pass: ✓ Agent lifecycle hook installed and registered
+- Fail (file missing): ✗ Agent lifecycle hook script missing
+  → Run `/g-init` or `/g-update` to install agent-lifecycle.sh.
+- Fail (not registered): ✗ Agent lifecycle hook not registered in settings.json
+  → Run `/g-init` or `/g-update` to register the SubagentStart + SubagentStop hooks.
+
+**14. No duplicate / double-firing hook registration**
+G-Forge hooks must be registered in exactly ONE place — `.claude/settings.json` — with one entry per script per event. A hook registered twice fires twice (the context-depth counter double-increments, the commit gate runs twice, the journal gets double entries). Check both ways it can happen:
+- Read `.claude/settings.json`. For each G-Forge script (`check-commit.sh`, `post-commit-cleanup.sh`, `observe.sh`, `agent-lifecycle.sh`, `pre-compact.sh`, `session-start.sh`, `workflow-checkpoint.sh`), count the entries referencing it under the same event key. More than one is a duplicate.
+- Read the plugin manifest `hooks/hooks.json` from the plugin cache (Glob `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/hooks.json`). Its `hooks` object must be empty `{}`. If it registers any hook that is ALSO in `.claude/settings.json`, that hook double-fires — the manifest fires it globally in every session AND the project fires it.
+- Pass: ✓ No duplicate hook registration (settings.json is the single registrar)
+- Fail (in-settings duplicate): ✗ [script] registered [N]× under [Event] in settings.json — will double-fire
+  → Run `/g-update` to de-duplicate, or delete the extra entr(y/ies) from `.claude/settings.json`.
+- Fail (manifest + project): ✗ [script] registered by BOTH the plugin manifest and settings.json — double-fires every session
+  → Update the plugin (`/g-update`, or reinstall) so the manifest registers no hooks; `.claude/settings.json` is the single registrar.
+
+**15. CLAUDE.md architecture rules format** (advisory)
 Read `CLAUDE.md`. For each `<!-- G-Forge [stack] Architecture Rules` block, count the non-empty lines between the opening and closing markers. If any block has more than 3 lines of content, it is using the legacy inline format.
 - Pass: ✓ CLAUDE.md architecture rules compact (@reference format)
 - Advisory: ⚠ CLAUDE.md has [N] inline architecture block(s) — legacy format
   → Run `/g-update` to extract inline rules to `.claude/rules/` and compact CLAUDE.md automatically.
 
-**13. CLAUDE.md total size** (advisory)
+**16. CLAUDE.md total size** (advisory)
 Count the total lines in `CLAUDE.md`.
 - Pass (≤150 lines): ✓ CLAUDE.md compact ([N] lines)
 - Advisory (>150 lines): ⚠ CLAUDE.md is [N] lines — may contain inline rules content
   → Run `/g-update` to migrate inline rules to `.claude/rules/` files.
+
+**17. No leftover legacy `g-team` plugin** (advisory)
+G-Forge was formerly named `g-team`; the rename created a new plugin rather than replacing the old one, so a leftover `g-team` install duplicates every `/g-*` command. Check `~/.claude/plugins/cache/g-team` and any `"g-team"` entry in `~/.claude/plugins/config.json`.
+- Pass (absent): ✓ No legacy g-team plugin — commands are g-forge only
+- Advisory (present): ⚠ Legacy g-team plugin still installed — every /g-* command is duplicated
+  → Remove it via `/plugin` → Installed → g-team → Uninstall (then re-run `/g-update`).
 
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook and rules infrastructure only.
 
@@ -118,19 +150,29 @@ G-Forge Doctor ─────────────────────�
     [→ fix instruction if failed]
   [✓/✗ line for check 10]
     [→ fix instruction if failed]
+  [✓/✗ line for check 11]
+    [→ fix instruction if failed]
+  [✓/✗ line for check 12]
+    [→ fix instruction if failed]
+  [✓/✗ line for check 13]
+    [→ fix instruction if failed]
+  [✓/✗ line for check 14]
+    [→ fix instruction if failed]
 
   Advisory
-  [✓/⚠ line for check 12]
+  [✓/⚠ line for check 15]
     [→ fix instruction if advisory]
-  [✓/⚠ line for check 13]
+  [✓/⚠ line for check 16]
+    [→ fix instruction if advisory]
+  [✓/⚠ line for check 17]
     [→ fix instruction if advisory]
 ────────────────────────────────────────────────
-[N/11 required checks passed]
+[N/14 required checks passed]
 ```
 
 Fix instructions are indented with four spaces and prefixed with `→ `, and appear only on failing or advisory checks.
 
 After the summary count line, add one blank line, then:
-- If all 11 required checks passed and no advisories: `All checks passed. Project is healthy.`
-- If all 11 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact.`
+- If all 14 required checks passed and no advisories: `All checks passed. Project is healthy.`
+- If all 14 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact.`
 - If any required check failed: `Fix the issues above, then re-run /g-doctor.`
