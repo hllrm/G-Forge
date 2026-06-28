@@ -163,11 +163,12 @@ All commands (grouped by purpose):
     /g-train       — training mode: PM mentors you through the workflow
     /g-afk         — autonomous milestone executor (requires approved plan)
 
-  Audit / refactor:
+  Audit / docs:
     /g-audit       — code quality audit (SOLID, smells, dead code, coverage)
     /g-optimize    — performance audit (complexity, N+1, re-render waste)
     /g-refactor    — guided refactor with spec + review gate
-    /g-docs        — documentation audit and generation
+    /g-docs        — documentation audit and generation (code-level doc hygiene)
+    /g-wiki        — build/maintain the human-facing project wiki in g-wiki/
 
   Skill development:
     /g-skill-design   — design a new G-Forge skill from scratch
