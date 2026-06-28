@@ -8,9 +8,9 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HANDOFF — g-forge | branch: feat/m15-cohesion-pass
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · M15 — integration tiers (full/balanced/light), voice profiles (dev/mid/eli5), /g-help cohesion, /g-retro pattern feed, v1.0.0 ship
-Next up:          · v1.0.0 shipped — backlog open for v1.x
-Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-review before merge to main
+Done this pass:   · v1.9.1 — /g-adr entry triage + capture mode + reversibility/premortem · v1.9.2 — §A7 context gate now prevents compaction (carry counters across compact, active monitoring, wave /context checks, auto-calibration)
+Next up:          · ⚠ M23 — G-Forge 2.0 production-readiness audit (consistency/clarity/shippability; .gitignore + repo clean, agents↔hooks reconcile, README v2 from scratch). Start on a fresh branch.
+Active context:   · v1.9.2 merged to main. M23 is the next milestone — see its Scope below for the seeded findings (legacy "G-Team" strings, 37-commands/35-skills count mismatch, shipped test scripts, /g-adr + §A7 doc currency)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -231,6 +231,22 @@ Active context:   · M15 implemented; v1.0.0 release pass complete; awaiting /g-
 - §A7 reframed as a two-sided reset (promote out via `/g-retro`; re-hydrate in via `/g-resume`); orchestration-patterns doctrine extended with the read side
 
 **Depends on:** M19 (observer journal), M20–M21 (the reset path `/g-resume` re-enters from)
+
+---
+
+### M23 — G-Forge 2.0 (Production-Readiness Audit)
+**Status:** ⬜ Planned
+**Version:** v2.0.0
+**Goal:** A ruthless consistency / clarity / shippability pass — "no shit." No half-measures, no leftover cruft, no stale docs, no claims the repo doesn't back up. Fix what's found; don't just report. Bump to v2.0.0 only when you'd stake "production ready" on it.
+**Scope:**
+- **`.gitignore` + repo clean** — tighten `.gitignore` (exclude all generated runtime: `.claude/` state, scratch, agent-output, journals, sentinels, OS files; nothing real). Remove dead/stray files; move shipped test scripts (`hooks/test-check-commit.sh`, `hooks/test-observe.sh`) out of `hooks/` into a `tests/` dir or exclude them. Sweep orphaned refs / dead links.
+- **Agents ↔ hooks reconciliation** — every agent a skill references exists (17 present); every hook in `hooks/hooks.json` matches `/g-init`'s install table AND `/g-doctor`'s checks (paths, names, registration); nothing referenced-but-missing or installed-but-unregistered.
+- **README v2** — rewritten from scratch (not patched), drafted under a PLACEHOLDER name, real name swapped in one pass once content is approved.
+- **Consistency / clarity sweep** — purge legacy "G-Team" naming (in `hooks/*.sh`, `hooks/hooks.json`, `ROADMAP.md`; leave historical retros); reconcile count claims (marketplace.json says "17 agents, 35 skills" vs 37 commands / 35 skill dirs) everywhere they appear; verify docs match recent behavior (the 9-step `/g-adr`; the compaction-preventing §A7 gate); one consistent voice across `commands/`, `skills/`, `agents/`, `rules/`, `docs/`.
+- **Standing rule** — CHANGELOG + README kept in sync as part of "done" for every change.
+**Done:** repo clean; `.gitignore` correct; agents↔hooks fully reconciled; zero legacy naming; all counts/claims true; README v2 approved and named; CHANGELOG + docs in sync; `/g-doctor` green.
+
+**Depends on:** all prior milestones (this audits the whole surface).
 
 ---
 
