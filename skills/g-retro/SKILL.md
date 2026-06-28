@@ -1,6 +1,6 @@
 ---
 name: g-retro
-description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and todo.md, and writes docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
+description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and todo.md, and writes g-docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
 context: [task, sprint, institutional]
 ---
 
@@ -47,8 +47,8 @@ Derive each section from evidence. Do not ask the developer questions — read t
 
 Derive the active plan slug deterministically:
 1. Branch name `feat/<slug>` etc. → `<slug>`.
-2. `docs/forecasts/<candidate>.md` exists → that is the active plan.
-3. Fallback: most-recently-modified `docs/forecasts/*.md` whose `docs/plans/<slug>.md` has an incomplete wave. If none, skip this step silently.
+2. `g-docs/forecasts/<candidate>.md` exists → that is the active plan.
+3. Fallback: most-recently-modified `g-docs/forecasts/*.md` whose `g-docs/plans/<slug>.md` has an incomplete wave. If none, skip this step silently.
 
 If a forecast file is found, reconcile its predicted scenarios against the journal evidence rather than asking the developer:
 - For each predicted scenario, mark `happened` / `did not happen` / `unverified` based on journal + git signals (e.g. a forecasted "auth refactor will cause regressions" is `happened` if reverts or HOLD-related rework appear around the auth files).
@@ -56,7 +56,7 @@ If a forecast file is found, reconcile its predicted scenarios against the journ
 
 ## Step 5 — Write the retro file
 
-Create `docs/retros/` if it does not exist. Use today's date (`YYYY-MM-DD`) and the topic slug: `docs/retros/YYYY-MM-DD-[topic].md`.
+Create `g-docs/retros/` if it does not exist. Use today's date (`YYYY-MM-DD`) and the topic slug: `g-docs/retros/YYYY-MM-DD-[topic].md`.
 
 Write the file with this exact structure:
 
@@ -93,7 +93,7 @@ Do not add extra sections.
 Report the file path and print the **Cold-start context** and **Patterns** sections verbatim so the developer can correct anything the synthesis got wrong:
 
 ```
-Retro written: docs/retros/YYYY-MM-DD-[topic].md  (synthesized from [N] journal events)
+Retro written: g-docs/retros/YYYY-MM-DD-[topic].md  (synthesized from [N] journal events)
 
 --- Patterns ---
 [paste]
@@ -107,7 +107,7 @@ If the developer corrects a section, edit the file and re-print only the correct
 ## Step 7 — Pattern suggestions (informational)
 
 After writing, surface any ≥2-occurrence patterns this retro contributes to — same as before:
-1. Read every retro under `docs/retros/`, including the one just written.
+1. Read every retro under `g-docs/retros/`, including the one just written.
 2. Apply the `None recorded.` / `None observed.` sentinel filter.
 3. Extract `Avoid / do differently` bullets, group by normalised label, count distinct source files.
 

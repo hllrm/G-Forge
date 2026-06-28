@@ -16,7 +16,7 @@ The 8 reliability metrics G-Forge tracks. Each metric is defined here; `/g-telem
 
 **What it measures.** Fraction of agent outputs that referenced non-existent files, functions, or APIs and required correction.
 
-**Source.** `docs/retros/*.md` — bullets under `Avoid / do differently` matching the labels `hallucinated-`, `nonexistent-`, `wrong-api`, `bad-citation`.
+**Source.** `g-docs/retros/*.md` — bullets under `Avoid / do differently` matching the labels `hallucinated-`, `nonexistent-`, `wrong-api`, `bad-citation`.
 
 **Formula.**
 ```
@@ -33,7 +33,7 @@ hallucination_rate = count(matching_bullets) / count(retros) * 100
 
 **What it measures.** Fraction of `/g-review` cycles that caught at least one Major or Critical finding before the merge gate opened.
 
-**Source.** `docs/retros/*.md` — bullets mentioning `review caught`, `code-lead caught`, `architect caught`. Negative signal: bullets matching `bug missed by review`, `review didn't catch`.
+**Source.** `g-docs/retros/*.md` — bullets mentioning `review caught`, `code-lead caught`, `architect caught`. Negative signal: bullets matching `bug missed by review`, `review didn't catch`.
 
 **Formula.**
 ```
@@ -91,7 +91,7 @@ rework_rate          = (rework_signal / max(feat_commits, 1)) * 100
 
 **What it measures.** How often executors deviated from the approved spec — e.g. added unscoped files, refactored adjacent code, scope-crept.
 
-**Source.** `docs/retros/*.md` — `Avoid / do differently` bullets matching `scope creep`, `unscoped`, `refactored adjacent`, `out of plan`, `deviated`.
+**Source.** `g-docs/retros/*.md` — `Avoid / do differently` bullets matching `scope creep`, `unscoped`, `refactored adjacent`, `out of plan`, `deviated`.
 
 **Formula.**
 ```
@@ -108,7 +108,7 @@ spec_deviation = count(matching_bullets) / count(retros) * 100
 
 **What it measures.** How often a task escalated to a higher model tier (Sonnet → Opus) due to repeated failure.
 
-**Source.** `.claude/escalation-log` — a plain-text counter written by `/g-execute` whenever the Three-Strikes rule (G-RULES.md §A8) escalates a task. One line per escalation: `YYYY-MM-DD <task-id-or-label>`. `docs/retros/*.md` bullets matching `escalated`, `bumped to opus`, `three-strikes` are read as a fallback for sessions before `.claude/escalation-log` was introduced.
+**Source.** `.claude/escalation-log` — a plain-text counter written by `/g-execute` whenever the Three-Strikes rule (G-RULES.md §A8) escalates a task. One line per escalation: `YYYY-MM-DD <task-id-or-label>`. `g-docs/retros/*.md` bullets matching `escalated`, `bumped to opus`, `three-strikes` are read as a fallback for sessions before `.claude/escalation-log` was introduced.
 
 **Formula.**
 ```
@@ -148,7 +148,7 @@ Higher is better. A tight 50-line average commit is 100%; a 500-line commit aver
 
 **What it measures.** Fraction of dispatched agent waves that required a re-dispatch with corrections.
 
-**Source.** `docs/retros/*.md` — bullets matching `re-dispatched`, `wave 2 take 2`, `had to retry the agent`, `agent returned empty`.
+**Source.** `g-docs/retros/*.md` — bullets matching `re-dispatched`, `wave 2 take 2`, `had to retry the agent`, `agent returned empty`.
 
 **Formula.**
 ```

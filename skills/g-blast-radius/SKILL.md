@@ -13,9 +13,9 @@ You are running a forward-looking dependency-impact pass: given a target file or
 Determine the target set:
 
 1. **Single file** — `$ARGUMENTS` is a path to an existing file. Use as the only target.
-2. **Plan file** — `$ARGUMENTS` is a `docs/plans/<slug>.md` path or slug. Read the plan's task `Scope` column, extract every distinct file path. Those are the targets.
+2. **Plan file** — `$ARGUMENTS` is a `g-docs/plans/<slug>.md` path or slug. Read the plan's task `Scope` column, extract every distinct file path. Those are the targets.
 3. **Feature name** — `$ARGUMENTS` is a short label (no slash). Grep recent commit subjects (`git log --oneline -50`) for the label; collect files touched in matching commits. Those are the targets.
-4. **No argument** — read the most-recently-modified plan in `docs/plans/` with any `pending` wave. Use its task scope files.
+4. **No argument** — read the most-recently-modified plan in `g-docs/plans/` with any `pending` wave. Use its task scope files.
 
 If no targets resolve:
 ```
@@ -108,7 +108,7 @@ Consider splitting into smaller scoped changes or staging the rollout.
 
 ## Step 7 — Persist for /g-forecast linkage
 
-Write the result to `docs/blast-radius/<slug>.md` (create directory if missing). Use the slug from $ARGUMENTS or the plan slug. Schema:
+Write the result to `g-docs/blast-radius/<slug>.md` (create directory if missing). Use the slug from $ARGUMENTS or the plan slug. Schema:
 
 ````markdown
 # Blast radius: [targets]
@@ -127,11 +127,11 @@ Total files: [T]  ·  Avg volatility: [V]  ·  Hot files: [H]  ·  Score: [S]  �
 | ... | target / forward-dep / reverse-dep | [V] |
 ````
 
-`/g-forecast` Step 2b reads `docs/blast-radius/<slug>.md` if it exists for the plan slug and incorporates the rating into its complexity score: Moderate adds 1 to complexity; Wide adds 2.
+`/g-forecast` Step 2b reads `g-docs/blast-radius/<slug>.md` if it exists for the plan slug and incorporates the rating into its complexity score: Moderate adds 1 to complexity; Wide adds 2.
 
 ## Rules
 
-- Read-only. Never modify source files, only write the persisted report to `docs/blast-radius/`.
+- Read-only. Never modify source files, only write the persisted report to `g-docs/blast-radius/`.
 - The volatility score is a proxy, not a measurement — files touched many times recently are likely to be touched again, but the score does not predict correctness or risk by itself.
 - If the project has no git history (fresh `git init`), report `volatility n/a — no history` for every file and flag rating as `low confidence`.
 - External packages in forward dependencies are noted but not scored — their volatility is not under the project's control.

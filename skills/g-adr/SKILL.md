@@ -1,6 +1,6 @@
 ---
 name: g-adr
-description: Capture an architectural decision record. First triages whether the decision merits an ADR or just a one-line entry in the brief's tech-decisions table (keeping the corpus rare and high-signal). Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
+description: Capture an architectural decision record. First triages whether the decision merits an ADR or just a one-line entry in the brief's tech-decisions table (keeping the corpus rare and high-signal). Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to g-docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
 argument-hint: [short decision title]
 ---
 
@@ -107,14 +107,14 @@ Show the draft plus the WEAKNESSES list. If the developer wants substantive chan
 ## Step 5 — Determine ADR number
 
 ```bash
-find . -path "*/docs/decisions/*.md" -not -path "*/node_modules/*" | sort
+find . -path "*/g-docs/decisions/*.md" -not -path "*/node_modules/*" | sort
 ```
 
-If `docs/decisions/` does not exist, create it. Next number = highest existing + 1, zero-padded to 3 digits. If none exist, start at 001.
+If `g-docs/decisions/` does not exist, create it. Next number = highest existing + 1, zero-padded to 3 digits. If none exist, start at 001.
 
 ## Step 6 — Write the ADR
 
-Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQLite" → `001-use-postgresql-instead-of-sqlite.md`). Write to `docs/decisions/[NNN]-[kebab-title].md`:
+Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQLite" → `001-use-postgresql-instead-of-sqlite.md`). Write to `g-docs/decisions/[NNN]-[kebab-title].md`:
 
 ```markdown
 # ADR-[NNN]: [Title]
@@ -169,7 +169,7 @@ Check downstream files:
 
 Report:
 ```
-ADR-[NNN] written: docs/decisions/[NNN]-[title].md
+ADR-[NNN] written: g-docs/decisions/[NNN]-[title].md
 Status: [Accepted | Proposed | ...]
 
 [Follow-up actions if any, or "No follow-up actions identified."]

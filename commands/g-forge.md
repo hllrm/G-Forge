@@ -54,10 +54,10 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `update` — realign all G-Forge-managed files to the current plugin version
   - `skill-design` — design a new skill from scratch (SKILL.md, command file, router entry)
   - `skill-validate [name]` — validate a skill or agent against G-Forge structural rules
-  - `patterns` — mine docs/retros/ and todo-done.md for recurring failure patterns; propose rule edits
+  - `patterns` — mine g-docs/retros/ and todo-done.md for recurring failure patterns; propose rule edits
   - `forecast [plan-slug]` — premortem and scope-realism analysis on a plan; produces complexity score, miss-risk %, and ranked failure scenarios
   - `telemetry` — compute 8 reliability metrics and derive a health profile (stable / cautious / defensive / recovery); drives adaptive orchestration in /g-execute and /g-review
   - `blast-radius [file|plan|feature]` — forward + reverse dependency graph, per-file volatility, aggregate rating (Narrow / Moderate / Wide); feeds /g-forecast complexity score
-  - `identity` — narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, and git history; written to docs/identity.md
+  - `identity` — narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, and git history; written to g-docs/identity.md
   - `tier [full|balanced|light]` — switch integration tier (full = all hooks + auto-triggers; balanced = state only, no auto-triggers; light = workflow-checkpoint only, commit gate off)
   - `voice [dev|mid|eli5]` — switch voice profile (dev = terse default; mid = explained-but-concise; eli5 = plain language)

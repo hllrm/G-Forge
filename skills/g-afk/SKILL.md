@@ -14,9 +14,9 @@ You are the autonomous executor for this milestone. Your job is to drive the ent
 Before doing anything else, verify all three conditions. Fail fast and clearly if any is missing.
 
 **1. Approved plan exists.**
-Glob `docs/plans/` for `.md` files. Read each and look for a Progress table (`| Wave | Status |`). If none is found, stop:
+Glob `g-docs/plans/` for `.md` files. Read each and look for a Progress table (`| Wave | Status |`). If none is found, stop:
 ```
-✗ No approved plan found in docs/plans/.
+✗ No approved plan found in g-docs/plans/.
   Run /g-plan first and wait for developer approval before using /g-afk.
 ```
 
@@ -204,7 +204,7 @@ The following are unconditionally prohibited during AFK execution:
 **Violation handling — structured cycle break.**
 If a deny-listed or out-of-scope action is attempted (whether caught by the deny list or detected behaviorally):
 1. Do not attempt the action via any alternative path.
-2. Update the Progress table in `docs/plans/<plan>.md` to reflect accurately which waves are `complete` and which are still `pending` or `in progress`.
+2. Update the Progress table in `g-docs/plans/<plan>.md` to reflect accurately which waves are `complete` and which are still `pending` or `in progress`.
 3. Print the full cycle break report:
 
 ```
@@ -224,7 +224,7 @@ What was written:
 
 How to resume:
   Option A — Handle the blocked step manually, then run /g-afk again to continue from Wave [N].
-  Option B — If the step shouldn't have been part of the plan, update docs/plans/<plan>.md
+  Option B — If the step shouldn't have been part of the plan, update g-docs/plans/<plan>.md
               and re-run /g-afk.
 
 No further autonomous actions will be taken this session.

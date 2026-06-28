@@ -84,7 +84,7 @@ The confirmation message is rendered using the profile value just written in Ste
 
 ## Step 4 — Show samples (read mode only)
 
-If Step 1 was the read case, after printing the status block, render the same example report in all three profiles so the developer can compare. Use a short, neutral example like a `/g-review MERGE READY` summary. See `docs/voice-profiles.md` for canonical samples.
+If Step 1 was the read case, after printing the status block, render the same example report in all three profiles so the developer can compare. Use a short, neutral example like a `/g-review MERGE READY` summary. See `g-docs/voice-profiles.md` for canonical samples.
 
 ## Step 5 — Status block (read mode)
 

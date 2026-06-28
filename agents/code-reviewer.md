@@ -40,8 +40,8 @@ A set of changed files or a git diff.
   - *Missing module header*: a new source file >100 lines with no leading comment explaining its purpose and constraints when the filename alone is insufficient. Flag as Minor.
   - *Missing README update*: a new user-facing feature, command, CLI flag, config option, or public API endpoint with no corresponding README section or update. Flag as Major.
   - *Missing CHANGELOG entry*: a significant change (new feature, bug fix, breaking change, deprecation) with no CHANGELOG update. Flag as Major.
-  - *Missing env var documentation*: a new environment variable read anywhere in the changed code with no entry in the project's env var reference (`docs/env-vars.md`, `.env.example`, or README). Flag as Major.
-  - *Missing ADR*: the diff introduces a significant architectural decision — new external dependency, new layer, new pattern applied project-wide, replacement of an existing approach — with no `docs/decisions/` entry. Flag as Major. Suggest `/g-adr`.
+  - *Missing env var documentation*: a new environment variable read anywhere in the changed code with no entry in the project's env var reference (`g-docs/env-vars.md`, `.env.example`, or README). Flag as Major.
+  - *Missing ADR*: the diff introduces a significant architectural decision — new external dependency, new layer, new pattern applied project-wide, replacement of an existing approach — with no `g-docs/decisions/` entry. Flag as Major. Suggest `/g-adr`.
   - *Redundant documentation*: a comment that only restates the function name or type signature adds noise. Flag as Minor — suggest removing it.
 
 

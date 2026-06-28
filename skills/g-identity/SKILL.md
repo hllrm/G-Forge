@@ -1,6 +1,6 @@
 ---
 name: g-identity
-description: Synthesise the project's operational identity from accumulated history — recurring risks, architectural personality, delivery cadence, characteristic strengths and friction points. Output is a narrative summary written to docs/identity.md plus a printed snapshot. Read-only.
+description: Synthesise the project's operational identity from accumulated history — recurring risks, architectural personality, delivery cadence, characteristic strengths and friction points. Output is a narrative summary written to g-docs/identity.md plus a printed snapshot. Read-only.
 context: [institutional, architectural, sprint]
 ---
 
@@ -12,11 +12,11 @@ You are running a long-horizon synthesis: read everything the project has accumu
 
 Read in parallel:
 
-- All files in `docs/retros/` — every retro the project has produced
-- All files in `docs/forecasts/` — premortems and their Outcome rows
-- All files in `docs/telemetry/` — historical telemetry snapshots
-- All files in `docs/blast-radius/` if present — recurring blast-radius targets surface hot zones
-- `docs/decisions/` if present — ADRs reveal the project's stated values
+- All files in `g-docs/retros/` — every retro the project has produced
+- All files in `g-docs/forecasts/` — premortems and their Outcome rows
+- All files in `g-docs/telemetry/` — historical telemetry snapshots
+- All files in `g-docs/blast-radius/` if present — recurring blast-radius targets surface hot zones
+- `g-docs/decisions/` if present — ADRs reveal the project's stated values
 - `CHANGELOG.md` — what the project chose to ship and when
 - `git log --oneline -200` — delivery cadence proxy
 - `ROADMAP.md` — what's done vs. what remains, version history
@@ -52,7 +52,7 @@ Write 5 short sections, each 2–4 sentences. The voice is observational, not pr
 
 ## Step 4 — Persist identity snapshot
 
-Write to `docs/identity.md` (overwrite if exists). Schema:
+Write to `g-docs/identity.md` (overwrite if exists). Schema:
 
 ````markdown
 # Project identity — [YYYY-MM-DD]
@@ -92,7 +92,7 @@ Write to `docs/identity.md` (overwrite if exists). Schema:
 
 Print the same content verbatim to the chat so the developer can review it without opening the file. End with:
 ```
-Written: docs/identity.md
+Written: g-docs/identity.md
 ```
 
 ## Rules
@@ -101,5 +101,5 @@ Written: docs/identity.md
 - Narrative voice — not metric tables. The Snapshot file produced by `/g-telemetry` already covers the quantitative view; `g-identity` is the qualitative complement.
 - Always cite source retro filenames in "What it does well" and "Where it struggles" — traceability matters and developers must be able to verify the synthesis.
 - Never predict, recommend, or prescribe. This skill describes the project; it does not tell it what to do. Recommendations are the role of `/g-patterns` and `/g-forecast`.
-- Overwrite `docs/identity.md` on each run — there is no version history kept inside the file. The git history of `docs/identity.md` itself is the version record.
+- Overwrite `g-docs/identity.md` on each run — there is no version history kept inside the file. The git history of `g-docs/identity.md` itself is the version record.
 - On a thin corpus, refuse — never fabricate a personality from a small sample. The threshold check in Step 1 is strict.

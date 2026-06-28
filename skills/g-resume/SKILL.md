@@ -25,9 +25,9 @@ If none of `todo.md`, `.claude/compact-state.md`, `ROADMAP.md` exist, this isn't
 
 Gather candidates deterministically, then judge relevance — load only what serves the first task.
 
-1. **The first task's anchor.** If the handoff names `verify ADR-NNN` (or any specific ADR), load that ADR file from `docs/decisions/` — its **Decision**, **Consequences**, and **Assumptions That Held** sections. This is the task; it gets full weight. (Verifying it against ground truth is exactly why the previous session handed it over rather than trusting it from memory.)
-2. **The carry-over retro.** In `docs/retros/`, find the most recent retro whose slug matches the branch `<slug>` or the active milestone; else the single most recent retro. Load only its **Cold-start context** and **Avoid / do differently** sections — not the whole file.
-3. **Decisions touching this work.** `grep` `docs/decisions/` for the branch slug and the recently-touched file basenames. From the matches, load the **Decision** line of the top 1–3 most relevant ADRs (constraints the fresh session must not re-litigate). List the rest as pointers only.
+1. **The first task's anchor.** If the handoff names `verify ADR-NNN` (or any specific ADR), load that ADR file from `g-docs/decisions/` — its **Decision**, **Consequences**, and **Assumptions That Held** sections. This is the task; it gets full weight. (Verifying it against ground truth is exactly why the previous session handed it over rather than trusting it from memory.)
+2. **The carry-over retro.** In `g-docs/retros/`, find the most recent retro whose slug matches the branch `<slug>` or the active milestone; else the single most recent retro. Load only its **Cold-start context** and **Avoid / do differently** sections — not the whole file.
+3. **Decisions touching this work.** `grep` `g-docs/decisions/` for the branch slug and the recently-touched file basenames. From the matches, load the **Decision** line of the top 1–3 most relevant ADRs (constraints the fresh session must not re-litigate). List the rest as pointers only.
 4. **The alignment anchor.** `project_brief.md` — the **Goals** list and the active milestone's **Scope**. One-line each. This is what the work is *for*; it keeps the fresh session from drifting (same anchor `/g-align` uses).
 5. **Recent activity.** The latest `.claude/journal/*.jsonl` (last ~15 events) and `git log --oneline -5` — the texture of what just happened.
 
@@ -45,7 +45,7 @@ First task:    [lead "Next up" item — e.g. "Verify ADR-007 against the repo"]
 Where we are:  [1–2 lines from handoff "Active context" + recent commits]
 
 Decisions in force:
-  · ADR-NNN — [Decision line]            [+ N more in docs/decisions/]
+  · ADR-NNN — [Decision line]            [+ N more in g-docs/decisions/]
 Carry-over (do differently):
   · [from the relevant retro's "Avoid / do differently", or "—"]
 Anchored to:   [brief goal(s) the active milestone serves]

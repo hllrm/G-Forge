@@ -18,7 +18,7 @@ Smoke tests · acceptance · design review · business logic correctness. User e
 Tier 3 requires a testing instrument. Which one depends on the project:
 
 - **QA panel present** — a structured in-app testing UI. G-Forge integrates it from the start, not as an afterthought.
-  - At milestone planning: identify which test groups are impacted. Compile `docs/qa-scope/<milestone-slug>.md` mapping each in-scope group to what must pass.
+  - At milestone planning: identify which test groups are impacted. Compile `g-docs/qa-scope/<milestone-slug>.md` mapping each in-scope group to what must pass.
   - QA panel currency: any task adding/removing user-facing surface must include "QA panel updated" as a done condition. MERGE READY is blocked if the panel is stale.
 - **No QA panel** — at milestone planning, generate a test plan and print it in chat. The test plan lists scenarios to exercise, grouped by feature area, derived from the milestone scope. The developer uses this as their checklist during Tier 3. No file saved — it is a live prompt artifact.
 
@@ -32,7 +32,7 @@ Run `/g-listen` to enter listen mode. It writes the state file, prints the instr
 
 Manual protocol (if `/g-listen` is unavailable):
 
-1. Print the instrument: QA panel scope (from `docs/qa-scope/<milestone-slug>.md`) or the test plan generated at milestone start.
+1. Print the instrument: QA panel scope (from `g-docs/qa-scope/<milestone-slug>.md`) or the test plan generated at milestone start.
 2. Prompt: `Ready for smoke test? Work through the list above and report each finding in chat — say "done this round" when finished.`
 3. Claude enters **listen mode** — no fixes, no suggestions, no edits. Acknowledge each report only:
    > `Bug N logged — <bug area>`

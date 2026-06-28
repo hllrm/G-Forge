@@ -122,7 +122,7 @@ says the fork is real.**
 
 | Signal | Source (piggyback, no new patrol) |
 |--------|-----------------------------------|
-| Supersedes / conflicts with an in-force ADR | one grep of `docs/decisions/` at ADR start |
+| Supersedes / conflicts with an in-force ADR | one grep of `g-docs/decisions/` at ADR start |
 | Forces an edit to `project_brief.md` (Pillar) | cheap check at ADR start; `/g-align` at close |
 | Inside a premortem-flagged high-risk milestone | existing `/g-forecast` output |
 | One-way door (new dep / contract / schema) | `dependency-auditor`, `spec-writer` (already in `/g-plan`) |

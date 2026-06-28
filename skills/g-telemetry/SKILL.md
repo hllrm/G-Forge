@@ -1,6 +1,6 @@
 ---
 name: g-telemetry
-description: Compute the 8 reliability metrics defined in docs/telemetry-metrics.md, derive a health profile (stable / cautious / defensive / recovery), and write it to .claude/telemetry-profile for adaptive orchestration in /g-execute and /g-review. Read-only on history; never modifies retros, forecasts, or git state.
+description: Compute the 8 reliability metrics defined in g-docs/telemetry-metrics.md, derive a health profile (stable / cautious / defensive / recovery), and write it to .claude/telemetry-profile for adaptive orchestration in /g-execute and /g-review. Read-only on history; never modifies retros, forecasts, or git state.
 context: [sprint, institutional, architectural]
 ---
 
@@ -12,12 +12,12 @@ You are running a reliability-assessment pass: read accumulated session history,
 
 Read in parallel:
 
-- All files in `docs/retros/` — for hallucination, review-catch, spec-deviation, retry-dependency signals, and the escalation fallback when `.claude/escalation-log` is absent
+- All files in `g-docs/retros/` — for hallucination, review-catch, spec-deviation, retry-dependency signals, and the escalation fallback when `.claude/escalation-log` is absent
 - `git log --oneline -200` via Bash — for regression and rework frequency, and for the escalation-frequency denominator
 - `git log --stat -30` via Bash — for token-efficiency proxy (diff size)
 - `.claude/escalation-log` if it exists — primary source for escalation count (one line per Three-Strikes event)
 - `.claude/review-holds` if it exists — running HOLD counter; folds into rework rate per the spec
-- `docs/telemetry-metrics.md` — the metric definitions (treat as authoritative spec)
+- `g-docs/telemetry-metrics.md` — the metric definitions (treat as authoritative spec)
 
 Each metric uses the window described in its spec entry; do not assume one global window. The 200-commit history is the default for git-based metrics; if branch history is shorter, use what is available.
 
@@ -27,7 +27,7 @@ If retro count < 3 AND total commit count < 30, this is a bootstrapping project:
 
 Discard retro bullets matching the same sentinel filter used by `/g-patterns` and `/g-forecast`: `None recorded.`, `None.`, `(none)`, empty bullets. These never contribute to metrics.
 
-## Step 3 — Compute each metric per docs/telemetry-metrics.md
+## Step 3 — Compute each metric per g-docs/telemetry-metrics.md
 
 Compute exactly what the spec file describes, in the order it lists them: hallucination rate, review catch rate, regression frequency, rework rate, spec deviation, escalation frequency, token efficiency, retry dependency.
 
@@ -40,7 +40,7 @@ If a metric's source is empty (e.g. zero retros for retro-sourced metrics), reco
 
 ## Step 4 — Derive health profile
 
-Apply the ratio-based derivation defined in `docs/telemetry-metrics.md` — Health profile derivation:
+Apply the ratio-based derivation defined in `g-docs/telemetry-metrics.md` — Health profile derivation:
 
 ```
 computable = count of metrics whose status is ✓ or ⚠ (excludes n/a)
@@ -66,7 +66,7 @@ Write the chosen profile name as a single line to `.claude/telemetry-profile`. O
 
 The 17 G-Forge agents are: `task-decomposer`, `wave-planner`, `spec-writer`, `code-reviewer`, `security-auditor`, `architecture-enforcer`, `performance-auditor`, `debugger`, `error-detective`, `project-manager`, `review-orchestrator`, `code-lead`, `test-writer`, `doc-writer`, `pr-writer`, `refactor-executor`, `dependency-auditor`.
 
-Read all files in `docs/retros/` (up to the 10 most recent by filename date, or all if fewer). For each agent name, count how many retro files mention it at least once (case-insensitive, whole-word match).
+Read all files in `g-docs/retros/` (up to the 10 most recent by filename date, or all if fewer). For each agent name, count how many retro files mention it at least once (case-insensitive, whole-word match).
 
 Classify each agent:
 - **never** — 0 mentions across all retros read
@@ -82,7 +82,7 @@ rarely:doc-writer
 
 Omit a line entirely if the list for that category is empty. If all agents are `used`, write an empty file.
 
-Also append a coverage section to the `docs/telemetry/YYYY-MM-DD.md` snapshot:
+Also append a coverage section to the `g-docs/telemetry/YYYY-MM-DD.md` snapshot:
 
 ````markdown
 ## Agent coverage (last [N] retros)
@@ -132,12 +132,12 @@ Profile: [stable / cautious / defensive / recovery]   ⚠ [N] of 8 metrics out o
   8. Retry dependency  [X%]   [...]
 
 Effect on adaptive orchestration:
-  [list the behavioural changes that apply to the chosen profile per docs/telemetry-metrics.md — e.g. for cautious: "/g-review will add one extra reviewer on next dispatch"]
+  [list the behavioural changes that apply to the chosen profile per g-docs/telemetry-metrics.md — e.g. for cautious: "/g-review will add one extra reviewer on next dispatch"]
 
 Coverage: [N] of 17 agents used · never: [list or "none"] · rarely: [list or "none"]
   (workflow-checkpoint will surface suggestions for never-used agents once per day)
 
-Snapshot written: docs/telemetry/[YYYY-MM-DD].md
+Snapshot written: g-docs/telemetry/[YYYY-MM-DD].md
 Profile persisted: .claude/telemetry-profile
 Coverage persisted: .claude/telemetry-coverage
 
@@ -149,5 +149,5 @@ Coverage persisted: .claude/telemetry-coverage
 - Always write the profile to `.claude/telemetry-profile` as a single bare word (no JSON, no newlines beyond trailing newline) — downstream skills parse this line directly.
 - Always apply the same `None recorded.` sentinel filter as `/g-patterns` and `/g-forecast` — telemetry metrics never count empty signals.
 - On a thin corpus, **never compute** — write `stable` and report `cold-start`. Forcing computation on insufficient data produces noise that triggers spurious model bumps.
-- The 8 metric definitions live in `docs/telemetry-metrics.md`. If the spec changes, this skill follows the spec — do not duplicate the formulas inline.
+- The 8 metric definitions live in `g-docs/telemetry-metrics.md`. If the spec changes, this skill follows the spec — do not duplicate the formulas inline.
 - The `recovery` profile is the strongest signal — when computing it, double-check that ≥5 metrics are genuinely ⚠ and not artefacts of a thin corpus. If in doubt, downgrade to `defensive` and note the borderline in the snapshot Notes section.

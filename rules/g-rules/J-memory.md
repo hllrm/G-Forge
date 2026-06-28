@@ -1,6 +1,6 @@
 ## I · Memory Layers
 
-G-Forge uses a 6-tier memory layer taxonomy. Full definitions, ownership rules, and eviction policy are in `docs/memory-taxonomy.md`.
+G-Forge uses a 6-tier memory layer taxonomy. Full definitions, ownership rules, and eviction policy are in `g-docs/memory-taxonomy.md`.
 
 | Layer | Lifetime | Scope |
 |-------|----------|-------|
