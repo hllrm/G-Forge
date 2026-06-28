@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **`/g-adr` pre-deliberated capture mode** — Step 2 now asks whether the decision is already worked out or needs an interview from scratch. The pre-deliberated path takes the developer's worked-out reasoning, maps it onto the seven fields, and asks only about genuine gaps — the fast path for decisions reasoned out off the interview (the human twin of the off-context deliberation the skill already does internally), instead of re-running the full sequence over answers the developer already holds.
+- **`/g-adr` mandatory reversibility check + premortem (new Step 8)** — before any downstream work is recommended, every ADR now gets a reversibility classification (two-way vs one-way door) recorded in the ADR header, paired with a premortem whose depth **scales with reversibility**: a one-line inline read for a two-way door, a single-use throwaway premortem subagent (off-context, to keep HQ's window clean) for a one-way door. Decision-support, never a gate — so the developer has the full picture before pulling the trigger on downstream work. Reversibility, not self-rated importance, is the routing signal. See `docs/g-adr-depth-model.md` for the deliberation behind this.
+
+### Changed
+
+- **`/g-adr` close-the-circle is now Step 9** (was Step 8); the reversibility/premortem pass is the mandatory Step 8 that always runs, while the consequential-only session reset follows it.
+
 ## [1.9.0] — 2026-06-26
 
 ### Added

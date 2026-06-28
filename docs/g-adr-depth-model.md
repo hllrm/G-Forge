@@ -1,28 +1,45 @@
 # `/g-adr` Depth — Deliberation Record & Recommendation
 
-> **Status:** Design record. Conclusion: **light touch or no update** — and *no update*
-> is the honest default today. Captures the M7d post-mortem deliberation on whether to
-> tier the ADR interview, three premortems, and the codebase research behind the call.
-> Nothing here is implemented; the live `g-adr/SKILL.md` still does the fixed 7-question pass.
+> **Status:** Design record. Conclusion was **light touch or no update**; the **light
+> touch shipped** (see "What shipped" below). Captures the M7d post-mortem deliberation on
+> whether to tier the ADR interview, three premortems, and the codebase research behind the
+> call. The fixed 7-question pass is unchanged — the change is a capture-mode choice and a
+> mandatory reversibility + premortem closing pass, not question-tiering.
 
-## Recommendation
+## What shipped
 
-**Do nothing now.** The case to leave `/g-adr` at fixed-depth-7 is strong: it fires
-rarely, is never a gate, the evidence is a single field report, and every error
-asymmetry favors leaving it alone. The skill's load-bearing engineering (the
-off-context deliberation subagent, the §A7 reset loop) was never the complaint —
-the entire debate was about the capture surface.
+The maintainer chose the light touch. Implemented in `skills/g-adr/SKILL.md`:
 
-**If a second/third independent report confirms the friction, the only change worth
-making is a light touch:**
+- **Pre-deliberated capture mode** (Step 2) — "I've worked it out" vs "interview me," the
+  low-risk cadence change that touches *how* answers are gathered, not *which* questions.
+- **Mandatory reversibility check + premortem** (new Step 8) — reversibility (two-way vs
+  one-way door) recorded in the ADR header, paired with a premortem whose depth **scales
+  with reversibility** (inline for two-way, off-context subagent for one-way). This is the
+  one place the conversation's hard-won signal — *reversibility, not self-rated stakes* —
+  routes depth. Decision-support, never a gate.
 
-- Let the *depth of each answer* scale with stakes (one sentence per section for a
-  contained change; full treatment for a Pillar). Same seven questions, scaled answers.
-- Add at most two optional, tier-independent questions as the routing floor —
-  **reversibility** and **uncertainty** (see below).
-- Keep `Assumptions` unconditional. Never gate. Default shallow.
+Deliberately **not** shipped: question-count tiering, a stakes classifier, the piggybacked
+signal-detection layer, a depth stamp. Those failed the premortems below and remain parked.
 
-**Explicitly do not build** the heavy version (a stakes classifier, a piggybacked
+## Recommendation (and what was chosen)
+
+**The bar to touch `/g-adr` was deliberately high**: it fires rarely, is never a gate, the
+evidence was a single field report, and every error asymmetry favors restraint. The skill's
+load-bearing engineering (the off-context deliberation subagent, the §A7 reset loop) was
+never the complaint — the debate was entirely about the capture surface.
+
+**Within that, the light touch was chosen and shipped** (see "What shipped"):
+
+- The **pre-deliberated capture mode** — cadence change, not a question change.
+- A **mandatory reversibility check + premortem**, with reversibility (the one signal that
+  survived all three premortems) scaling the premortem's depth. `Assumptions` stays
+  unconditional; nothing gates; the seven questions are untouched.
+
+A future option still on the table if friction recurs: let the *depth of each answer* scale
+with stakes (one sentence per section for a contained change, full treatment for a Pillar) —
+same questions, scaled answers.
+
+**Explicitly not built** — the heavy version (a stakes classifier, a piggybacked
 signal-detection layer, conditional templates, a depth stamp). Each failed a premortem.
 If it is ever revisited, it must ship whole or not at all (see Known Risks).
 
