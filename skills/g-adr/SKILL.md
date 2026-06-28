@@ -1,6 +1,6 @@
 ---
 name: g-adr
-description: Capture an architectural decision record. Gathers context interactively, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), promotes only the finalized draft, and writes docs/decisions/NNN-title.md. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
+description: Capture an architectural decision record. Captures pre-deliberated reasoning or interviews from scratch, offloads the high-branching weighing to a throwaway deliberation subagent (keeps HQ's context clean), and promotes only the finalized draft to docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem (premortem depth scales with reversibility) so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session whose first task is verifying the ADR. Run when making a significant technical choice.
 argument-hint: [short decision title]
 ---
 
@@ -21,9 +21,18 @@ Architectural decisions undocumented become invisible. New team members re-litig
 
 Wait for the title. Proceed.
 
-## Step 2 — Gather raw inputs interactively
+## Step 2 — Gather raw inputs
 
-Collect the developer's raw inputs — facts, options on the table, constraints. You are gathering material, not yet weighing it. Ask each question in sequence; wait for the answer before the next. Do not batch them.
+First, pick the capture mode — ask once and wait:
+
+> "Have you already worked this decision out (in a prior session, a doc, or your head), or do you want me to interview you from scratch?
+> **(a)** I've worked it out — I'll give you the reasoning, you structure it.
+> **(b)** Interview me — ask me one question at a time."
+
+- **(a) Pre-deliberated capture** — the developer pastes or dictates their worked-out reasoning. Map it onto the seven fields below yourself, then ask **only about the fields they left genuinely empty** (a targeted gap-fill, not the full sequence). This is the fast path for decisions already reasoned out off the interview — the deliberation happened elsewhere; you are capturing it, not re-running it.
+- **(b) Interview from scratch** — the default. Ask each question in sequence; wait for the answer before the next. Do not batch them.
+
+Either way you are collecting the developer's raw inputs — facts, options on the table, constraints. You are gathering material, not yet weighing it.
 
 **Q1 — Context:** "What situation, problem, or requirement forced this decision? Include constraints (performance, team skill, cost, existing infrastructure) that shaped the options."
 **Q2 — Decision:** "What did you decide, specifically? Name the technology, pattern, or approach. Be concrete — 'use X', not 'improve Y'."
@@ -100,6 +109,7 @@ Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQL
 
 **Date:** [YYYY-MM-DD]
 **Status:** [Accepted | Proposed | Deprecated | Superseded by ADR-NNN]
+**Reversibility:** [two-way door (reversible) | one-way door (hard to reverse) — set in Step 8]
 **Context:** [project name or area this applies to]
 
 ## Context
@@ -153,13 +163,34 @@ Status: [Accepted | Proposed | ...]
 [Follow-up actions if any, or "No follow-up actions identified."]
 ```
 
-## Step 8 — Close the circle (consequential, Accepted decisions only)
+## Step 8 — Reversibility check + premortem (mandatory)
+
+Before recommending anything be built on this decision, give the developer the full picture: *how hard is it to undo, and how is it most likely to fail?* This runs for **every** ADR — it is the one always-on decision-support pass, and the developer should have it before pulling the trigger on downstream work.
+
+1. **Reversibility check (always, cheap).** Classify the decision and confirm with the developer:
+   - **Two-way door** — reversible at low cost; you could undo it in roughly a day and little else commits to it. Proceed lightly.
+   - **One-way door** — expensive or impossible to reverse; other code, data, public contracts, or external dependencies will commit to it. Proceed with care.
+
+   Reversibility — not self-rated "importance" — is the signal that scales the rest of this step. Update the ADR's **Reversibility** header line with the verdict.
+
+2. **Premortem, scaled by reversibility.** Assume the decision has failed badly some months out; surface the likely causes *now*.
+   - **Two-way door →** a quick inline read: state the single most likely failure mode and its earliest warning sign. One or two lines. Do not dispatch a subagent.
+   - **One-way door →** dispatch a **single-use throwaway premortem subagent** (premortem is high-branching failure reasoning — running it inline poisons HQ's window, the same reason Step 3 is offloaded). Prompt it:
+     > "A team shipped this decision: [Decision + the one-line Context]. Assume that six months from now it has failed badly. Give the 3–5 most likely failure causes, ranked by likelihood × impact, each with its earliest observable warning sign. Return ONLY the ranked list — no preamble, no reasoning trace."
+     The subagent is discarded after it returns; never re-prompt it.
+
+3. **Present, don't bury.** Show the developer the reversibility verdict and the premortem findings together:
+   > "Reversibility: **[two-way / one-way door]**. Premortem surfaced these failure modes: [list]. You've got the full picture before anything builds on this."
+
+   The premortem is decision-support, like the Step 4 WEAKNESSES list — it is **not** written into the ADR verbatim. If a failure mode is serious enough to belong in the record, offer to fold it into the ADR's **Risks** or **Assumptions That Held** before finalizing.
+
+## Step 9 — Close the circle (consequential, Accepted decisions only)
 
 A finalized ADR is a high-stakes artifact produced through deliberation. Even with the weighing offloaded, this session's window now carries the interview and the promotion loop — you should not keep building architecture on top of it, and the ADR itself was produced in a context that should be **checked, not trusted from memory** (airtight = checked, not remembered).
 
 **This reuses the existing session-reset path, it does not invent one.** The context gate (G-RULES §A7, driven by the exchange counter in `workflow-checkpoint.sh`) already runs exactly this reset — auto-`/g-retro` + handoff write + "open a fresh session" — when the *quantitative* trigger fires (exchange count hits red). Finalizing a consequential ADR is the *semantic* trigger for the same response: you don't wait for the exchange count to climb, because an architecture decision warrants the reset now. Same path, different trigger.
 
-Apply this step only when the ADR is **Accepted** and consequential (a real stack / pattern / dependency / layer decision — the skill's normal case). For a **Proposed** ADR or a minor record, skip Step 8 and stop after Step 7.
+Apply this step only when the ADR is **Accepted** and consequential (a real stack / pattern / dependency / layer decision — the skill's normal case). For a **Proposed** ADR or a minor record, skip this step and stop after Step 8 (the reversibility check + premortem still ran — it is mandatory; only the session-reset is consequential-only).
 
 1. **Promote the record — run `/g-retro`** (the same `/g-retro` the context gate triggers at red). Use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it; topic slug `adr-[NNN]-[short]`. The observer journal already captured the session; the retro distills it into the durable record. **Skip if a retro has already run or is scheduled this session** — e.g. the §A7 red gate already fired, or you reached `/g-adr` via `/g-review`'s milestone close, which runs `/g-retro` itself. Don't double-retro.
 
@@ -177,8 +208,9 @@ Apply this step only when the ADR is **Accepted** and consequential (a real stac
 - The weighing happens in the Step 3 subagent, never in HQ. If you catch yourself drafting the alternatives analysis inline, stop and dispatch — that is the poison this skill exists to avoid.
 - Single-use all the way down: never re-prompt or continue the deliberation subagent. Rework = a fresh dispatch.
 - If the developer cannot articulate why the decision was made, record what is known and mark Context with `[Note: rationale partially reconstructed — verify with original decision-makers]`.
-- Do not editorialize the decision in the ADR — record it faithfully. The WEAKNESSES list is decision-support shown in Step 4 and is NOT written into the ADR file.
-- Still-debated decision → status **Proposed**, record the leading option, skip Step 8. Update to **Accepted** when confirmed.
+- Do not editorialize the decision in the ADR — record it faithfully. The WEAKNESSES list (Step 4) and the premortem findings (Step 8) are decision-support shown to the developer and are NOT written into the ADR file — except the reversibility verdict, which is recorded, and any failure mode the developer chooses to fold into Risks/Assumptions.
+- Still-debated decision → status **Proposed**, record the leading option, skip Step 9 (close the circle). The Step 8 reversibility check + premortem still runs. Update to **Accepted** when confirmed.
+- The Step 8 reversibility check + premortem is mandatory and runs for every ADR; the premortem's depth scales with reversibility (inline for a two-way door, an off-context subagent for a one-way door). It is decision-support, not a gate — never block on it.
 - ADR numbers are permanent. Never renumber existing ADRs.
-- Step 8 is a recommendation, never a gate. The developer owns whether to open a fresh session.
+- Step 9 is a recommendation, never a gate. The developer owns whether to open a fresh session.
 - ADRs written before M9 (v0.10.0) are pre-lineage — no backfill required.

@@ -1,5 +1,5 @@
 ---
-description: Capture an architectural decision record. Gathers context interactively, offloads the weighing to a throwaway deliberation subagent (keeps HQ's context clean), and writes docs/decisions/NNN-title.md. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session that verifies the ADR first. Run when making a significant technical choice.
+description: Capture an architectural decision record. Captures pre-deliberated reasoning or interviews from scratch, offloads the weighing to a throwaway deliberation subagent (keeps HQ's context clean), and writes docs/decisions/NNN-title.md. Runs a mandatory reversibility check + premortem before close so the developer has the full picture before building. On a consequential decision it closes the loop — runs /g-retro and recommends a fresh session that verifies the ADR first. Run when making a significant technical choice.
 argument-hint: [short decision title]
 ---
 
