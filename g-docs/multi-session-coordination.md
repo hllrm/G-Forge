@@ -6,6 +6,53 @@
 > surfaces (Gmail · Discord · Confluence) behind a common adapter, extensible over
 > time. The mechanism (claim protocol, schema) is not yet scoped.
 
+## North star — multiplayer G-Forge (the real goal)
+
+The ceiling here is **not** "stop two sessions colliding" — that's the floor. The goal
+is **full cooperation on one project by multiple people**, each running their own
+G-Forge + Claude, coordinating through a shared fabric. Call it **human orchestration,
+powered by humans**: the people (and their AIs) do the orchestrating — deciding who
+takes what, handing work off, reviewing each other — and G-Forge is the connective
+tissue that makes it *shared, visible, and safe*. G-Forge does not become an AI boss
+dispatching sessions; it becomes the **multiplayer layer a human team plays on**. This
+is the M24 governance positioning scaled from one developer to a team — not a new
+personality.
+
+What the goal needs, beyond the claim/lease substrate:
+- **Shared project state** — one roadmap / backlog / handoff every member reads and writes.
+- **Assignment by person** — milestones / waves / tasks owned by *people*, not just claimed by a session. Who's on what.
+- **Presence & visibility** — who's active, what they're touching, right now.
+- **Cross-person handoff** — the `## Active Session` handoff generalizes from session→session to **person→person**; you can pick up a teammate's thread.
+- **Cross-person review/gates** — the commit / doc gate can require a *teammate's* approval; review crosses people, not just sessions.
+- **Reconciliation** — concurrent branches / waves from different people reconcile, with conflicts **surfaced** (never auto-merged behind anyone's back).
+
+**The line that keeps it in the governance lane:** humans stay the orchestrators.
+G-Forge proposes, enforces, and records — it never silently assigns work to a person,
+never auto-dispatches another AI session without a human in the loop, and never runs
+as an always-on hosted authority. That single boundary — *no autonomous
+AI-orchestrating-AI* — is the only permanent non-goal.
+
+The claim/lease primitive (**M29**) is **phase one**: the atomic substrate every
+cooperation feature above is built on. Collision-avoidance first, because nothing else
+is safe without it; the cooperation layer rides on top, as a milestone arc beyond M29.
+
+## A whole framework, engaged on concurrency
+
+G-Forge stays **single-player by default** — solo work is unchanged, zero overhead. The
+moment **more than one session or user** is live on a project, a **multiplayer
+framework** engages: shared register/log, presence, claims, cross-person handoff and
+review, reconciliation. Concurrency is *detected* (an active claim or presence
+heartbeat from another identity), and the cooperation rules switch on automatically —
+the same way the integration tiers already gate behavior. It is not a separate
+product; it is a **mode** of the same governance layer that activates exactly when it's
+needed and gets out of the way when you're alone.
+
+So the framework owns a coherent surface, not a pile of features:
+- **Membership & identity** — who is on this project, each with a stable identity.
+- **A shared source of truth** — the register / roadmap / handoff all members share.
+- **A coordination protocol** — claim · release · heartbeat · assign · hand-off · request-review, recorded as an append-only log.
+- **Activation rules** — when it turns on (concurrency detected), how it behaves per integration tier, and how it degrades back to single-player when everyone else leaves.
+
 ## The problem
 
 G-Forge already does **sequential**, git-mediated multi-session handoff well: the
@@ -141,6 +188,10 @@ shared-log prototype on rung 1 or 2 is the way to *find out* before building any
   vendor may be a hard dependency.
 - **Degrade gracefully.** With no coordination surface configured, G-Forge must fall
   back to today's sequential git-mediated handoff — unchanged.
-- **Stay in the governance lane (per M24).** This is collision *avoidance* and shared
-  *visibility* — a rule with teeth — not a session-to-session dispatch/orchestration
-  engine. Resist growing a second personality.
+- **Human orchestration, not autonomous AI orchestration (per M24).** The goal is
+  multi-user cooperation — a human team playing on a shared fabric — which *is*
+  governance, scaled to teams. The single permanent line: G-Forge never auto-dispatches
+  a person or another AI session without a human in the loop, and never runs as an
+  always-on hosted authority. Humans decide; G-Forge enforces and records.
+- **Single-player by default.** Solo work carries zero overhead; the multiplayer
+  framework engages only when concurrency is detected, and degrades back cleanly.

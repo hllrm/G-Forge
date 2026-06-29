@@ -8,12 +8,25 @@
 ## Goal
 Stop **concurrent** sessions from silently colliding on milestone numbers, branches, and the handoff block, by coordinating through a shared, MCP-reached surface — with three pluggable backends (Gmail · Discord · Confluence) behind one adapter, and a clean fall-back to today's sequential git handoff when nothing is configured.
 
-## Non-goals (governance-lane guardrail, per M24/M28)
-This is collision **avoidance** + shared **visibility** — a rule with teeth — **not** an orchestration engine. Explicitly out of scope:
-- HQ in one session dispatching/steering *other live sessions* as workers.
-- A concurrent-wave **merge** protocol or a "who owns `main`" reconciliation engine.
-- Any always-on hosted service G-Forge must run. (A user's own server stays a future rung.)
-If a task starts drifting into these, it's the wrong milestone.
+## Position in the bigger goal — phase one of multiplayer G-Forge
+The north star is **full multi-user cooperation on one project** — "human orchestration,
+powered by humans": a human team, each with their own Claude, playing on a shared
+governance fabric that engages whenever more than one session/user is live (see
+`g-docs/multi-session-coordination.md`). **M29 is phase one**: the atomic claim/lease
+substrate every later cooperation feature is built on. The cooperation layer —
+**assignment by person**, **cross-person handoff** (the `## Active Session` block going
+person→person), **cross-person review gates**, and **reconciliation** of concurrent
+work — is a **milestone arc beyond M29**, not cut. M29 makes the rest *safe*.
+
+## Non-goals
+- **Permanent line:** no autonomous AI-orchestrating-AI. Humans orchestrate; G-Forge
+  enforces and records. No session silently dispatches another session or a person, and
+  G-Forge never runs as an always-on hosted authority.
+- **Surface-borrowed, not self-hosted:** coordination rides on a surface the team
+  already uses (Gmail / Discord / Confluence) via a remote MCP — M29 ships no service.
+- **Deferred to later phases of the multiplayer arc (not cut, just not M29):**
+  assignment/ownership semantics, cross-person review gates, and concurrent-wave
+  merge/reconciliation. M29 is the substrate they depend on.
 
 ## The shape (recap from the design note)
 - **Register** = a mutable field on the surface: "who holds what right now."

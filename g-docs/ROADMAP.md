@@ -398,7 +398,7 @@ plainly with the reason — don't paper over it.
 - [ ] **Phase B — workflow integration:** collision check in `/g-roadmap` + `/g-plan` (fetch + warn + offer alternatives before assigning), hook surfacing of others' active claims + heartbeat in `workflow-checkpoint.sh`/`session-start.sh`, release on milestone close. Honors tiers (off on `light`).
 - [ ] **Phase C — setup, health, rest of adapters:** **Confluence** adapter (version-CAS = real lock) + **Gmail** adapter (zero-setup floor), `/g-init` opt-in setup wiring a **remote MCP into `.mcp.json`** (tokens via env-var, never committed) + `/g-doctor` reachability check, graceful degradation + docs.
 
-**Non-goals (governance lane, per M24/M28):** no session-to-session dispatch, no concurrent-wave merge protocol, no "who owns `main`" engine, no hosted service G-Forge must run. Collision *avoidance* and shared *visibility* only.
+**Position:** phase one of **multiplayer G-Forge** — full multi-user cooperation on one project ("human orchestration, powered by humans"), a framework that engages whenever >1 session/user is live and degrades to single-player when alone. M29 is the claim/lease substrate; **assignment-by-person, cross-person handoff, cross-person review, and reconciliation** are later phases of the arc (not cut). Permanent line: humans orchestrate — no autonomous AI-dispatches-AI, no hosted authority.
 
 **Cross-surface requirement:** each adapter's MCP must be **remote HTTP/SSE in `.mcp.json`** so cloud / Slack / GitHub-Actions sessions can reach it (local stdio servers are invisible to those surfaces). Same property that makes G-Forge enforcement travel — committed config follows you everywhere.
 
@@ -421,7 +421,7 @@ Possible scope when promoted to a milestone:
 
 A brainstormed approach — coordinate through an always-available, instantly-visible **shared surface reached via an MCP** rather than git, which only propagates on push/fetch — is captured in `g-docs/multi-session-coordination.md`. Direction chosen: ship three spread surfaces (**Gmail · Discord · Confluence**) behind a common, extensible adapter; mechanism not yet scoped.
 
-*Status: **promoted to M29** (scoped, awaiting go) — see the milestone above and `g-docs/milestones/M29-multi-session-coordination.md`. The concurrent claim/lock is now the scoped milestone; the broader "orchestrating humans" framing stays a backlog idea.*
+*Status: **the goal is now explicit — multiplayer G-Forge** (full multi-user cooperation on one project; "human orchestration, powered by humans"). The concurrent claim/lease is **M29** (phase one, scoped, awaiting go); the cooperation layer — assignment, cross-person handoff/review, reconciliation — is the milestone arc beyond it. North star + framework captured in `g-docs/multi-session-coordination.md`.*
 
 ---
 
