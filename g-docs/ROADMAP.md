@@ -8,9 +8,9 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HANDOFF — g-forge | branch: claude/g-doctor-gitignore-docs-1njpam | v2.2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · M28 BUILT — g-docs is now the canonical home for ALL G-Forge docs (tracking included). Migrated ROADMAP/todo/todo-done/milestones/project_brief under g-docs/; rewrote 472 live refs across skills/hooks/rules/agents/commands/templates/README + live g-docs doctrine; historical records untouched. · /g-init Step 5a defines the project .gitignore; /g-doctor +Check 19 (gitignore vet) +Check 20 (stray-doc relocate) → 20 checks. · g-rules-I subpath map added. · Bumped to v2.2.0 (plugin.json + marketplace.json + CHANGELOG dated). · Committed + pushed; PR opened.
-Next up:          · Merge the M28 PR. · Then M26 — Provable Wave Dispatch (v2.3.0, deferred/spike-gated) · M25 — reliability benchmark (compute-gated).
-Active context:   · branch claude/g-doctor-gitignore-docs-1njpam, v2.2.0, off main. M28 built + verified (no strays; no tracked path ignored; grep-clean). Scope boundary + tasks in g-docs/milestones/M28-g-docs-canonical-tracking.md. Re-enter with /g-resume.
+Done this pass:   · M28 shipped + merged to main as v2.2.0 (g-docs canonical tracking; /g-init .gitignore; /g-doctor Checks 19/20). · Brainstormed + SCOPED M29 — multi-session coordination: coordinate concurrent sessions through a shared MCP-reached surface (claim/lease register + append log), three pluggable backends chosen for spread (Gmail · Discord · Confluence) behind one adapter. Captured the design (g-docs/multi-session-coordination.md) and the buildable scope (g-docs/milestones/M29-multi-session-coordination.md); promoted from the backlog candidate. · Confirmed via claude-code-guide: hooks/MCP travel to web/mobile/Slack/Actions only when config is in committed .claude/ (validates M28) and coordination MCP must be remote+.mcp.json.
+Next up:          · Await go on M29; start with Phase A (protocol core + Discord reference adapter) to test "is convention enough?" · M26 (deferred/spike-gated) · M25 (compute-gated).
+Active context:   · branch claude/multi-session-coordination-idea, off main (v2.2.0). M29 scoped, status ⬜ awaiting go — non-goals fence it to collision-avoidance, not orchestration. Phasing A→B→C in the milestone file. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -390,6 +390,22 @@ plainly with the reason — don't paper over it.
 
 ---
 
+### M29 — Multi-session coordination (claim/lease for concurrent sessions)
+**Status:** ⬜ Not started (scoped, awaiting go)
+**Goal:** Stop concurrent sessions from silently colliding on milestone numbers, branches, and the handoff — by coordinating through a shared, MCP-reached surface, with three pluggable backends behind one adapter, degrading cleanly to today's git handoff when none is configured.
+**Scope (phased):**
+- [ ] **Phase A — core + first adapter:** surface-agnostic claim protocol + register schema (resource = milestone/branch/wave; claim = holder/session/ts/lease/status), session identity + signed writes + lease/heartbeat + stale-claim reclaim, a capability-flagged adapter interface (`push|poll`, `cas|convention`, identity), and the **Discord** reference adapter (real-time, free) to answer "is convention enough?"
+- [ ] **Phase B — workflow integration:** collision check in `/g-roadmap` + `/g-plan` (fetch + warn + offer alternatives before assigning), hook surfacing of others' active claims + heartbeat in `workflow-checkpoint.sh`/`session-start.sh`, release on milestone close. Honors tiers (off on `light`).
+- [ ] **Phase C — setup, health, rest of adapters:** **Confluence** adapter (version-CAS = real lock) + **Gmail** adapter (zero-setup floor), `/g-init` opt-in setup wiring a **remote MCP into `.mcp.json`** (tokens via env-var, never committed) + `/g-doctor` reachability check, graceful degradation + docs.
+
+**Non-goals (governance lane, per M24/M28):** no session-to-session dispatch, no concurrent-wave merge protocol, no "who owns `main`" engine, no hosted service G-Forge must run. Collision *avoidance* and shared *visibility* only.
+
+**Cross-surface requirement:** each adapter's MCP must be **remote HTTP/SSE in `.mcp.json`** so cloud / Slack / GitHub-Actions sessions can reach it (local stdio servers are invisible to those surfaces). Same property that makes G-Forge enforcement travel — committed config follows you everywhere.
+
+**Premortem + done condition:** full breakdown in `g-docs/milestones/M29-multi-session-coordination.md`. Promoted from the backlog candidate below; this is the milestone version of it.
+
+---
+
 ## Backlog
 
 ### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
@@ -405,7 +421,7 @@ Possible scope when promoted to a milestone:
 
 A brainstormed approach — coordinate through an always-available, instantly-visible **shared surface reached via an MCP** rather than git, which only propagates on push/fetch — is captured in `g-docs/multi-session-coordination.md`. Direction chosen: ship three spread surfaces (**Gmail · Discord · Confluence**) behind a common, extensible adapter; mechanism not yet scoped.
 
-*Status: idea only — not scoped, not scheduled.*
+*Status: **promoted to M29** (scoped, awaiting go) — see the milestone above and `g-docs/milestones/M29-multi-session-coordination.md`. The concurrent claim/lock is now the scoped milestone; the broader "orchestrating humans" framing stays a backlog idea.*
 
 ---
 

@@ -1,0 +1,56 @@
+# M29 — Multi-session coordination (claim/lease for concurrent sessions)
+
+**Status:** ⬜ Not started (scoped, awaiting go)
+**Version:** ships its own minor when built; sequence relative to M26 is the developer's call
+**Depends on:** nothing structural — adds an optional coordination layer. Builds on the M28 `.claude/` "committed config travels" property and the existing `## Active Session` git handoff (which remains the fallback).
+**Design note:** the full rationale, surface ladder, and the chosen-direction trade-offs live in `g-docs/multi-session-coordination.md`. This file is the buildable scope.
+
+## Goal
+Stop **concurrent** sessions from silently colliding on milestone numbers, branches, and the handoff block, by coordinating through a shared, MCP-reached surface — with three pluggable backends (Gmail · Discord · Confluence) behind one adapter, and a clean fall-back to today's sequential git handoff when nothing is configured.
+
+## Non-goals (governance-lane guardrail, per M24/M28)
+This is collision **avoidance** + shared **visibility** — a rule with teeth — **not** an orchestration engine. Explicitly out of scope:
+- HQ in one session dispatching/steering *other live sessions* as workers.
+- A concurrent-wave **merge** protocol or a "who owns `main`" reconciliation engine.
+- Any always-on hosted service G-Forge must run. (A user's own server stays a future rung.)
+If a task starts drifting into these, it's the wrong milestone.
+
+## The shape (recap from the design note)
+- **Register** = a mutable field on the surface: "who holds what right now."
+- **Log** = an append-only history on the surface: claims/releases as events.
+- **Protocol** = read register → if target free, write a claim (signed, timestamped, leased) → heartbeat → release. `/g-roadmap` and `/g-plan` consult the register before assigning.
+
+## Scope / tasks
+
+### Phase A — Surface-agnostic core + first adapter (proves the model)
+- [ ] **A1 — Coordination protocol + register schema.** Define the resource keys we claim (milestone number · branch · wave/file-set), and the claim record: `{resource, holder_identity, session_id, ts, lease_ttl, status:(active|released)}`. Define operations: `read_register`, `claim`, `release`, `heartbeat`, `list_active`. Define the **tiebreak rule** for non-atomic surfaces (earliest `ts`; ties broken by lexically-lowest `session_id`) and the **CAS rule** where the surface supports it.
+- [ ] **A2 — Session identity + lease/heartbeat.** A stable per-session id; every write is **signed** with it (mandatory on shared-account Gmail). Lease TTL + periodic heartbeat so a crashed session's claim auto-expires; define **stale-claim reclamation** (a claim past TTL with no heartbeat is reclaimable, logged as a takeover).
+- [ ] **A3 — Adapter interface.** Thin contract every backend implements: `readRegister() · writeClaim() · appendLog() · casUpdate?(version)`. **Capability flags** per adapter: `push|poll`, `cas|convention`, `nativeIdentity|sharedAccount`. The workflow logic reads flags, never vendor specifics.
+- [ ] **A4 — First reference adapter: Discord.** Real-time (push), free, native identity — cheapest to build and dogfood. Pinned message = register, channel = append log. Convention tiebreak (no CAS). Reached via a **remote HTTP/SSE MCP in `.mcp.json`**. Use this to answer the open question: *is convention enough in practice?*
+
+### Phase B — Workflow integration
+- [ ] **B1 — Collision check in `/g-roadmap` + `/g-plan`.** Before assigning a milestone number (roadmap) or starting a wave (plan), `read_register` + a fresh fetch; if the target is claimed by another live session, **warn with who/when and offer alternatives** (next free number / different wave); on proceed, `claim` it.
+- [ ] **B2 — Hook surfacing.** `workflow-checkpoint.sh` shows others' active claims ("⚠ M29 claimed by sess-ab12, 8m ago") and **heartbeats** the current session's claim. `session-start.sh` lists active claims at open. Release on milestone close / `/g-retro`. **Honor tiers:** active on `full`/`balanced`; `light` opts out entirely.
+
+### Phase C — Setup, health, docs, and the other two adapters
+- [ ] **C1 — Confluence adapter (the lock).** Page = register, page history = log, **version-CAS** = genuine atomic claim. This is the answer if Phase-A convention proves insufficient for teams.
+- [ ] **C2 — Gmail adapter (the floor).** Draft = register (JSON), self-emails = log, poll, signed entries, convention tiebreak. Lowest-common-denominator, zero-setup.
+- [ ] **C3 — `/g-init` opt-in setup + `/g-doctor` check.** Optional `/g-init` step: "Configure multi-session coordination? (none | discord | confluence | gmail)" → wires the chosen **remote MCP into `.mcp.json`** (token via env-var expansion, **never committed**) and writes `.claude/coordination` config. New `/g-doctor` advisory check: configured surface's MCP is reachable and the register is readable.
+- [ ] **C4 — Degradation + docs.** No surface configured → behavior byte-identical to today (sequential git handoff). Surface unreachable → warn + fall back, **never block work**. Update `g-rules-I` and the README.
+
+## Done condition
+- Two concurrent sessions both attempting to claim the same milestone end with **exactly one** holding it and the other told it's taken — atomically on Confluence (CAS), and via the documented tiebreak + re-read on Discord/Gmail (with the convention race window explicitly documented, not hidden).
+- A crashed session's claim expires by lease and is cleanly reclaimable.
+- With **no** surface configured, `/g-roadmap`, `/g-plan`, and the hooks behave exactly as they do today.
+- `/g-doctor` reports coordination health when a surface is configured; credentials are never committed.
+
+## Premortem (per `/g-roadmap` Step 3b)
+- **Credential leakage** — a token committed in `.mcp.json`. *Mitigate:* env-var expansion only; `/g-doctor` + `.gitignore` guard; doc warning.
+- **Convention races (Gmail/Discord)** — two sessions both believe they "won." *Mitigate:* deterministic tiebreak (ts + session_id) + mandatory re-read after write; document the window; steer teams needing hard exclusion to Confluence.
+- **MCP-availability divergence** — a local stdio adapter would silently fail to coordinate cloud/Slack/Actions sessions. *Mitigate:* **remote HTTP/SSE MCP in `.mcp.json` is a hard requirement**; `/g-doctor` reachability check.
+- **Stale claims block work** — a crashed holder never releases. *Mitigate:* lease TTL + heartbeat + logged reclamation.
+- **Three-adapter maintenance drift.** *Mitigate:* surface-agnostic core + capability-flagged thin interface; ship Discord first, add the other two only behind the same contract.
+- **Scope creep into orchestration.** *Mitigate:* the non-goals section above; reject merge/dispatch work into a later milestone.
+
+## Sequencing
+Phase A is the spike that answers "is convention enough?" Ship it, dogfood it on this repo's own multi-machine workflow, then decide whether Confluence's hard lock (C1) is needed before, or alongside, the Gmail floor (C2).
