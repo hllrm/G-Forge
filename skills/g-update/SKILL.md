@@ -189,7 +189,7 @@ If a match cannot be found (agent name doesn't match any current profile), tell 
 **Implementer agents** — for each `*-implementer` agent file found in Step 2 (skip `feature-implementer` — that is a shipped agent, not a per-stack one): re-render it from the current implementer template so template improvements propagate.
 
 1. Read the implementer template `[plugin-root]/templates/stack-implementer.md`.
-2. Recover the substitutions from the installed file's frontmatter: `{{IMPLEMENTER_NAME}}` is its `name:`; `{{ARCHITECTURE_SKILL}}` is its existing `skills:` entry; `{{ARCHITECT_NAME}}` is the implementer name with `-implementer` → `-architect`; `{{STACK_LABEL}}` from its description (or the matching architect's).
+2. Recover the substitutions from the installed file's frontmatter: `{{IMPLEMENTER_NAME}}` is its `name:`; `{{ARCHITECTURE_SKILL}}` is its existing `skills:` entry; `{{ARCHITECT_NAME}}` is the implementer name with `-implementer` → `-architect`; `{{STACK_LABEL}}` from its description (or the matching architect's). Re-derive `{{OWNS_GLOBS}}` from the stack's **current** plugin architecture rules (`[plugin-root]/profiles/[stack]/rules/architecture.md`) using the same layer-map → glob conversion as `/g-specialize` Step 6, so rule changes propagate (remove the `owns:` key if none can be derived).
 3. Substitute, strip the leading template-usage comment, and overwrite the file.
 
 If an implementer's stack skill no longer exists in the plugin, tell the developer: "Could not find a current profile for `[name]` — skipping." Do not delete the file.

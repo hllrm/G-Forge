@@ -364,6 +364,17 @@ Report per profile:
    - `{{ARCHITECT_NAME}}` — the architect's `name:` (e.g. `vue-architect`).
    - `{{STACK_LABEL}}` — the human stack label (e.g. `Vue 3 + Pinia`, `FastAPI`), the same label used in the Step 4 confirmation.
    - `{{ARCHITECTURE_SKILL}}` — `architecture-[stack]`, the skill created above.
+   - `{{OWNS_GLOBS}}` — derive from the stack's architecture rules (`profiles/[stack]/rules/architecture.md`, which you read in Step 5). Find the `**Layer map:**` section and collect each backtick-quoted path from its bullets. Convert each path to a glob:
+     - path ending in `/` (a directory) → `"<path>**"` (e.g. `` `src/components/` `` → `"src/components/**"`)
+     - path with a `<placeholder>` segment → replace each `<…>` with `*` (e.g. `` `apps/<feature>/views.py` `` → `"apps/*/views.py"`)
+     - a concrete file path → keep it verbatim (e.g. `` `src/state.rs` `` → `"src/state.rs"`)
+
+     Emit the result as a YAML list, each item on its own line indented two spaces:
+     ```
+       - "src/components/**"
+       - "src/stores/**"
+     ```
+     If the rules have no `**Layer map:**` section or no extractable paths, set `{{OWNS_GLOBS}}` to empty and **remove the entire `owns:` key** (the `owns:` line and its placeholder) from the rendered file — wave-planner will fall back to stack-label routing for that implementer.
 3. Substitute all placeholders, strip the leading `<!-- ... -->` template-usage comment, and write the result to `.claude/agents/[implementer-name].md`. If a file with that `name:` already exists, ask "[implementer-name] is already installed. Overwrite? (y/n)" and wait, same as for the architect.
 
 Report per profile:
