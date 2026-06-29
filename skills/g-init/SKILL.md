@@ -1,6 +1,6 @@
 ---
 name: g-init
-description: The single G-Forge front door — run once after installing the plugin. Detects what's here and routes to /g-onboard (existing codebase) or /g-kickoff (new project) for the brief, scaffolds CLAUDE.md (compact G-rules), ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven commit/workflow hooks, then runs /g-specialize for the stack — leaving you ready to /g-plan.
+description: The single G-Forge front door — run once after installing the plugin. Detects what's here and routes to /g-onboard (existing codebase) or /g-kickoff (new project) for the brief, scaffolds CLAUDE.md (compact G-rules), g-docs/ROADMAP.md (with the Active Session handoff), g-docs/milestones/, g-docs/todo.md, and the seven commit/workflow hooks, then runs /g-specialize for the stack — leaving you ready to /g-plan.
 ---
 
 **Announce:** "Using g-init to set up G-Forge."
@@ -13,15 +13,15 @@ The project root is the current working directory. If uncertain, ask the develop
 
 ## Step 1a — Detect state and route to intake
 
-Before scaffolding anything, figure out the situation and get a `project_brief.md` in place via the right intake skill.
+Before scaffolding anything, figure out the situation and get a `g-docs/project_brief.md` in place via the right intake skill.
 
 1. **Already a G-Forge project?** If `.claude/integration-tier` exists **and** `CLAUDE.md` contains `<!-- G-Forge Rules`, G-Forge is already initialized here. Don't re-scaffold — tell the developer: "G-Forge is already set up here. Run `/g-update` to re-sync to the current plugin version, or `/g-plan` to start working." Then stop.
 
-2. **Does a `project_brief.md` already exist?** If yes, intake is done — skip to Step 2 (scaffold).
+2. **Does a `g-docs/project_brief.md` already exist?** If yes, intake is done — skip to Step 2 (scaffold).
 
 3. **Otherwise classify the directory and run the matching intake skill, then continue to Step 2 when it returns:**
-   - **Existing codebase** — there is real source beyond docs: a dependency manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, `pom.xml`/`build.gradle`), or source directories, or more than a couple of commits of real code → run **`/g-onboard`**. Use Glob to find `skills/g-onboard/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It deep-reads the repo, resolves any existing-G-Forge-state conflicts (so the scaffold and `/g-specialize` don't clobber the developer's files), and writes `project_brief.md`. **Carry its recorded conflict preferences forward** — if the developer chose to skip CLAUDE.md injection, the existing `todo.md` schema, or rules/agents installation, honor that in Steps 2–7.
-   - **New / greenfield** — empty, or only docs/README, no real source → run **`/g-kickoff`**. Use Glob to find `skills/g-kickoff/SKILL.md` and follow it (interview → goals/stack → `project_brief.md`).
+   - **Existing codebase** — there is real source beyond docs: a dependency manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, `pom.xml`/`build.gradle`), or source directories, or more than a couple of commits of real code → run **`/g-onboard`**. Use Glob to find `skills/g-onboard/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It deep-reads the repo, resolves any existing-G-Forge-state conflicts (so the scaffold and `/g-specialize` don't clobber the developer's files), and writes `g-docs/project_brief.md`. **Carry its recorded conflict preferences forward** — if the developer chose to skip CLAUDE.md injection, the existing `g-docs/todo.md` schema, or rules/agents installation, honor that in Steps 2–7.
+   - **New / greenfield** — empty, or only docs/README, no real source → run **`/g-kickoff`**. Use Glob to find `skills/g-kickoff/SKILL.md` and follow it (interview → goals/stack → `g-docs/project_brief.md`).
    - If it's genuinely ambiguous, ask the developer one question: "Is this an existing codebase to onboard, or a fresh project to scaffold?" and route accordingly.
 
    (When `/g-onboard` or `/g-kickoff` finishes by suggesting `/g-init`, ignore that — you're already in it. Continue to Step 2.)
@@ -82,9 +82,9 @@ Report:
 ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
 ```
 
-## Step 3 — Create ROADMAP.md
+## Step 3 — Create g-docs/ROADMAP.md
 
-Create `ROADMAP.md` if it does not exist. It carries the **`## Active Session` handoff** — the single canonical cold-start the whole workflow reads (`workflow-checkpoint.sh`, `/g-resume`, `pre-compact.sh`, `/g-retro`). `todo.md` never holds a handoff. Write the handoff block raw under the heading (no code fence), so the `━` separators and the `Active context:` line are greppable:
+Create the `g-docs/` directory if it does not exist, then create `g-docs/ROADMAP.md` if it does not exist. It carries the **`## Active Session` handoff** — the single canonical cold-start the whole workflow reads (`workflow-checkpoint.sh`, `/g-resume`, `pre-compact.sh`, `/g-retro`). `g-docs/todo.md` never holds a handoff. Write the handoff block raw under the heading (no code fence), so the `━` separators and the `Active context:` line are greppable:
 
 ```
 # Roadmap
@@ -95,7 +95,7 @@ Create `ROADMAP.md` if it does not exist. It carries the **`## Active Session` h
 HANDOFF — [project] | branch: [branch]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Done this pass:   · (nothing yet)
-Next up:          · Define M1 scope in milestones/M1.md
+Next up:          · Define M1 scope in g-docs/milestones/M1.md
 Active context:   · Fresh project, just initialized
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -113,12 +113,12 @@ Active context:   · Fresh project, just initialized
 
 Use the same skeleton `/g-roadmap` writes — `## Milestones` with a `### MN` block per milestone — and the same status key: ⬜ Not started · 🔄 In progress · ✅ Complete. Completed milestones stay under `## Milestones` marked ✅ (there is no separate `## Done` section).
 
-If a `project_brief.md` exists, read it and use the project goals to fill in M1 and M2 with meaningful content.
+If a `g-docs/project_brief.md` exists, read it and use the project goals to fill in M1 and M2 with meaningful content.
 
-## Step 4 — Create milestones/M1.md
+## Step 4 — Create g-docs/milestones/M1.md
 
-Create the `milestones/` directory if it does not exist.
-Create `milestones/M1.md` if it does not exist:
+Create the `g-docs/milestones/` directory if it does not exist.
+Create `g-docs/milestones/M1.md` if it does not exist:
 
 ```
 # M1 — [Milestone Name]
@@ -137,18 +137,81 @@ Create `milestones/M1.md` if it does not exist:
 🔄 In progress
 ```
 
-## Step 5 — Create todo.md
+## Step 5 — Create g-docs/todo.md
 
-Create `todo.md` if it does not exist. It is the tactical task ledger only — **no handoff block** (the handoff lives in `ROADMAP.md`'s `## Active Session`):
+Create `g-docs/todo.md` if it does not exist. It is the tactical task ledger only — **no handoff block** (the handoff lives in `g-docs/ROADMAP.md`'s `## Active Session`):
 
 ```
 ## Tasks
 | # | Task | Notes |
 |---|------|-------|
-| 1 | Define M1 scope | Update milestones/M1.md |
+| 1 | Define M1 scope | Update g-docs/milestones/M1.md |
 
 ## Details
 ```
+
+## Step 5a — Define the project `.gitignore`
+
+G-Forge generates two kinds of files, and the `.gitignore` is what keeps them straight: **tracked project record** (commit these — they ARE the project) versus **runtime/dev artifacts** (never commit — per-developer, ephemeral, secret, or regenerable). Getting this boundary right is what makes a clone reproducible and a diff readable. Establish it now so the first commit lands clean.
+
+**Track (do NOT ignore) — the project and its shared enforcement:**
+- Source code and the project's own build/config.
+- `CLAUDE.md`, `G-RULES.md`, `CHANGELOG.md`, `README.md`.
+- The `g-docs/` project record: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/todo-done.md`, `g-docs/milestones/`, `g-docs/project_brief.md`, and `g-docs/decisions/ retros/ forecasts/ telemetry/ blast-radius/ alignment/`.
+- `g-wiki/` — committed human-facing content.
+- Shared G-Forge config so teammates inherit the same gates: `.claude/hooks/`, `.claude/settings.json`, `.claude/rules/`, `.claude/agents/`.
+
+**Ignore — runtime/dev artifacts:**
+- OS/editor: `.DS_Store`, `Thumbs.db`, `*.swp`.
+- Secrets/local: `.env`, `.env.*` (but not `.env.example`), `*.local`.
+- Worktrees: `.worktrees/`.
+- Per-developer + ephemeral G-Forge state under `.claude/`: the two commit-gate sentinels, the observer journal, and the session/runtime counters and caches.
+- Regenerable raw output: `g-docs/agent-output/`.
+
+Read `.gitignore` if it exists; if not, start empty. **Merge idempotently** — add only the lines below that are not already present (match on the exact pattern); never remove or reorder a developer's existing entries, and never ignore a tracked-by-design path above. Append under a labelled block:
+
+```
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+*.swp
+
+# ── Secrets / local env ──
+.env
+.env.*
+!.env.example
+*.local
+
+# ── Worktrees ──
+.worktrees/
+
+# ── G-Forge runtime state (per-developer / ephemeral — never shared) ──
+.claude/g-forge-approved
+.claude/g-forge-docs-approved
+.claude/journal/
+.claude/compact-state.md
+.claude/reentry.md
+.claude/session-prompt-count
+.claude/session-compaction-count
+.claude/context-threshold-offset
+.claude/review-holds
+.claude/tier3-active
+.claude/training-mode
+.claude/training-progress.md
+.claude/telemetry-coverage
+.claude/last-trim
+.claude/last-align
+.claude/coverage-nudge-stamp
+.claude/coverage-nudge-index
+.claude/agent-memory-local/
+
+# ── G-Forge regenerable output (not project record) ──
+g-docs/agent-output/
+```
+
+Note for the developer: shared G-Forge config (`.claude/hooks/`, `.claude/settings.json`, `.claude/rules/`, `.claude/agents/`) is intentionally **left tracked** so the whole team inherits the same hooks and gates. If this project prefers each developer to run `/g-init` themselves, they can add `.claude/` to `.gitignore` — but then teammates won't get the commit gate from a clone.
+
+Report: `✓ .gitignore — project artifacts excluded, project record tracked`
 
 ## Step 6 — Set up commit enforcement hooks
 
@@ -351,20 +414,21 @@ After all steps, report:
 ```
 G-Forge ready ✓
 
-  ✓ project_brief.md — [via /g-onboard | via /g-kickoff | already present]
+  ✓ g-docs/project_brief.md — [via /g-onboard | via /g-kickoff | already present]
   ✓ CLAUDE.md — G-Forge rules injected
   ✓ G-RULES.md — installed
   ✓ .claude/rules/g-rules-*.md — 10 rule section files installed
-  ✓ ROADMAP.md — created with the Active Session handoff (or already existed)
-  ✓ milestones/M1.md — created (or already existed)
-  ✓ todo.md — created (or already existed)
+  ✓ g-docs/ROADMAP.md — created with the Active Session handoff (or already existed)
+  ✓ g-docs/milestones/M1.md — created (or already existed)
+  ✓ g-docs/todo.md — created (or already existed)
+  ✓ .gitignore — project artifacts excluded, project record tracked
   ✓ .claude/hooks/ — 7 hooks installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint)
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]
   ✓ Stack — [specialized: <stack> architect + rules installed | no stack detected yet — run /g-specialize once it exists]
 
-You're set up and ready to work. Next: run /g-plan with your first feature request, or edit milestones/M1.md to define your scope.
+You're set up and ready to work. Next: run /g-plan with your first feature request, or edit g-docs/milestones/M1.md to define your scope.
 Tip: run /g-wiki anytime to start a human-facing project wiki in g-wiki/ — it's also refreshed automatically at the end of every milestone.
 
 **Recommended MCPs** — install these in Claude Code for best results with G-Forge:
@@ -377,5 +441,5 @@ To install: Claude Code → Settings → MCP Servers, or add to `~/.claude/setti
 
 ## Rules
 - Never create a file that already exists without reading it first.
-- If project_brief.md exists at the project root, use its content to pre-fill ROADMAP.md and milestones/M1.md.
+- If g-docs/project_brief.md exists at the project root, use its content to pre-fill g-docs/ROADMAP.md and g-docs/milestones/M1.md.
 - Settings.json merge must never drop existing hooks — read before writing.

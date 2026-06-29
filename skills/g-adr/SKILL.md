@@ -28,7 +28,7 @@ Wait for the title.
 ADRs are only valuable while they stay **rare and high-signal**; a full record on a small, local choice dilutes the corpus. Before running the interview, place the decision:
 
 - **ADR** — a significant architectural choice: a new stack component or external dependency, a pattern applied project-wide, a structural constraint, or replacing an existing approach. → proceed to Step 2.
-- **Brief row** — contained, local, and reversible (one component, undoable in roughly a day, nothing else commits to it). This is **not** an ADR; it belongs as a one-line entry in `project_brief.md`'s tech-decisions table. → offer to add that line, then stop — do not run the interview. (No `project_brief.md`? Note it in the commit/chat, or record a minimal ADR if the developer prefers.)
+- **Brief row** — contained, local, and reversible (one component, undoable in roughly a day, nothing else commits to it). This is **not** an ADR; it belongs as a one-line entry in `g-docs/project_brief.md`'s tech-decisions table. → offer to add that line, then stop — do not run the interview. (No `g-docs/project_brief.md`? Note it in the commit/chat, or record a minimal ADR if the developer prefers.)
 - **Nothing** — a routine implementation detail with no lasting rationale. → say so; record nothing.
 
 **Propose, don't impose:** state the call with one line of evidence and let the developer confirm or override — e.g. "This looks like a **brief row** — contained and reversible. Record it as a tech-decisions line instead of a full ADR, or override and record the ADR anyway?" On override toward ADR, proceed. **Reversibility is the tell** — a contained, reversible change is almost always a brief row, not an ADR.
@@ -78,7 +78,7 @@ Developer's raw inputs:
   Constraints: [Q6]
   Assumptions: [Q7]
 
-Read project_brief.md, CLAUDE.md (layer map / import rules), and any directly relevant
+Read g-docs/project_brief.md, CLAUDE.md (layer map / import rules), and any directly relevant
 source to ground the analysis. Then produce:
 
 1. A rigorous "Alternatives considered" table (option → why rejected), including any
@@ -164,7 +164,7 @@ Derive a kebab-case filename from the title (e.g. "Use PostgreSQL instead of SQL
 
 Check downstream files:
 - Affects architecture: "Does this change the layer map or import rules in CLAUDE.md? Update it or run `/g-specialize` to reinstall the profile."
-- New external dependency: "Consider adding it to `project_brief.md`'s tech decisions table."
+- New external dependency: "Consider adding it to `g-docs/project_brief.md`'s tech decisions table."
 - Deprecates a previous approach: "If an ADR exists for the old approach, set its status to Deprecated and add 'Superseded by ADR-[NNN]'."
 
 Report:
@@ -206,9 +206,9 @@ Apply this step only when the ADR is **Accepted** and consequential (a real stac
 
 1. **Promote the record — run `/g-retro`** (the same `/g-retro` the context gate triggers at red). Use Glob to find `skills/g-retro/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it; topic slug `adr-[NNN]-[short]`. The observer journal already captured the session; the retro distills it into the durable record. **Skip if a retro has already run or is scheduled this session** — e.g. the §A7 red gate already fired, or you reached `/g-adr` via `/g-review`'s milestone close, which runs `/g-retro` itself. Don't double-retro.
 
-2. **Write the handoff** — the same `## Active Session` block §A7 writes on reset, in `ROADMAP.md`. Set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
+2. **Write the handoff** — the same `## Active Session` block §A7 writes on reset, in `g-docs/ROADMAP.md`. Set its "Next up" line (additively, don't clobber existing handoff content) to lead with:
    > `⚠ FIRST: verify ADR-[NNN] against the actual repo state before building on it (clean-slate check).`
-   If `ROADMAP.md` has no `## Active Session` block, insert one after the title (or carry the task in the chat recommendation only if there is no `ROADMAP.md`).
+   If `g-docs/ROADMAP.md` has no `## Active Session` block, insert one after the title (or carry the task in the chat recommendation only if there is no `g-docs/ROADMAP.md`).
 
 3. **Recommend a fresh session** (the same recommendation the red gate makes). Tell the developer:
    > "ADR-[NNN] is finalized. This session's context now carries the deliberation that produced it — that's residue I shouldn't keep building on, and the ADR itself is an airtight answer that should be *checked*, not trusted from memory. Recommend: **start a fresh session and run `/g-resume`** — it re-hydrates a clean window with the handoff, this retro, and ADR-[NNN], and offers to verify the decision against the actual repo as the first task. You lose the residue, not the knowledge."

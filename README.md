@@ -81,7 +81,7 @@ They're registered in exactly one place — your project's `.claude/settings.jso
 
 ### 6. The silent observer
 
-The observer is a passive recorder, not a participant. As you work, it appends a one-line-per-event journal to `.claude/journal/` — what was committed, what branch you cut, when tests ran, which agents were dispatched, any revert or destructive command. It writes **nothing** to the chat and never interrupts. When you run `/g-retro`, it synthesizes the retrospective from that journal plus git and `todo.md` — no end-of-session interview. You verify the output instead of reconstructing the session from memory. The observer is off on the `light` tier.
+The observer is a passive recorder, not a participant. As you work, it appends a one-line-per-event journal to `.claude/journal/` — what was committed, what branch you cut, when tests ran, which agents were dispatched, any revert or destructive command. It writes **nothing** to the chat and never interrupts. When you run `/g-retro`, it synthesizes the retrospective from that journal plus git and `g-docs/todo.md` — no end-of-session interview. You verify the output instead of reconstructing the session from memory. The observer is off on the `light` tier.
 
 ---
 
@@ -165,8 +165,8 @@ Run **one** command in your project directory:
 
 `/g-init` detects what's there and drives the whole setup itself — you don't have to know which command comes first:
 
-1. **Intake** — routes to `/g-kickoff` (new/empty project: interview → brief) or `/g-onboard` (existing codebase: deep-read the repo → resolve conflicts → brief). Skipped if a `project_brief.md` already exists.
-2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the `## Active Session` handoff), milestones/, todo.md, and the seven commit/workflow hooks.
+1. **Intake** — routes to `/g-kickoff` (new/empty project: interview → brief) or `/g-onboard` (existing codebase: deep-read the repo → resolve conflicts → brief). Skipped if a `g-docs/project_brief.md` already exists.
+2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, g-docs/ROADMAP.md (with the `## Active Session` handoff), g-docs/milestones/, g-docs/todo.md, and the seven commit/workflow hooks.
 3. **Specialize** — runs `/g-specialize` to detect your stack and install the architect agent, the matching implementer agent, and architecture rules.
 
 You end up ready to `/g-plan`. After `/g-init`, `git commit` is gated — it blocks until `/g-review` issues MERGE READY.
@@ -199,7 +199,7 @@ G-RULES.md has ten sections, each stored as a separate `@`-referenced file in `.
 | **F — Design Patterns** | Universal principles and anti-patterns (see below) |
 | **G — Documentation** | What must be documented, currency rule, documentation ownership model |
 | **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
-| **I — Project Tracking** | File hierarchy, commit gate infrastructure, todo.md structure |
+| **I — Project Tracking** | File hierarchy, commit gate infrastructure, g-docs/todo.md structure |
 | **J — Memory** | Six-tier memory layer taxonomy |
 
 ### Section F — Design Patterns
@@ -214,14 +214,14 @@ Stack-specific patterns — including object pooling rules for game-dev profiles
 
 ```
 New project:
-/g-kickoff     →   project_brief.md  (goals, scope, tech decisions)
+/g-kickoff     →   g-docs/project_brief.md  (goals, scope, tech decisions)
 
 Existing project:
-/g-onboard     →   project_brief.md  (current state + planned work)
+/g-onboard     →   g-docs/project_brief.md  (current state + planned work)
 
 Then for both:
 /g-init        →   scaffolded project + commit gate + workflow hooks
-/g-roadmap     →   features → milestones → ROADMAP.md
+/g-roadmap     →   features → milestones → g-docs/ROADMAP.md
 /g-specialize  →   stack architect + implementer agents + architecture rules
 
 Day-to-day (auto-triggered — no command needed):
@@ -234,7 +234,7 @@ Unattended execution (requires approved plan):
 /g-afk         →   all waves + review, no check-ins  →  handoff report when done
 
 Project hygiene:
-/g-brief       →   refresh project_brief.md as project evolves
+/g-brief       →   refresh g-docs/project_brief.md as project evolves
 /g-help        →   where am I + what to do next
 /g-status      →   fast state snapshot
 /g-doctor      →   verify hooks, settings, rules block, milestone alignment
@@ -270,7 +270,7 @@ Amber is **active monitoring**, not a one-time warning: Claude runs `/context` e
 
 **`agent-lifecycle.sh`** (`SubagentStart` / `SubagentStop`) — records every agent dispatch into the same journal.
 
-**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and the `## Active Session` handoff block from `ROADMAP.md`. Also records the compaction: it bumps a per-session count (the red backstop) and grows the persistent calibration offset so the context gate fires earlier next time.
+**`pre-compact.sh`** (`PreCompact`) — fires before context compression. Writes `.claude/compact-state.md` with the current branch, last 5 commits, and the `## Active Session` handoff block from `g-docs/ROADMAP.md`. Also records the compaction: it bumps a per-session count (the red backstop) and grows the persistent calibration offset so the context gate fires earlier next time.
 
 The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
@@ -290,13 +290,13 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
 | `/g-doctor` | 14-point health check: all 7 hooks installed, registered in settings.json, and not double-registered by the plugin manifest, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel — ✓/✗ with fix instructions |
-| `/g-kickoff` | Interview → scope challenge → stack deep dive → project_brief.md |
-| `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → project_brief.md |
-| `/g-roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
+| `/g-kickoff` | Interview → scope challenge → stack deep dive → g-docs/project_brief.md |
+| `/g-onboard` | Read existing repo → present findings → interview → optional architecture audit → g-docs/project_brief.md |
+| `/g-roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → g-docs/ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
 | `/g-intake` | Proactive feature-drop triage — when you drop a single feature mid-stream, classifies it against the brief (on-brief / scope-creep / out-of-scope), proposes placement + version impact + risk hint, then asks before writing. The lightweight front-end to `/g-roadmap`. Auto-triggers on any single feature idea. |
-| `/g-align` | Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `project_brief.md` (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory — never blocks. Auto-runs at each milestone close; nudged between milestones. |
-| `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
-| `/g-init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven hooks → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
+| `/g-align` | Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `g-docs/project_brief.md` (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory — never blocks. Auto-runs at each milestone close; nudged between milestones. |
+| `/g-brief` | Refresh g-docs/project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
+| `/g-init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, g-docs/ROADMAP.md (with the Active Session handoff), g-docs/milestones/, g-docs/todo.md, and the seven hooks → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
 | `/g-specialize [stack]` | Detect stack from brief + deps → install architect + implementer agents + rules |
 | `/g-plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
@@ -313,8 +313,8 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-docs [path]` | Documentation audit and generation — scans for missing or stale code docs, README gaps, undocumented env vars, CHANGELOG gaps, and ADR omissions. Targeted scope fixes gaps immediately via doc-writer; whole-codebase scope produces a prioritised documentation debt report |
 | `/g-wiki [area]` | Build and maintain the human-facing project wiki in a **committed** `g-wiki/` folder — narrative architecture + per-area pages + how-to, synthesized from the codebase, ROADMAP, ADRs, and brief via doc-writer. Run anytime; offered at `/g-init` and refreshed automatically at the end of every milestone. Distinct from `/g-docs` (code-level doc hygiene) and the git-ignored `g-docs/` operational records |
 | `/g-adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `g-docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
-| `/g-retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
-| `/g-patterns` | Mine `g-docs/retros/` and `todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
+| `/g-retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and g-docs/todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
+| `/g-patterns` | Mine `g-docs/retros/` and `g-docs/todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
 | `/g-forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `g-docs/forecasts/<slug>.md`. |
 | `/g-telemetry` | Compute 8 reliability metrics (hallucination, review catch, regression, rework, spec deviation, escalation, token efficiency, retry dependency); classify health profile (stable / cautious / defensive / recovery); write `.claude/telemetry-profile` for adaptive orchestration. `/g-execute` and `/g-review` Step 0 read the profile and scale wave size, model tier, and reviewer count accordingly. |
 | `/g-blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `g-docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
@@ -480,9 +480,9 @@ Quick reference for the most common workflows.
 /g-kickoff      Groups 1–4: problem → scope → stack surface → stack deep dive + integration map
                      Challenges each feature and tech choice honestly
                      Dispatches project-manager (scope) + code-lead (stack validation)
-                     Produces project_brief.md with tech decisions table
+                     Produces g-docs/project_brief.md with tech decisions table
 
-/g-init         Creates CLAUDE.md with G-rules, G-RULES.md, ROADMAP.md, milestones/M1.md, todo.md
+/g-init         Creates CLAUDE.md with G-rules, G-RULES.md, g-docs/ROADMAP.md, g-docs/milestones/M1.md, g-docs/todo.md
                      Installs .claude/hooks/session-start.sh (SessionStart — repo sync + context reset)
                                .claude/hooks/workflow-checkpoint.sh (UserPromptSubmit — state + context depth)
                                .claude/hooks/check-commit.sh (PreToolUse — commit gate)
@@ -492,7 +492,7 @@ Quick reference for the most common workflows.
                                .claude/hooks/pre-compact.sh (PreCompact — handoff snapshot)
                      Registers all seven in .claude/settings.json (the plugin manifest registers none)
 
-/g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect + implementer agents
+/g-specialize   Reads g-docs/project_brief.md → detects stacks → confirms → installs architect + implementer agents
 ```
 
 ### Planning the roadmap
@@ -504,7 +504,7 @@ Quick reference for the most common workflows.
                      Sequences clusters into milestones and explains every ordering
                        decision — what blocks what, where the MVP cut is
                      Four gated phases: dump → cluster → sequence → approve
-                     Writes ROADMAP.md only after you type "approve"
+                     Writes g-docs/ROADMAP.md only after you type "approve"
 
                      Reads current version (plugin.json / package.json /
                        pyproject.toml / Cargo.toml) as the baseline
@@ -513,10 +513,10 @@ Quick reference for the most common workflows.
                        fixes, major for breaking changes
                      Buy-in gate shows the full version plan:
                        v[current] → v[M1] → v[M2] → ...
-                     Writes **Version:** field to each milestone in ROADMAP.md
+                     Writes **Version:** field to each milestone in g-docs/ROADMAP.md
 
-Auto-triggers:  — no ROADMAP.md exists in the project
-                — no active (🔄) or unstarted (⬜) milestones in ROADMAP.md
+Auto-triggers:  — no g-docs/ROADMAP.md exists in the project
+                — no active (🔄) or unstarted (⬜) milestones in g-docs/ROADMAP.md
                 — any feature idea is mentioned in conversation
 ```
 
@@ -527,16 +527,16 @@ Auto-triggers:  — no ROADMAP.md exists in the project
                      Presents findings and asks you to confirm before continuing
                      Interviews: what's next, constraints, known fragile areas
                      Optional: dispatches code-lead for architecture audit
-                     Produces project_brief.md with current state + planned work
+                     Produces g-docs/project_brief.md with current state + planned work
 
 /g-init         Installs commit enforcement, injects G-rules into CLAUDE.md, installs G-RULES.md
-/g-specialize   Reads project_brief.md → installs architect + implementer agents + rules
+/g-specialize   Reads g-docs/project_brief.md → installs architect + implementer agents + rules
 ```
 
 ### Where am I?
 
 ```
-/g-help         Reads project state (todo.md, ROADMAP.md, plan files, hooks)
+/g-help         Reads project state (g-docs/todo.md, g-docs/ROADMAP.md, plan files, hooks)
                      Detects current phase and outputs one clear next action
                      + full command reference
 
@@ -584,14 +584,14 @@ You can still invoke them manually if needed:
                        against QA panel; collects bug reports; triages after "done this round"
                        Repeats until a clean round, then writes sentinel
                      Issues MERGE READY or HOLD with fix list
-                     On MERGE READY: auto-closes completed milestone tasks in ROADMAP.md
+                     On MERGE READY: auto-closes completed milestone tasks in g-docs/ROADMAP.md
 ```
 
 ### Keeping the brief current
 
 ```
-/g-brief        Refresh project_brief.md as the project evolves
-                     Reads current ROADMAP.md, todo.md, recent git log
+/g-brief        Refresh g-docs/project_brief.md as the project evolves
+                     Reads current g-docs/ROADMAP.md, g-docs/todo.md, recent git log
                      Asks at most 4 targeted questions — no full re-onboard
 ```
 

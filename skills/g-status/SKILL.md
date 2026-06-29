@@ -9,9 +9,9 @@ Produce a single structured status block. Fast — no interviews, no back-and-fo
 
 **Step 2.** Read the following files from the project root (skip gracefully if any are missing):
 
-- `ROADMAP.md` — extract the current milestone name and its status (in progress / done)
+- `g-docs/ROADMAP.md` — extract the current milestone name and its status (in progress / done)
 - `g-docs/plans/` — find the most recently modified `.md` file; extract wave count and task list if present
-- `ROADMAP.md` — extract the `## Active Session` handoff, specifically the first "Next up" line
+- `g-docs/ROADMAP.md` — extract the `## Active Session` handoff, specifically the first "Next up" line
 - `.claude/g-forge-approved` — note whether this file exists
 
 **Step 3.** Output exactly this block, filling each field or writing "—" if the information is unavailable:

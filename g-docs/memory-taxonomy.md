@@ -46,7 +46,7 @@ The shared context for one atomic unit of work: the task spec, inputs agreed at 
 Milestone-scoped state that must survive session restarts: active task ledger, wave schedules, partial results, QA scope, and decisions made during the milestone that have not yet been promoted to ADRs.
 
 **Example content:**
-- `todo.md` Handoff block: tasks done, next up, active `file:line` context
+- `g-docs/todo.md` Handoff block: tasks done, next up, active `file:line` context
 - QA scope file `g-docs/qa-scope/m9-memory-layers.md` listing impacted test groups
 - "Decided mid-sprint: `context:` field is declaration-only — no runtime enforcement until M10"
 
@@ -64,7 +64,7 @@ Durable technical decisions and structural rules that govern the entire codebase
 **Example content:**
 - `g-docs/decisions/004-memory-taxonomy.md` — ADR capturing why six tiers were chosen over a flat key-value store
 - `.claude/rules/architecture-vue-pinia.md` — layer map, import direction table, state ownership rules
-- `project_brief.md` — stack decisions, constraints, agreed MVP scope
+- `g-docs/project_brief.md` — stack decisions, constraints, agreed MVP scope
 
 ---
 

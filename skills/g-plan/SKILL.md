@@ -13,7 +13,7 @@ You are driving the planning phase. Execute these steps in order.
 Determine what is being planned before asking anything else:
 
 1. **Check the triggering message.** If the developer's message describes a task, feature, or bug fix — use that. No question needed.
-2. **If the message is just `/g-plan` with no description:** Read `ROADMAP.md` and `todo.md` (if present) to find the active milestone and next task.
+2. **If the message is just `/g-plan` with no description:** Read `g-docs/ROADMAP.md` and `g-docs/todo.md` (if present) to find the active milestone and next task.
    - If one active item is clearly next: announce "Planning: [item]" and proceed — do not ask.
    - If multiple items are equally valid: ask one specific question: "Should I plan [X] or [Y]?" Never ask an open-ended "what do you want to plan?"
 3. **Proceed.** Once the task is established, continue to Step 0. Do not ask the developer to confirm what is already clear from context.
@@ -123,9 +123,9 @@ Read `.claude/session-prompt-count` for the current depth. Once a plan is execut
 
 Use Glob to find `skills/g-roadmap/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it. Run `/g-roadmap` with the following framing passed as context:
 
-> "The current milestone task list is [task list]. The session context budget is ~[M] exchanges per sub-milestone. Split this milestone into sub-milestones where each sub-milestone's estimated cost (base 5 + waves×3 + agents×2 + tasks×1) does not exceed [floor(M × 0.7)] exchanges. Produce a revised ROADMAP.md with the sub-milestones sequenced in dependency order."
+> "The current milestone task list is [task list]. The session context budget is ~[M] exchanges per sub-milestone. Split this milestone into sub-milestones where each sub-milestone's estimated cost (base 5 + waves×3 + agents×2 + tasks×1) does not exceed [floor(M × 0.7)] exchanges. Produce a revised g-docs/ROADMAP.md with the sub-milestones sequenced in dependency order."
 
-After `/g-roadmap` completes, stop the current `/g-plan` run. Tell the developer: "ROADMAP.md updated with sub-milestones. Run /g-plan on the first sub-milestone to begin."
+After `/g-roadmap` completes, stop the current `/g-plan` run. Tell the developer: "g-docs/ROADMAP.md updated with sub-milestones. Run /g-plan on the first sub-milestone to begin."
 
 **If the developer chooses option 2:**
 

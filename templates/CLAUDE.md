@@ -48,7 +48,7 @@
 
 ## Project Tracking
 
-`ROADMAP.md` is the milestone roadmap and single source of truth.
+`g-docs/ROADMAP.md` is the milestone roadmap and single source of truth.
 
 ---
 

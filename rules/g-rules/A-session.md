@@ -2,15 +2,15 @@
 
 **A1 Model** — Haiku: explore / reads / search / format · Sonnet: implement / write · top tier (Opus, or any newer model above it such as Fable): only after 2 fails on same task. Never default to the top tier because a task "feels hard." If the session itself runs a top-tier model, the rule still applies to dispatched agents — delegation tiers are pinned per-agent, not inherited from the session.
 
-**A2 Plan** — Atomic verifiable tasks before touching files. Log in `todo.md`. Identify Wave 1 (no blockers). Vague goals ("make it work") → ask before starting.
+**A2 Plan** — Atomic verifiable tasks before touching files. Log in `g-docs/todo.md`. Identify Wave 1 (no blockers). Vague goals ("make it work") → ask before starting.
 
 **A3 Execution workflow**
 - Execute 1st pass only (no scope creep mid-wave)
 - Before committing — mandatory gate: run the project's lint and test commands (check `package.json`, `Makefile`, `pyproject.toml`, or CI config for the right commands). Any red = stop, fix first.
 - Business logic / public API / bug fix → tests required. Pure UI render → skip is OK, state why explicitly. Silence = not acceptable.
 - Pure functions inside a component → extract to the project's lib/utils layer first, then test
-- After each commit: update `todo.md` (remove closed rows + Details), append to `todo-done.md`, commit immediately — never leave either file dirty
-- End of pass: rewrite the `## Active Session` handoff block in `ROADMAP.md` (replace, never append), commit, post the same block in chat. This is the single canonical handoff — `ROADMAP.md` is committed, so a fresh session (even a fresh clone) targets one document for "where am I / what's next." `todo.md` holds only the tactical task ledger, never a handoff.
+- After each commit: update `g-docs/todo.md` (remove closed rows + Details), append to `g-docs/todo-done.md`, commit immediately — never leave either file dirty
+- End of pass: rewrite the `## Active Session` handoff block in `g-docs/ROADMAP.md` (replace, never append), commit, post the same block in chat. This is the single canonical handoff — `g-docs/ROADMAP.md` is committed, so a fresh session (even a fresh clone) targets one document for "where am I / what's next." `g-docs/todo.md` holds only the tactical task ledger, never a handoff.
 
 **A4 Token optimisation**
 - Grep before Read — find line numbers, then read only those lines (`limit` + `offset`)

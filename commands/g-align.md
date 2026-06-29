@@ -1,5 +1,5 @@
 ---
-description: Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against project_brief.md (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory; never blocks.
+description: Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against g-docs/project_brief.md (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory; never blocks.
 argument-hint: [milestone slug]
 ---
 

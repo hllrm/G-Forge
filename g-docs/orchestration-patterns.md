@@ -156,7 +156,7 @@ wave-planner returns:
 ```
 /g-review
   └─ [gather diff: git diff main...HEAD]
-  └─ [gather done conditions: from g-docs/plans/*.md or milestones/ file]
+  └─ [gather done conditions: from g-docs/plans/*.md or g-docs/milestones/ file]
 
   └─ code-lead (Opus)
        receives: diff, done conditions, branch name
@@ -192,18 +192,18 @@ wave-planner returns:
 
 On a MERGE READY verdict, `g-review` automatically:
 
-1. Reads `todo.md` to identify tasks completed in this session.
-2. Reads `ROADMAP.md` to find the active milestone (`🚧 In progress`).
-3. Reads the matching `milestones/<ID>.md` file.
+1. Reads `g-docs/todo.md` to identify tasks completed in this session.
+2. Reads `g-docs/ROADMAP.md` to find the active milestone (`🚧 In progress`).
+3. Reads the matching `g-docs/milestones/<ID>.md` file.
 4. Checks off each completed task in the milestone's `## Scope` checklist.
 5. If **all** scope items are now `[x]`:
    - Updates milestone status header to `✅ Done`
-   - Updates the ROADMAP.md entry from `🚧 In progress` to `✅ Done`
-   - Moves the milestone to the `## Done` section of ROADMAP.md
+   - Updates the g-docs/ROADMAP.md entry from `🚧 In progress` to `✅ Done`
+   - Moves the milestone to the `## Done` section of g-docs/ROADMAP.md
    - Reports: `✓ Milestone [ID — Name] closed out`
 6. If only some tasks are done — saves partial updates, reports count remaining.
 
-If `milestones/` does not exist or no matching tasks are found, this step is skipped silently.
+If `g-docs/milestones/` does not exist or no matching tasks are found, this step is skipped silently.
 
 **Verdict meanings:**
 
@@ -387,7 +387,7 @@ HQ promotes draft → developer approves → ADR-NNN written
    │
    ▼  reuse the §A7 context-gate reset path (semantic trigger, not exchange-count)
    ├─ /g-retro            (promote the clean record)
-   ├─ todo.md Next up:    "FIRST: verify ADR-NNN against ground truth"
+   ├─ g-docs/todo.md Next up:    "FIRST: verify ADR-NNN against ground truth"
    ▼
 [recommend fresh session] → first task = verify the decision → then build
 ```

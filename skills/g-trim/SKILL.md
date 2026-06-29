@@ -13,7 +13,7 @@ Read `CLAUDE.md`. Check for:
 
 1. **Orphaned @references** — Glob each `@path` target to verify it exists on disk. List any that point to missing files.
 2. **Duplicate rules** — rules that appear both inline in CLAUDE.md and inside a referenced file (e.g. a rule already in a G-RULES section or an architecture rules file). Flag exact duplications.
-3. **Stale project details** — outdated stack descriptions, obsolete technology mentions, references to removed features. Use `project_brief.md` and current dependency files as ground truth.
+3. **Stale project details** — outdated stack descriptions, obsolete technology mentions, references to removed features. Use `g-docs/project_brief.md` and current dependency files as ground truth.
 4. **Sparse sections** — sections ≤3 lines that could be merged into a neighbour without losing meaning.
 
 Produce a compact audit table:

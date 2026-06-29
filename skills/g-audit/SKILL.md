@@ -46,7 +46,7 @@ find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.py" \
   | xargs wc -l 2>/dev/null | sort -rn | awk '$1 > 300 && NF==2 {print $0}'
 ```
 
-Read `CLAUDE.md` and `project_brief.md` (if they exist) to understand the declared layer map and stack.
+Read `CLAUDE.md` and `g-docs/project_brief.md` (if they exist) to understand the declared layer map and stack.
 
 Apply the scope filter: if `mode: targeted`, all subsequent searches are scoped to `[scope]` instead of `.`.
 
@@ -203,7 +203,7 @@ If yes:
 - Dead code & coverage gaps
 - Each theme becomes a task group in the milestone
 
-**Write the milestone file** to `milestones/M-audit-[YYYY-MM].md`:
+**Write the milestone file** to `g-docs/milestones/M-audit-[YYYY-MM].md`:
 
 ```markdown
 # M-audit-[YYYY-MM] — Technical Debt: Full Codebase Audit
@@ -248,12 +248,12 @@ If yes:
 ---
 
 ## Execution notes
-- Run `/g-refactor milestones/M-audit-[YYYY-MM].md` to begin guided execution of this milestone.
+- Run `/g-refactor g-docs/milestones/M-audit-[YYYY-MM].md` to begin guided execution of this milestone.
 - P0 and P1 items must pass `/g-review` before P2 work begins.
 - High change-risk items must have test coverage added before refactoring (flag for test-writer first).
 ```
 
-**Append to ROADMAP.md:**
+**Append to g-docs/ROADMAP.md:**
 Add a new milestone entry:
 ```markdown
 ### M-audit-[YYYY-MM] — Technical Debt Audit ([date])
@@ -267,7 +267,7 @@ Add a new milestone entry:
 ```
 
 Confirm:
-> "Milestone written to `milestones/M-audit-[YYYY-MM].md` and added to ROADMAP.md. Run `/g-refactor milestones/M-audit-[YYYY-MM].md` to begin."
+> "Milestone written to `g-docs/milestones/M-audit-[YYYY-MM].md` and added to g-docs/ROADMAP.md. Run `/g-refactor g-docs/milestones/M-audit-[YYYY-MM].md` to begin."
 
 ## Rules
 - Report findings only — no fixes, no rewrites.
