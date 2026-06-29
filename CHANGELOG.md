@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-06-29
+
+### Changed
+
+- **`g-docs/` is now the canonical home for every G-Forge document, project tracking included (M28).** The tracking files that lived at the project root — `ROADMAP.md`, `todo.md`, `todo-done.md`, `milestones/`, `project_brief.md` — now live under `g-docs/` (`g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, …). Every skill, hook (`workflow-checkpoint.sh`, `pre-compact.sh`), rule, agent, command, template, and the README was updated to the new paths; the canonical `g-docs/` subpath map is documented in `g-rules-I-project-tracking`. Historical records (retros, archive, CHANGELOG history) were left untouched. `CLAUDE.md`, `G-RULES.md`, and `CHANGELOG.md` stay at the root by tooling/convention.
+
+### Added
+
+- **`/g-init` now defines the project `.gitignore` (M28).** A new scaffold step (Step 5a) writes/merges a `.gitignore` that ignores runtime/dev artifacts (OS files, `.env*`, `.worktrees/`, ephemeral `.claude/` state + the commit-gate sentinels + the observer journal, `g-docs/agent-output/`) and tracks the project record (source, `g-docs/` records, `g-wiki/`, `CLAUDE.md`, `G-RULES.md`) plus shared G-Forge config so a clone inherits the same gates. Idempotent merge — never clobbers a developer's existing entries.
+- **`/g-doctor` Check 19 — vets the `.gitignore`.** Confirms the runtime-artifact exclusions are present and that nothing tracked-by-design (e.g. `g-docs/ROADMAP.md`, `g-docs/decisions/`) is being ignored — including over-broad bare patterns like a literal `todo.md` that would wrongly ignore the `g-docs/` copy.
+- **`/g-doctor` Check 20 — flags stray G-Forge documents.** Scans for tracking files at the root or g-forge doc folders (`decisions/`, `retros/`, …) living outside `g-docs/`, and reports each with a `git mv` fix to relocate it into the canonical home. (g-doctor now runs 20 checks: 15 required, 5 advisory.)
+
 ## [2.1.0] — 2026-06-29
 
 ### Changed

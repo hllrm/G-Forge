@@ -1,12 +1,12 @@
 ---
 name: g-retro
-description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and todo.md, and writes g-docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
+description: Synthesize a session retrospective from the silent-observer journal — no interview. Reads the passive activity log (.claude/journal/), git history, and g-docs/todo.md, and writes g-docs/retros/YYYY-MM-DD-topic.md with what happened, decisions inferred, patterns, and cold-start context.
 context: [task, sprint, institutional]
 ---
 
 **Announce:** "Using g-retro to synthesize a retrospective from the session journal."
 
-g-retro no longer interviews. The silent observer (`hooks/observe.sh` + `hooks/agent-lifecycle.sh`) records what actually happened as it happens — commits, branches, tests, pushes, agent dispatches, reverts — into an append-only daily journal. This skill reads that journal plus git and `todo.md`, then **synthesizes** the retro. The developer's job is to verify, not to recall.
+g-retro no longer interviews. The silent observer (`hooks/observe.sh` + `hooks/agent-lifecycle.sh`) records what actually happened as it happens — commits, branches, tests, pushes, agent dispatches, reverts — into an append-only daily journal. This skill reads that journal plus git and `g-docs/todo.md`, then **synthesizes** the retro. The developer's job is to verify, not to recall.
 
 ## Step 1 — Determine topic
 
@@ -14,7 +14,7 @@ If the user provided a topic argument, use it as the slug (lowercase, hyphen-sep
 
 Otherwise infer a slug automatically — do **not** stop to ask:
 1. If the current branch matches `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, or `chore/<slug>`, use `<slug>`.
-2. Else read the `## Active Session` handoff in `ROADMAP.md` and `git log --oneline -5` and infer a short descriptive slug capturing the session's main theme (e.g. `precompact-hook`, `m3-wave2`).
+2. Else read the `## Active Session` handoff in `g-docs/ROADMAP.md` and `git log --oneline -5` and infer a short descriptive slug capturing the session's main theme (e.g. `precompact-hook`, `m3-wave2`).
 3. Keep it under 30 characters.
 
 State the chosen topic in one line and proceed: `Retro topic: [topic]`. If the developer corrects it afterward, rename the file.
@@ -24,9 +24,9 @@ State the chosen topic in one line and proceed: `Retro topic: [topic]`. If the d
 Read the following in parallel:
 
 - **The observer journal** — `.claude/journal/*.jsonl`. Read today's file in full and the two most recent prior days (the work being retro'd may span sessions). Each line is `{"ts","kind","detail"}` with `kind` ∈ `session · agent · commit · branch · test · push · merge · revert · destructive · note`.
-- `ROADMAP.md` — the `## Active Session` handoff (Done this pass / Next up / Active context) and the active milestone.
-- `todo.md` — the Tasks table (tactical ledger; no handoff lives here).
-- `todo-done.md` — last 10 entries (read from the end of the file).
+- `g-docs/ROADMAP.md` — the `## Active Session` handoff (Done this pass / Next up / Active context) and the active milestone.
+- `g-docs/todo.md` — the Tasks table (tactical ledger; no handoff lives here).
+- `g-docs/todo-done.md` — last 10 entries (read from the end of the file).
 - `git log --oneline -15` via Bash.
 - `git branch --show-current` via Bash.
 
@@ -36,13 +36,13 @@ If `.claude/journal/` does not exist or is empty (e.g. the observer never fired 
 
 Derive each section from evidence. Do not ask the developer questions — read the signals.
 
-- **What was done** — from `commit` journal entries + git log + closed `todo-done.md` entries. One bullet per logical unit of work, not per commit. Group related commits.
+- **What was done** — from `commit` journal entries + git log + closed `g-docs/todo-done.md` entries. One bullet per logical unit of work, not per commit. Group related commits.
 - **Decisions made** — infer from the journal and commit messages: a `branch` event starting `refactor/*` plus its commits implies an approach decision; a `revert` followed by a different fix implies a reversed decision; a new dependency in a commit implies a library choice. State each as a factual observation, e.g. "Adopted X over Y (commit abc123 replaced the Z approach)." If nothing is inferable, write `None inferred from journal.`
 - **Patterns** —
   - *Worked well*: clean signal — tests run before commits (`test` entries preceding `commit` entries), no reverts, no `destructive` flags, agents finishing without re-dispatch.
   - *Avoid / do differently*: friction signal — `revert` entries, repeated `test` failures before a commit, `destructive` flags, the same agent dispatched repeatedly on one task, or commits with `fix-of-fix`/`take 2`/`retry` messages.
   - If a category has no signal, write `None observed.`
-- **Cold-start context** — branch, active milestone (from `ROADMAP.md`), next-up line (verbatim from the `## Active Session` handoff in `ROADMAP.md`), key files touched (unique basenames across the git log this session), and carry-over context (from the handoff "Active context" line).
+- **Cold-start context** — branch, active milestone (from `g-docs/ROADMAP.md`), next-up line (verbatim from the `## Active Session` handoff in `g-docs/ROADMAP.md`), key files touched (unique basenames across the git log this session), and carry-over context (from the handoff "Active context" line).
 
 ## Step 4 — Forecast outcome reconciliation (conditional, evidence-based)
 
@@ -65,7 +65,7 @@ Write the file with this exact structure:
 # Retro: [topic] — [YYYY-MM-DD]
 
 ## What was done
-[bullet list derived from journal commits + git log + closed todo-done.md entries — one bullet per logical unit of work]
+[bullet list derived from journal commits + git log + closed g-docs/todo-done.md entries — one bullet per logical unit of work]
 
 ## Decisions made
 [inferred from journal/commit evidence, each with its evidence; or "None inferred from journal."]
@@ -91,14 +91,14 @@ Do not add extra sections.
 
 ## Step 5b — Refresh the ROADMAP handoff
 
-`/g-retro` is the session-end ritual, so it **owns** refreshing the single canonical handoff — the `## Active Session` block in `ROADMAP.md` — from the cold-start it just synthesized. This is what guarantees the next session opens with an accurate target.
+`/g-retro` is the session-end ritual, so it **owns** refreshing the single canonical handoff — the `## Active Session` block in `g-docs/ROADMAP.md` — from the cold-start it just synthesized. This is what guarantees the next session opens with an accurate target.
 
 Rewrite that block (replace, never append) using the canonical format defined in **G-RULES §I** (Project Tracking) — don't restate the format here, fill it from this retro:
 - **Done this pass** ← one-line summary of "What was done"
 - **Next up** ← the lead next action
 - **Active context** ← the carry-over context line
 
-If `ROADMAP.md` has no `## Active Session` block yet (older project), insert one directly after the top `# ` title. Committing the change is the developer's choice (same as the retro file), but the block must be written.
+If `g-docs/ROADMAP.md` has no `## Active Session` block yet (older project), insert one directly after the top `# ` title. Committing the change is the developer's choice (same as the retro file), but the block must be written.
 
 This is the only place the handoff *write* is spelled out. The §A7 reset, `/g-review`'s milestone close, and `/g-adr`'s decision-hygiene handoff all run `/g-retro` — they delegate the write here rather than re-implementing it. The one routine exception is a plain end-of-pass update with no retro, which HQ does directly per §A3 (same block, same §I format).
 
@@ -134,5 +134,5 @@ If any label now has ≥2 source files, print the `Pattern signal` block and sug
 - One retro file per session — if a retro file already exists for today's topic, append a `-2` suffix rather than overwriting, and note it.
 - Do not commit the retro file — writing it is the done condition; committing is the developer's choice.
 - Keep "What was done" at the logical-work level, not the commit level.
-- If `.claude/journal/`, `todo.md`, and `todo-done.md` are all absent, synthesize from git log alone and note the gap.
+- If `.claude/journal/`, `g-docs/todo.md`, and `g-docs/todo-done.md` are all absent, synthesize from git log alone and note the gap.
 - Never add opinions or follow-up recommendations to the retro file — it is a factual record.

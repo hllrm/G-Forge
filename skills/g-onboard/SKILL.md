@@ -1,6 +1,6 @@
 ---
 name: g-onboard
-description: Onboard G-Forge onto an existing codebase. Reads deeply before asking anything — treats existing CLAUDE.md, rules, agents, and task ledgers as first-class inputs. Only interviews for what it genuinely doesn't know yet. Produces or updates project_brief.md.
+description: Onboard G-Forge onto an existing codebase. Reads deeply before asking anything — treats existing CLAUDE.md, rules, agents, and task ledgers as first-class inputs. Only interviews for what it genuinely doesn't know yet. Produces or updates g-docs/project_brief.md.
 ---
 
 **Announce:** "Using g-onboard to onboard this codebase."
@@ -19,12 +19,12 @@ List the project root (top 2 levels). Note top-level directories and their appar
 **Core files:**
 - `README.md`
 - `CLAUDE.md` — read fully if present; note length, structure, and whether G-Forge rules are embedded
-- `project_brief.md` — read fully if present
+- `g-docs/project_brief.md` — read fully if present
 - `package.json` / `pyproject.toml` / `Cargo.toml` / `build.gradle` / `pubspec.yaml` — whichever exist
 - `requirements.txt`
-- `ROADMAP.md` — note milestone status
-- `todo.md` — read fully if present; note schema, blocked tasks, active branch references
-- `todo-done.md` — note if present (signals an active task ledger convention)
+- `g-docs/ROADMAP.md` — note milestone status
+- `g-docs/todo.md` — read fully if present; note schema, blocked tasks, active branch references
+- `g-docs/todo-done.md` — note if present (signals an active task ledger convention)
 
 **G-Forge state:**
 - `.claude/rules/` — list all files if directory exists
@@ -52,8 +52,8 @@ Before presenting findings or asking anything, classify the project:
 - `CLAUDE.md` is >100 lines
 - `.claude/rules/` has files
 - `.claude/agents/` has files
-- `project_brief.md` exists and is complete
-- `ROADMAP.md` shows multiple completed milestones
+- `g-docs/project_brief.md` exists and is complete
+- `g-docs/ROADMAP.md` shows multiple completed milestones
 - `git log` shows >20 commits
 
 **Early-stage** — project exists but is sparse: CLAUDE.md present but thin, <20 commits, no rules/agents, no brief.
@@ -84,7 +84,7 @@ G-Forge state:
   .claude/agents:[Not present / N files: agent1.md, agent2.md]
   Commit gate:   [Registered in settings.json / Not registered]
   project_brief: [Not found / Found (Nnn lines)]
-  Task ledger:   [Not found / todo.md found (N tasks, N blocked)]
+  Task ledger:   [Not found / g-docs/todo.md found (N tasks, N blocked)]
 ```
 
 Then — **for mature projects only** — add a targeted observations block:
@@ -92,9 +92,9 @@ Then — **for mature projects only** — add a targeted observations block:
 ```
 Observations:
   - [e.g. "Active branch 'feat/audio-pipeline-fixes' — should this merge before new work?"]
-  - [e.g. "todo.md shows tasks #4 and #5 blocked on external input — are those the active scope?"]
+  - [e.g. "g-docs/todo.md shows tasks #4 and #5 blocked on external input — are those the active scope?"]
   - [e.g. ".claude/agents/architecture-review.md already exists — specialize should not overwrite it"]
-  - [e.g. "CLAUDE.md is 400 lines with architecture + rules — project_brief.md may be redundant"]
+  - [e.g. "CLAUDE.md is 400 lines with architecture + rules — g-docs/project_brief.md may be redundant"]
 ```
 
 Only include observations that are genuinely actionable. Omit the block entirely for greenfield projects.
@@ -124,13 +124,13 @@ Wait for answer. Record preference.
 
 Wait for answer.
 
-**If `todo.md` exists with an established schema:**
-> "I see a `todo.md` already in use with its own schema. G-Forge's init scaffold would normally create one. Should I: (a) integrate with your existing todo.md, (b) scaffold alongside it, or (c) skip todo.md scaffolding?"
+**If `g-docs/todo.md` exists with an established schema:**
+> "I see a `g-docs/todo.md` already in use with its own schema. G-Forge's init scaffold would normally create one. Should I: (a) integrate with your existing g-docs/todo.md, (b) scaffold alongside it, or (c) skip g-docs/todo.md scaffolding?"
 
 Wait for answer.
 
-**If `project_brief.md` already exists and CLAUDE.md is detailed (>100 lines):**
-> "You have both a `project_brief.md` and a detailed `CLAUDE.md`. Should I treat `CLAUDE.md` as the brief, update `project_brief.md` from it, or keep both?"
+**If `g-docs/project_brief.md` already exists and CLAUDE.md is detailed (>100 lines):**
+> "You have both a `g-docs/project_brief.md` and a detailed `CLAUDE.md`. Should I treat `CLAUDE.md` as the brief, update `g-docs/project_brief.md` from it, or keep both?"
 
 Wait for answer.
 
@@ -145,8 +145,8 @@ Skip any of the above that don't apply.
 Build the interview from what you actually observed. Examples:
 
 - If branch name is `feat/X` or `fix/Y`: "You're on `[branch]` — are you merging that before planning new work, or should I scope the brief around it?"
-- If todo.md has blocked tasks: "todo.md shows [task N] blocked on [reason] — is that still blocked, or should I treat it as active scope?"
-- If ROADMAP.md shows a milestone in progress: "ROADMAP shows [M-N] is in progress — is that still the active milestone, or has scope shifted?"
+- If g-docs/todo.md has blocked tasks: "g-docs/todo.md shows [task N] blocked on [reason] — is that still blocked, or should I treat it as active scope?"
+- If g-docs/ROADMAP.md shows a milestone in progress: "ROADMAP shows [M-N] is in progress — is that still the active milestone, or has scope shifted?"
 - If no explicit goal is inferable: "What do you want to do next with this project?"
 
 Do not ask questions whose answers are already visible. Do not run Group 1–4 as a script — pick only the questions that apply.
@@ -180,11 +180,11 @@ Ask:
 
 ---
 
-## Step 7 — Produce or update project_brief.md
+## Step 7 — Produce or update g-docs/project_brief.md
 
-**If CLAUDE.md is the agreed source of truth** (developer chose that in Step 4): synthesize a brief from it rather than re-interviewing. Extract: stack, architecture, current goals, constraints. Write a short `project_brief.md` that summarises what CLAUDE.md contains — don't duplicate it wholesale.
+**If CLAUDE.md is the agreed source of truth** (developer chose that in Step 4): synthesize a brief from it rather than re-interviewing. Extract: stack, architecture, current goals, constraints. Write a short `g-docs/project_brief.md` that summarises what CLAUDE.md contains — don't duplicate it wholesale.
 
-**Otherwise:** write `project_brief.md` with:
+**Otherwise:** write `g-docs/project_brief.md` with:
 
 ```markdown
 # [Project name]
@@ -221,21 +221,21 @@ Ask:
 [Deadline, team size, off-limits areas]
 ```
 
-If `project_brief.md` already existed, merge — preserve accurate existing content.
+If `g-docs/project_brief.md` already existed, merge — preserve accurate existing content.
 
 ---
 
 ## Step 8 — Report and next steps
 
 ```
-project_brief.md written ✓
+g-docs/project_brief.md written ✓
 
 Suggested next steps:
 ```
 
 Build the next-steps list based on what's actually missing — don't suggest steps that are already done:
 
-- Include `/g-init` only if: commit gate not registered OR CLAUDE.md is missing OR ROADMAP.md is missing
+- Include `/g-init` only if: commit gate not registered OR CLAUDE.md is missing OR g-docs/ROADMAP.md is missing
 - Include `/g-specialize` only if: no stack-specific architect agent is installed yet (or developer chose overlay/replace in Step 4)
 - Always include `/g-plan` when ready to start the work described in the brief
 
@@ -245,7 +245,7 @@ If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-plan`, con
 
 ## Rules
 
-- Never write `project_brief.md` before Steps 4 and 5 are complete.
+- Never write `g-docs/project_brief.md` before Steps 4 and 5 are complete.
 - Never ask for information already visible in the project files.
 - Never suggest `/g-init` or `/g-specialize` steps that are already done.
 - Never overwrite existing `.claude/agents/` or `.claude/rules/` files without explicit developer permission from Step 4.

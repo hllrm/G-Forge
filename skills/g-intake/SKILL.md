@@ -19,8 +19,8 @@ The idea is in `$ARGUMENTS` or the developer's last message. Restate it in one p
 ## Step 2 — Read the anchors
 
 Read in parallel:
-- `project_brief.md` — **Goals**, **Non-goals**, **MVP**, **Roadmap**, **Tech decisions**. (If absent, note it — triage continues against the roadmap alone, and classification falls back to on-roadmap / not-on-roadmap.)
-- `ROADMAP.md` — active milestone (🔄), unstarted milestones (⬜), and the backlog.
+- `g-docs/project_brief.md` — **Goals**, **Non-goals**, **MVP**, **Roadmap**, **Tech decisions**. (If absent, note it — triage continues against the roadmap alone, and classification falls back to on-roadmap / not-on-roadmap.)
+- `g-docs/ROADMAP.md` — active milestone (🔄), unstarted milestones (⬜), and the backlog.
 - Current manifest version (`.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`).
 
 ## Step 3 — Classify
@@ -70,8 +70,8 @@ Mid-milestone guard: if a wave is currently executing, say so and steer away fro
 
 ## Step 6 — Act on the choice (only now do anything persist)
 
-- **(a)** → invoke `/g-roadmap` (Glob `skills/g-roadmap/SKILL.md`), carrying this idea and the proposed placement/version as the starting context, so its phases confirm and write `ROADMAP.md`. g-roadmap owns the write.
-- **(b)** → append one bullet to the `## Backlog` section of `ROADMAP.md` (the single low-risk write this skill makes directly), then confirm: `Backlogged: [idea].` If `ROADMAP.md` has no Backlog section, add one.
+- **(a)** → invoke `/g-roadmap` (Glob `skills/g-roadmap/SKILL.md`), carrying this idea and the proposed placement/version as the starting context, so its phases confirm and write `g-docs/ROADMAP.md`. g-roadmap owns the write.
+- **(b)** → append one bullet to the `## Backlog` section of `g-docs/ROADMAP.md` (the single low-risk write this skill makes directly), then confirm: `Backlogged: [idea].` If `g-docs/ROADMAP.md` has no Backlog section, add one.
 - **(c)** → invoke `/g-plan` (Glob `skills/g-plan/SKILL.md`) for the idea, but only after confirming it fits the active milestone. Its own challenge gate and approval still apply.
 - **(d)** → record nothing in the roadmap. If the idea was a recorded override of a non-goal, note in the reply that declining stands. Confirm: `Declined — not added.`
 

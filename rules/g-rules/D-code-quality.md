@@ -89,6 +89,6 @@ Both files are updated in the same commit. Disagreement between them is a releas
 6. Push immediately — never leave a version bump unpushed
 7. Run `/g-update` on any downstream projects to sync installed files
 
-*Version never changes mid-milestone.* If scope creeps enough to change the bump type (e.g. patch → minor), update the milestone's `**Version:**` field in `ROADMAP.md` and note the reason before continuing.
+*Version never changes mid-milestone.* If scope creeps enough to change the bump type (e.g. patch → minor), update the milestone's `**Version:**` field in `g-docs/ROADMAP.md` and note the reason before continuing.
 
 *Git tags:* not used. The CHANGELOG heading `## [X.Y.Z] — YYYY-MM-DD` is the authoritative version record. If tags are needed in the future, tag the release commit as `vX.Y.Z` (lightweight tag, no GPG).

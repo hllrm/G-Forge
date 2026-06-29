@@ -36,7 +36,7 @@ Look for the plan in this order:
 
 1. A plan file explicitly provided as `$ARGUMENTS` (treat as a file path)
 2. `g-docs/plans/` — read the most recently modified `.md` file
-3. `todo.md` — look for a wave schedule section
+3. `g-docs/todo.md` — look for a wave schedule section
 4. If none found: tell the developer "No plan file found. Run `/g-plan` first, or pass the plan file path as an argument." and stop.
 
 Read the plan file fully. Extract:

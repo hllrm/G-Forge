@@ -145,7 +145,7 @@ Coverage persisted: .claude/telemetry-coverage
 ```
 
 ## Rules
-- This skill is **read-only on historical artifacts** — never edit retros, forecasts, git history, or todo-done.md.
+- This skill is **read-only on historical artifacts** — never edit retros, forecasts, git history, or g-docs/todo-done.md.
 - Always write the profile to `.claude/telemetry-profile` as a single bare word (no JSON, no newlines beyond trailing newline) — downstream skills parse this line directly.
 - Always apply the same `None recorded.` sentinel filter as `/g-patterns` and `/g-forecast` — telemetry metrics never count empty signals.
 - On a thin corpus, **never compute** — write `stable` and report `cold-start`. Forcing computation on insufficient data produces noise that triggers spurious model bumps.

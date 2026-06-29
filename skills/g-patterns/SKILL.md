@@ -1,6 +1,6 @@
 ---
 name: g-patterns
-description: Mine g-docs/retros/ and todo-done.md for recurring failure patterns. Surface a systemic-health report bucketed by frequency and propose concrete profile-rule edits for any pattern observed ≥2 times.
+description: Mine g-docs/retros/ and g-docs/todo-done.md for recurring failure patterns. Surface a systemic-health report bucketed by frequency and propose concrete profile-rule edits for any pattern observed ≥2 times.
 context: [sprint, institutional, architectural]
 ---
 
@@ -14,20 +14,20 @@ Read in parallel:
 
 - All files in `g-docs/retros/` — every `.md` file
 - All files in `g-docs/forecasts/` if the directory exists — used in Step 2e for forecast-outcome mining (closes the loop with `/g-forecast` and `/g-retro`)
-- `todo-done.md` — the full file if it exists (optional source)
+- `g-docs/todo-done.md` — the full file if it exists (optional source)
 - `G-RULES.md` — full file (needed in Step 4 for edit-target mapping)
 - `git log --oneline -100` via Bash — used in Step 2 to detect rework commits
 - The list of installed architecture rules: `Glob .claude/rules/architecture-*.md`
 - The list of installed agents: `Glob .claude/agents/*.md`
 
-If `g-docs/retros/` is empty or missing AND `todo-done.md` is missing AND the git log is shorter than 10 commits:
+If `g-docs/retros/` is empty or missing AND `g-docs/todo-done.md` is missing AND the git log is shorter than 10 commits:
 ```
 ✗ Corpus too thin to mine patterns. Run /g-retro at the end of sessions and accumulate
-  closed tasks in todo-done.md to build the corpus.
+  closed tasks in g-docs/todo-done.md to build the corpus.
 ```
 Stop.
 
-If `g-docs/retros/` is empty but `todo-done.md` exists or git history is non-trivial, continue — the skill operates on whatever corpus is available and notes the gap in the report.
+If `g-docs/retros/` is empty but `g-docs/todo-done.md` exists or git history is non-trivial, continue — the skill operates on whatever corpus is available and notes the gap in the report.
 
 ## Step 2 — Extract failure-mode signals
 
@@ -46,11 +46,11 @@ For each surviving bullet, record:
 
 ### 2b — todo-done signals (optional, only if file present and parseable)
 
-If `todo-done.md` exists, scan for the following concrete signals:
+If `g-docs/todo-done.md` exists, scan for the following concrete signals:
 - **Duplicate task titles** — two or more closed task entries whose titles share ≥3 normalised tokens (e.g. both contain "fix login redirect")
 - **Repeated file targets** — the same file path appearing in ≥3 closed-task entries within a 30-entry window
 
-If `todo-done.md` exists but follows no parseable structure (free-form prose), note `todo-done.md present but unstructured — skipped` in the report and move on. Never invent signals from unstructured text.
+If `g-docs/todo-done.md` exists but follows no parseable structure (free-form prose), note `g-docs/todo-done.md present but unstructured — skipped` in the report and move on. Never invent signals from unstructured text.
 
 ### 2c — Git-log signals
 
@@ -178,7 +178,7 @@ If any rule files were edited, leave the working tree as-is — never commit fro
 
 ## Rules
 
-- Read-only on `g-docs/retros/`, `todo-done.md`, and `CHANGELOG.md` — these are historical records and must never be modified by this skill
+- Read-only on `g-docs/retros/`, `g-docs/todo-done.md`, and `CHANGELOG.md` — these are historical records and must never be modified by this skill
 - Never auto-apply an edit — every proposed change requires explicit `apply` from the developer
 - Never propose edits to G-RULES.md sections A–I core rules without surfacing them clearly as cross-cutting changes; favour stack rules and agent prompts first
 - Always cite source retros by filename in the proposed edit's rationale — traceability is the whole point

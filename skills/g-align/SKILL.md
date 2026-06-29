@@ -1,6 +1,6 @@
 ---
 name: g-align
-description: Brief-deviation check. Compares the project's actual trajectory (ROADMAP progress, recent commits, the observer journal) against the original project_brief.md — goals, non-goals, MVP, tech decisions — and reports whether the work is still serving the brief. Advisory, never blocks. Auto-runs at milestone close; nudged periodically between milestones.
+description: Brief-deviation check. Compares the project's actual trajectory (ROADMAP progress, recent commits, the observer journal) against the original g-docs/project_brief.md — goals, non-goals, MVP, tech decisions — and reports whether the work is still serving the brief. Advisory, never blocks. Auto-runs at milestone close; nudged periodically between milestones.
 context: [sprint, architectural, institutional]
 ---
 
@@ -12,7 +12,7 @@ It is **advisory**. It never blocks a commit, a plan, or a milestone. Its only o
 
 ## Step 1 — Load the brief (the anchor)
 
-Read `project_brief.md`. Extract:
+Read `g-docs/project_brief.md`. Extract:
 - **What this builds** — the one-paragraph thesis.
 - **Goals** — the measurable goals list.
 - **Non-goals** — what was explicitly declared out of scope.
@@ -21,12 +21,12 @@ Read `project_brief.md`. Extract:
 - **Tech decisions** — the component → choice table.
 - **Success metrics**.
 
-If `project_brief.md` does not exist, stop with one line: `No project_brief.md — nothing to align against. Run /g-kickoff or /g-onboard to establish a brief first.` Do not fabricate an anchor.
+If `g-docs/project_brief.md` does not exist, stop with one line: `No g-docs/project_brief.md — nothing to align against. Run /g-kickoff or /g-onboard to establish a brief first.` Do not fabricate an anchor.
 
 ## Step 2 — Observe the actual trajectory
 
 Read in parallel:
-- `ROADMAP.md` — every milestone with status (✅ Complete · 🔄 In progress · ⬜ Not started) and its scope.
+- `g-docs/ROADMAP.md` — every milestone with status (✅ Complete · 🔄 In progress · ⬜ Not started) and its scope.
 - `git log --oneline -40` via Bash — what has actually been built recently.
 - The observer journal — `.claude/journal/*.jsonl`, last ~5 days — for the texture of recent work (commits, reverts, destructive flags, test cadence).
 - The current manifest version (`.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, or `Cargo.toml`).
@@ -53,7 +53,7 @@ Write the report to `g-docs/alignment/YYYY-MM-DD-<milestone-or-slug>.md` (create
 # Alignment check — [YYYY-MM-DD] — [milestone or "ad-hoc"]
 
 **Verdict:** ALIGNED | DRIFTING
-**Brief dated:** [Created date from project_brief.md]
+**Brief dated:** [Created date from g-docs/project_brief.md]
 **Version:** [current manifest version]
 
 ## Goal service
@@ -84,7 +84,7 @@ Report: g-docs/alignment/YYYY-MM-DD-<slug>.md
 ```
 
 If DRIFTING and the recommendation is to add/defer/record something, offer — do not perform:
-> "Want me to (a) open /g-roadmap to re-sequence, (b) record the override in project_brief.md via /g-brief, or (c) leave it as a flagged note? (a/b/c)"
+> "Want me to (a) open /g-roadmap to re-sequence, (b) record the override in g-docs/project_brief.md via /g-brief, or (c) leave it as a flagged note? (a/b/c)"
 
 Act only on the developer's choice. Touch the brief or roadmap **only** with explicit approval.
 
@@ -95,7 +95,7 @@ Write the current UTC date to `.claude/last-align` (used by the workflow-checkpo
 ## Rules
 - Advisory only. Never write `.claude/g-forge-approved`, never block a commit, plan, or milestone close.
 - Every drift claim must cite a milestone, commit, scope item, or dependency — no vibes.
-- Never modify `project_brief.md` or `ROADMAP.md` from inside this skill without explicit developer approval (Step 5). This skill reports; the developer decides.
+- Never modify `g-docs/project_brief.md` or `g-docs/ROADMAP.md` from inside this skill without explicit developer approval (Step 5). This skill reports; the developer decides.
 - A recorded override (in the brief's `## Decisions and overrides`) neutralizes the corresponding drift — divergence the developer already chose is not drift.
 - If the brief is missing, stop in Step 1 — do not invent an anchor.
 - Auto-trigger conditions (full tier only):

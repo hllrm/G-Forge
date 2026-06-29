@@ -51,11 +51,11 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `resume` — re-hydrate a fresh session: pull the relevant retro, ADRs, journal, and handoff into a clean window, then point at the first task
   - `doctor` — validate project setup health (hooks, settings, CLAUDE.md, duplicate/legacy installs)
   - `audit [scope]` — code-quality audit (SOLID, smells, drift, dead code, coverage); whole-codebase scope → roadmap milestone
-  - `init` — the single front door: detect → onboard|kickoff → scaffold (CLAUDE.md, ROADMAP.md incl. Active Session handoff, milestones/, todo.md, 7 hooks) → specialize → ready
-  - `kickoff` — interview about goals and stack; produce project_brief.md
-  - `onboard` — onboard onto an existing codebase; produce project_brief.md
-  - `brief` — refresh project_brief.md as the project evolves
-  - `roadmap` — intake features, cluster and sequence into milestones, write ROADMAP.md (runs a premortem + re-prioritization when a milestone is added or changed)
+  - `init` — the single front door: detect → onboard|kickoff → scaffold (CLAUDE.md, g-docs/ROADMAP.md incl. Active Session handoff, g-docs/milestones/, g-docs/todo.md, 7 hooks) → specialize → ready
+  - `kickoff` — interview about goals and stack; produce g-docs/project_brief.md
+  - `onboard` — onboard onto an existing codebase; produce g-docs/project_brief.md
+  - `brief` — refresh g-docs/project_brief.md as the project evolves
+  - `roadmap` — intake features, cluster and sequence into milestones, write g-docs/ROADMAP.md (runs a premortem + re-prioritization when a milestone is added or changed)
   - `intake [idea]` — triage a single dropped feature against the brief, propose placement + version + risk, ask before writing
   - `plan` — decompose request into atomic tasks and a parallel wave schedule
   - `forecast [plan-slug]` — premortem + scope-realism: complexity score, miss-risk %, ranked failure scenarios
@@ -72,7 +72,7 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `adr [title]` — capture an architectural decision record (triage → off-context deliberation → reversibility + premortem)
   - `docs [scope]` — documentation audit + generation (stale code docs, README gaps, env vars, CHANGELOG, missing ADRs)
   - `wiki [area]` — build/maintain the human-facing project wiki in g-wiki/ (narrative architecture + how-to; queued each milestone)
-  - `patterns` — mine g-docs/retros/ and todo-done.md for recurring failure patterns; propose rule edits
+  - `patterns` — mine g-docs/retros/ and g-docs/todo-done.md for recurring failure patterns; propose rule edits
   - `telemetry` — compute 8 reliability metrics and derive a health profile; drives adaptive orchestration
   - `identity` — narrative synthesis of the project's operational personality; written to g-docs/identity.md
   - `retro` — synthesize a session retrospective from the journal; refreshes the ROADMAP handoff

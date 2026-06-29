@@ -11,18 +11,18 @@ You are wiring stack-specific agents into this project: an **architect** (read-s
 
 Build a picture of the project's stack and integrations from all available sources. Read every source that exists — skip silently if a file is absent.
 
-**Source 1 — project_brief.md (highest confidence)**
+**Source 1 — g-docs/project_brief.md (highest confidence)**
 
-Read `project_brief.md` if it exists. Extract:
+Read `g-docs/project_brief.md` if it exists. Extract:
 - The "Tech decisions" table — each row is a confirmed stack component
 - The "Technical constraints" section if present
 - Any stack names mentioned in the text
 
 Note every distinct runtime/framework/language. A project might have multiple (e.g., Vue 3 frontend + FastAPI backend in a monorepo).
 
-**Source 2 — ROADMAP.md**
+**Source 2 — g-docs/ROADMAP.md**
 
-Read `ROADMAP.md` if it exists. Look for tech mentions in milestone descriptions or backlog items that indicate planned stack additions not yet in deps.
+Read `g-docs/ROADMAP.md` if it exists. Look for tech mentions in milestone descriptions or backlog items that indicate planned stack additions not yet in deps.
 
 **Source 3 — Dependency files**
 
@@ -168,7 +168,7 @@ Store all version notes for use in Step 3 (confirmation) and Step 7 (agent insta
 - Use this as the confirmed profile list, skipping further detection.
 
 **If no brief and no dependency files exist:**
-- Ask the developer: "I couldn't find a project_brief.md or any dependency files. Which profile(s) should I apply? Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin."
+- Ask the developer: "I couldn't find a g-docs/project_brief.md or any dependency files. Which profile(s) should I apply? Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin."
 - Wait for answer. Use it as the confirmed profile list.
 
 **If unsupported stacks were detected:**
@@ -180,7 +180,7 @@ Ambiguous means: stacks detected from different sources that don't agree, or a b
 
 Before asking the user, dispatch `code-lead` with:
 - The synthesised picture from Step 1
-- The relevant excerpt from project_brief.md (tech decisions table if present)
+- The relevant excerpt from g-docs/project_brief.md (tech decisions table if present)
 - The dependency file contents
 
 Ask code-lead:
