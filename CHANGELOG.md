@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-06-29
+
 ### Changed
 
 - **Documentation review promoted to a first-class gate (M27).** Documentation review was a sub-check inside `code-reviewer`; it is now a standalone gate with its own verdict and sentinel. `code-reviewer` keeps a public-export-doc backstop that defers when the doc gate has run, so coverage is never double-counted or dropped. G-RULES §G now documents the two-gate model.
