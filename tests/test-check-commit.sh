@@ -1,7 +1,10 @@
 #!/bin/bash
 # Unit tests for hooks/check-commit.sh
+# Runs entirely inside a throwaway fixture dir so the suite never mutates the
+# repo's own .claude/ (an earlier version deleted .claude/integration-tier in
+# the repo root, silently disabling the hooks for the project).
 
-SCRIPT="$(dirname "$0")/../hooks/check-commit.sh"
+SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/check-commit.sh"
 SENTINEL=".claude/g-forge-approved"
 PASS=0
 FAIL=0
@@ -17,6 +20,10 @@ run() {
     fi
 }
 
+# Isolate all .claude state in a temp fixture — the hook resolves .claude
+# relative to CWD, so running here keeps the real project untouched.
+WORKDIR="$(mktemp -d)"
+cd "$WORKDIR" || { echo "FAIL: could not enter fixture dir"; exit 1; }
 mkdir -p .claude
 # The hook self-guards to G-Forge-managed projects (presence of
 # .claude/integration-tier). Mark this fixture as one so the gate is active.
@@ -50,33 +57,28 @@ run "git commit --amend blocked without sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit --amend --no-edit"}}' \
     1
 
-# 6: Regression — Windows Microsoft-Store python3 stub (prints to stderr,
-# exits non-zero) must NOT make the gate fall open. With no working parser,
-# the hook falls back to grepping the raw payload and still blocks.
-# Simulate by shadowing python3 with a stub and exposing only a minimal PATH
-# (no jq, no node) so the raw-payload fallback is the only thing left.
+# 6: Regression — when no JSON parser works (jq absent, python3 is the Windows
+# Microsoft-Store stub, node absent) the hook must fall back to grepping the
+# raw payload and still block. Shadow all three parsers with exit-1 stubs
+# *prepended* to the real PATH. (Replacing PATH wholesale by symlinking
+# coreutils breaks git-bash — bash.exe can't load its DLLs from a bare symlink
+# dir — which is what made this test mis-report a fail-open on Windows.)
 STUBDIR="$(mktemp -d)"
-BINDIR="$(mktemp -d)"
-cat > "$STUBDIR/python3" <<'STUB'
-#!/bin/sh
-echo "Python was not found; run without arguments to install from the Microsoft Store..." >&2
-exit 1
-STUB
-chmod +x "$STUBDIR/python3"
-for t in bash sh cat grep printf echo rm mkdir tr dirname env git; do
-    p="$(command -v "$t")"; [ -n "$p" ] && ln -sf "$p" "$BINDIR/$t" 2>/dev/null
+for p in jq python3 node; do
+    printf '#!/bin/sh\nexit 1\n' > "$STUBDIR/$p"
+    chmod +x "$STUBDIR/$p"
 done
-ln -sf "$STUBDIR/python3" "$BINDIR/python3"   # jq and node intentionally absent
 rm -f "$SENTINEL"
 echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}' \
-    | PATH="$BINDIR" bash "$SCRIPT" >/dev/null 2>&1
+    | PATH="$STUBDIR:$PATH" bash "$SCRIPT" >/dev/null 2>&1
 if [ $? -eq 1 ]; then
-    echo "PASS: gate enforced when python3 is the Store stub (no jq/node)"; PASS=$((PASS+1))
+    echo "PASS: gate enforced when no JSON parser works (raw-payload fallback)"; PASS=$((PASS+1))
 else
-    echo "FAIL: gate fell OPEN under python3 stub (the Windows bug)"; FAIL=$((FAIL+1))
+    echo "FAIL: gate fell OPEN with no working parser"; FAIL=$((FAIL+1))
 fi
-rm -rf "$STUBDIR" "$BINDIR"
-rm -f .claude/integration-tier
+rm -rf "$STUBDIR"
+
+cd / && rm -rf "$WORKDIR"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
