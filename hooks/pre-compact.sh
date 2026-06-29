@@ -45,15 +45,15 @@ BRANCH=$(git branch --show-current 2>/dev/null || echo "not a git repo")
 COMMITS=$(git log --oneline -5 2>/dev/null || echo "no commits found")
 
 # Snapshot the single canonical handoff — the `## Active Session` block in
-# ROADMAP.md. Capture everything under that heading up to the next `## ` heading,
+# g-docs/ROADMAP.md. Capture everything under that heading up to the next `## ` heading,
 # so the full Done/Next up/Active context block is preserved (not just the header).
-if [ -f "ROADMAP.md" ]; then
-  HANDOFF=$(awk '/^## Active Session/{cap=1; next} cap && /^## /{exit} cap{print}' ROADMAP.md 2>/dev/null)
+if [ -f "g-docs/ROADMAP.md" ]; then
+  HANDOFF=$(awk '/^## Active Session/{cap=1; next} cap && /^## /{exit} cap{print}' g-docs/ROADMAP.md 2>/dev/null)
   if [ -z "$HANDOFF" ]; then
-    HANDOFF="(No '## Active Session' handoff found in ROADMAP.md)"
+    HANDOFF="(No '## Active Session' handoff found in g-docs/ROADMAP.md)"
   fi
 else
-  HANDOFF="ROADMAP.md not found"
+  HANDOFF="g-docs/ROADMAP.md not found"
 fi
 
 # Write compact-state.md

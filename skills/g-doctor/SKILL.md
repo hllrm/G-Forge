@@ -1,11 +1,11 @@
 ---
 name: g-doctor
-description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
+description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
 ---
 
 Announce: "Using g-doctor to check project health."
 
-Run all 18 checks below against the current working directory, then output the report in the exact format specified. Checks 1–15 are required (✓/✗). Checks 16–18 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
+Run all 20 checks below against the current working directory, then output the report in the exact format specified. Checks 1–15 are required (✓/✗). Checks 16–20 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
 
 ## Checks
 
@@ -129,7 +129,38 @@ G-Forge was formerly named `g-team`; the rename created a new plugin rather than
 - Advisory (present): ⚠ Legacy g-team plugin still installed — every /g-* command is duplicated
   → Remove it via `/plugin` → Installed → g-team → Uninstall (then re-run `/g-update`).
 
-**Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook and rules infrastructure only.
+**19. `.gitignore` vets G-Forge artifacts** (advisory)
+The `.gitignore` is the boundary between the project record (tracked) and runtime/dev artifacts (ignored). `/g-init` writes it; this check confirms it still holds. Read `.gitignore`.
+- It must **ignore** the runtime artifacts: the commit-gate sentinels (`.claude/g-forge-approved`, `.claude/g-forge-docs-approved`), the observer journal (`.claude/journal/`), and the regenerable agent output (`g-docs/agent-output/`).
+- It must **not ignore** anything tracked-by-design: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, `g-docs/decisions/`, `g-docs/retros/`, or `g-wiki/`. (Watch for over-broad bare patterns — e.g. a literal `todo.md` or `milestones/` line will wrongly ignore the `g-docs/` copies.)
+- Pass: ✓ .gitignore vets G-Forge artifacts (runtime ignored, project record tracked)
+- Advisory (missing): ⚠ No .gitignore — runtime artifacts (sentinels, journal, agent-output) may be committed
+  → Run `/g-init` (Step 5a) to write the project `.gitignore`.
+- Advisory (runtime not ignored): ⚠ .gitignore does not ignore [artifact] — it may be committed
+  → Add the missing runtime-artifact pattern(s) (see `/g-init` Step 5a).
+- Advisory (tracked path ignored): ⚠ .gitignore ignores [path] — project record won't be committed
+  → Remove or scope the over-broad pattern so the `g-docs/` project record stays tracked.
+
+**20. No stray G-Forge documents** (advisory)
+Every G-Forge document belongs under `g-docs/` (project record) or `g-wiki/` (human-facing). This check finds strays that drifted elsewhere — usually tracking files left at the project root from before the `g-docs/` migration, or ADR/retro folders created in the wrong place. Look for:
+- `ROADMAP.md`, `todo.md`, `todo-done.md`, or `project_brief.md` at the **project root** (canonical home is `g-docs/`).
+- A `milestones/` directory at the **project root** (canonical home is `g-docs/milestones/`).
+- `decisions/`, `retros/`, `forecasts/`, `telemetry/`, `blast-radius/`, or `alignment/` directories anywhere **outside** `g-docs/` (e.g. a root `decisions/`, or `docs/decisions/`).
+```bash
+# strays at root
+for f in ROADMAP.md todo.md todo-done.md project_brief.md; do [ -f "$f" ] && echo "stray: $f"; done
+[ -d milestones ] && echo "stray: milestones/"
+# g-forge doc folders living outside g-docs/
+find . -type d \( -name decisions -o -name retros -o -name forecasts -o -name telemetry -o -name blast-radius -o -name alignment \) \
+  -not -path './g-docs/*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null
+```
+- Pass (none found): ✓ No stray G-Forge documents — all tracking lives under g-docs/
+- Advisory (strays found): ⚠ [N] stray G-Forge document(s) outside g-docs/: [list]
+  → Move each into `g-docs/` preserving history, then re-run /g-doctor:
+    `git mv ROADMAP.md g-docs/ROADMAP.md` · `git mv milestones g-docs/milestones` (etc.)
+  → Offer to run the moves now. After moving, update any references with `/g-update`, and confirm nothing still points at the old root path.
+
+**Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook, rules, and document-layout infrastructure only.
 
 ## Output format
 
@@ -174,6 +205,10 @@ G-Forge Doctor ─────────────────────�
     [→ fix instruction if advisory]
   [✓/⚠ line for check 18]
     [→ fix instruction if advisory]
+  [✓/⚠ line for check 19]
+    [→ fix instruction if advisory]
+  [✓/⚠ line for check 20]
+    [→ fix instruction if advisory]
 ────────────────────────────────────────────────
 [N/15 required checks passed]
 ```
@@ -182,5 +217,5 @@ Fix instructions are indented with four spaces and prefixed with `→ `, and app
 
 After the summary count line, add one blank line, then:
 - If all 15 required checks passed and no advisories: `All checks passed. Project is healthy.`
-- If all 15 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact.`
+- If all 15 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact and the document layout clean.`
 - If any required check failed: `Fix the issues above, then re-run /g-doctor.`

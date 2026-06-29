@@ -36,8 +36,8 @@ if [ -f ".claude/integration-tier" ]; then
 fi
 
 ACTIVE_CONTEXT=""
-if [ -f "ROADMAP.md" ]; then
-    ACTIVE_CONTEXT=$(grep -m1 'Active context:' ROADMAP.md | sed 's/.*Active context:[[:space:]]*//')
+if [ -f "g-docs/ROADMAP.md" ]; then
+    ACTIVE_CONTEXT=$(grep -m1 'Active context:' g-docs/ROADMAP.md | sed 's/.*Active context:[[:space:]]*//')
 fi
 
 REVIEW_APPROVED=false
@@ -162,8 +162,8 @@ if git rev-parse --verify main >/dev/null 2>&1 && [ "$CURRENT_BRANCH" != "main" 
         | grep -ciE '(^[a-f0-9]+[[:space:]]+)?(revert:|^[a-f0-9]+[[:space:]]+revert "|fix-of-fix|take 2|retry|another attempt|re-do)' 2>/dev/null)
     REWORK_COUNT=$(to_int "$_rework_raw")
 fi
-if [ -f "todo.md" ]; then
-    _blocked_raw=$(grep -cE 'BLOCKED' todo.md 2>/dev/null)
+if [ -f "g-docs/todo.md" ]; then
+    _blocked_raw=$(grep -cE 'BLOCKED' g-docs/todo.md 2>/dev/null)
     BLOCKED_COUNT=$(to_int "$_blocked_raw")
 fi
 if [ -f ".claude/review-holds" ]; then
@@ -240,11 +240,11 @@ fi
 if [ "$PROMPT_COUNT" -eq 1 ]; then
     _has_handoff=false
     [ -f ".claude/compact-state.md" ] && _has_handoff=true
-    if [ "$_has_handoff" = false ] && [ -f "ROADMAP.md" ] && grep -q '## Active Session' ROADMAP.md 2>/dev/null; then
+    if [ "$_has_handoff" = false ] && [ -f "g-docs/ROADMAP.md" ] && grep -q '## Active Session' g-docs/ROADMAP.md 2>/dev/null; then
         _has_handoff=true
     fi
     if [ "$_has_handoff" = true ]; then
-        if grep -qi 'verify ADR' ROADMAP.md .claude/compact-state.md 2>/dev/null; then
+        if grep -qi 'verify ADR' g-docs/ROADMAP.md .claude/compact-state.md 2>/dev/null; then
             echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate; a handed-off ADR needs verifying first"
         else
             echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate context before new work"
@@ -255,14 +255,14 @@ fi
 # Between-milestone alignment nudge — /g-align runs automatically at milestone
 # close; this nudges a drift check between closes once 7 days have elapsed.
 # Only meaningful when there's a brief to align against and a roadmap to drift.
-if [ -f "project_brief.md" ] && [ -f "ROADMAP.md" ]; then
+if [ -f "g-docs/project_brief.md" ] && [ -f "g-docs/ROADMAP.md" ]; then
     ALIGN_STAMP=".claude/last-align"
     NEEDS_ALIGN=true
     if [ -f "$ALIGN_STAMP" ] && find "$ALIGN_STAMP" -mmin -10080 2>/dev/null | grep -q .; then
         NEEDS_ALIGN=false
     fi
     if [ "$NEEDS_ALIGN" = true ]; then
-        echo "  🎯 Brief-alignment check due — run /g-align to confirm progress still serves project_brief.md"
+        echo "  🎯 Brief-alignment check due — run /g-align to confirm progress still serves g-docs/project_brief.md"
     fi
 fi
 

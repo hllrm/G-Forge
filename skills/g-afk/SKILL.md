@@ -21,7 +21,7 @@ Glob `g-docs/plans/` for `.md` files. Read each and look for a Progress table (`
 ```
 
 **2. Identify the active plan.**
-If multiple plan files exist, pick the one whose milestone aligns with the active entry in `ROADMAP.md`. Read the Progress table and list all waves not marked `complete`.
+If multiple plan files exist, pick the one whose milestone aligns with the active entry in `g-docs/ROADMAP.md`. Read the Progress table and list all waves not marked `complete`.
 
 If all waves are already `complete`, stop:
 ```

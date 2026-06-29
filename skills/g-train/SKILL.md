@@ -86,7 +86,7 @@ Wait for the learner's choice. Confirm it before proceeding.
 PM tells the learner why kickoff exists (voice-adapted):
 
 - `eli5`: "Before we write any code, we answer three questions: what are we building, who is it for, and how will we know when it's done? This is a kickoff — it keeps us from building the wrong thing. You'd be surprised how often that happens when you skip this step."
-- `mid`: "We run a kickoff before every project to define scope before you're committed to any code. The output is `project_brief.md` — a locked reference that planning and execution work against."
+- `mid`: "We run a kickoff before every project to define scope before you're committed to any code. The output is `g-docs/project_brief.md` — a locked reference that planning and execution work against."
 - `dev`: "Kickoff. Scope definition, stack validation, brief lock. Same process as any project."
 
 PM then runs the full `/g-kickoff` process (all 7 steps) as normal, with one addition: after each question group in Step 1, PM gives a brief teaching note.
@@ -100,7 +100,7 @@ After Group 2 answers:
 After Group 4 (stack deep dive):
 > *(teaching note)* "Every integration in that list — auth, database, file storage, real-time — is a decision that will shape the project's architecture. Choosing later is still choosing: you're choosing to figure it out under pressure."
 
-After `project_brief.md` is written, PM gives a learning summary:
+After `g-docs/project_brief.md` is written, PM gives a learning summary:
 > "**What you just practised:** scoping a project before writing code, validating technical choices with a specialist (code-lead), and locking a written brief. These three things — scope, validation, documentation — prevent the most common reasons software projects fail."
 
 ---
@@ -113,14 +113,14 @@ PM explains the roadmap before running it (voice-adapted):
 - `mid`: "Roadmap planning. We cluster features into milestones and sequence them by dependency and release logic. Every ordering decision is explained."
 - `dev`: "Roadmap. Feature clustering, dependency sequencing, version targets."
 
-PM runs `/g-roadmap` as normal. After `ROADMAP.md` is written, PM gives a teaching note:
+PM runs `/g-roadmap` as normal. After `g-docs/ROADMAP.md` is written, PM gives a teaching note:
 > "The milestone sequence follows one principle: **never build something you might throw away.** Auth before billing. Core feature before polish. Data model before UI. This isn't just tidiness — it avoids building on assumptions that later turn out to be wrong."
 
 ---
 
 ## Step 4 — Per-wave training loop
 
-This is the core of training mode. Repeat for each milestone in ROADMAP.md:
+This is the core of training mode. Repeat for each milestone in g-docs/ROADMAP.md:
 
 ### 4a — Pre-milestone brief
 

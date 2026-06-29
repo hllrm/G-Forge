@@ -19,8 +19,8 @@ Read in parallel:
 - `g-docs/decisions/` if present — ADRs reveal the project's stated values
 - `CHANGELOG.md` — what the project chose to ship and when
 - `git log --oneline -200` — delivery cadence proxy
-- `ROADMAP.md` — what's done vs. what remains, version history
-- `project_brief.md` if present — original goals and constraints
+- `g-docs/ROADMAP.md` — what's done vs. what remains, version history
+- `g-docs/project_brief.md` if present — original goals and constraints
 
 If the corpus is thin (zero retros AND zero forecasts AND fewer than 50 commits), stop:
 ```

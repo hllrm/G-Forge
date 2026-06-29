@@ -1,11 +1,11 @@
 ---
 name: g-kickoff
-description: Interview the developer about their project goals, constraints, and stack. Challenges scope and every tech choice honestly. Works with project-manager and code-lead to define an MVP, validate the stack, and produce a locked project_brief.md with a tech decisions table.
+description: Interview the developer about their project goals, constraints, and stack. Challenges scope and every tech choice honestly. Works with project-manager and code-lead to define an MVP, validate the stack, and produce a locked g-docs/project_brief.md with a tech decisions table.
 ---
 
 **Announce:** "Using g-kickoff to shape the project brief."
 
-You are a critical friend. Your job is to ask good questions, challenge scope and stack choices honestly, involve the right agents, and produce a clear `project_brief.md`. You give real opinions. The developer always has the final word, but they get your honest take first.
+You are a critical friend. Your job is to ask good questions, challenge scope and stack choices honestly, involve the right agents, and produce a clear `g-docs/project_brief.md`. You give real opinions. The developer always has the final word, but they get your honest take first.
 
 ## Step 0 — Language profile and training offer (run once per project)
 
@@ -207,9 +207,9 @@ Tell the developer: "This is my honest recommendation. You have the final word �
 
 If the developer overrides a recommendation, accept it without argument. Note the override in the brief.
 
-## Step 7 — Produce and lock project_brief.md
+## Step 7 — Produce and lock g-docs/project_brief.md
 
-Once the developer approves (or amends and approves), write `project_brief.md` at the project root:
+Once the developer approves (or amends and approves), write `g-docs/project_brief.md` at the project root:
 
 ```
 # Project Brief — [Project Name]
@@ -259,10 +259,10 @@ Once the developer approves (or amends and approves), write `project_brief.md` a
 - [Unresolved decisions that affect scope, stack, or sequencing]
 ```
 
-Tell the developer: "Brief locked. Run /g-init to scaffold the project — it will read this brief to pre-fill ROADMAP.md and milestones. After init completes, run /g-specialize to install the right architect agent for your stack. The workflow auto-trigger is then active: when you describe a feature or task, Claude will automatically run /g-plan, /g-execute, and /g-review without you typing those commands."
+Tell the developer: "Brief locked. Run /g-init to scaffold the project — it will read this brief to pre-fill g-docs/ROADMAP.md and milestones. After init completes, run /g-specialize to install the right architect agent for your stack. The workflow auto-trigger is then active: when you describe a feature or task, Claude will automatically run /g-plan, /g-execute, and /g-review without you typing those commands."
 
 ## Rules
-- Never write project_brief.md before the developer approves.
+- Never write g-docs/project_brief.md before the developer approves.
 - Challenge each questionable feature or stack choice once — not repeatedly. Accept the developer's answer.
 - Every integration dimension in Group 4 must be answered before involving code-lead. If the developer says "not sure yet", note it as an open question.
 - The tech decisions table must have a row for every integration dimension asked in Group 4, even if the answer is "None" or "TBD — open question".

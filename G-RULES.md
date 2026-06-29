@@ -23,7 +23,7 @@ Available sections:
 - `@.claude/rules/g-rules-F-design-patterns.md` — principles and anti-patterns
 - `@.claude/rules/g-rules-G-documentation.md` — what must be documented, currency rule, ownership
 - `@.claude/rules/g-rules-H-testing.md` — three-tier testing protocol, listen mode
-- `@.claude/rules/g-rules-I-project-tracking.md` — file hierarchy, commit gate, todo.md structure
+- `@.claude/rules/g-rules-I-project-tracking.md` — file hierarchy, commit gate, g-docs/todo.md structure
 - `@.claude/rules/g-rules-J-memory.md` — memory layer taxonomy
 
 ---

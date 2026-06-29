@@ -88,7 +88,7 @@ avoid reopening it:
    same way: **do less, fail open, never gate.**
 
 6. **The lightest "ADR" is a category error — it already exists.** The "just a logged note"
-   tier is a row in `project_brief.md`'s tech-decisions table, not a thin ADR. Don't build a
+   tier is a row in `g-docs/project_brief.md`'s tech-decisions table, not a thin ADR. Don't build a
    second home for something already housed.
 
 7. **Research reframes the problem; premortems stress the solution — both were needed.**
@@ -113,7 +113,7 @@ entry, not a lightweight ADR.
 - **Uncertainty** — "confident, or still unsure?" Uncertainty *escalates* depth; confidence
   never shortcuts it. Self-report used only in the safe direction.
 - These are the floor because they are the only signals available on *every* path,
-  regardless of tier or whether a `project_brief.md` exists.
+  regardless of tier or whether a `g-docs/project_brief.md` exists.
 
 **Deepen (pull in Alternatives · Constraints) when the floor — or an enrichment signal —
 says the fork is real.**
@@ -123,7 +123,7 @@ says the fork is real.**
 | Signal | Source (piggyback, no new patrol) |
 |--------|-----------------------------------|
 | Supersedes / conflicts with an in-force ADR | one grep of `g-docs/decisions/` at ADR start |
-| Forces an edit to `project_brief.md` (Pillar) | cheap check at ADR start; `/g-align` at close |
+| Forces an edit to `g-docs/project_brief.md` (Pillar) | cheap check at ADR start; `/g-align` at close |
 | Inside a premortem-flagged high-risk milestone | existing `/g-forecast` output |
 | One-way door (new dep / contract / schema) | `dependency-auditor`, `spec-writer` (already in `/g-plan`) |
 | Project-wide pattern / precedent | `code-reviewer` (already flags this) |

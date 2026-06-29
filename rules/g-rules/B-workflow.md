@@ -3,8 +3,8 @@
 ### Project lifecycle (run once at project start)
 
 ```
-/g-kickoff    → interview developer, produce project_brief.md
-/g-roadmap    → milestone plan → ROADMAP.md + milestones/M*.md
+/g-kickoff    → interview developer, produce g-docs/project_brief.md
+/g-roadmap    → milestone plan → g-docs/ROADMAP.md + g-docs/milestones/M*.md
 /g-init       → scaffold files, hook scripts, settings.json
 /g-specialize → detect stack, install architect agent + rules profile
 ```
@@ -43,7 +43,7 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 
 **Mid-milestone intercept:** New capability arriving while a milestone is active → `/g-intake` evaluates fit against the milestone and the brief first. If it belongs to the active milestone: proceed to `/g-plan`. If it doesn't: it lands in the backlog or its own milestone proposal — never silently expanded into the current scope. If the user overrides: record it and proceed.
 
-**Brief alignment:** The brief (`project_brief.md`) is the project's north star, and roadmaps drift away from it one reasonable milestone at a time. `/g-align` re-grounds the trajectory against the brief — it runs automatically at each milestone close (via `/g-review`'s close swarm) and is nudged by `workflow-checkpoint.sh` when ≥7 days have passed since the last check. It is advisory: it reports ALIGNED or DRIFTING with evidence and a recommendation, and never blocks. Run it on demand any time the project feels like it's wandering.
+**Brief alignment:** The brief (`g-docs/project_brief.md`) is the project's north star, and roadmaps drift away from it one reasonable milestone at a time. `/g-align` re-grounds the trajectory against the brief — it runs automatically at each milestone close (via `/g-review`'s close swarm) and is nudged by `workflow-checkpoint.sh` when ≥7 days have passed since the last check. It is advisory: it reports ALIGNED or DRIFTING with evidence and a recommendation, and never blocks. Run it on demand any time the project feels like it's wandering.
 
 **Voice rule:** Every skill output, prompt, and confirmation honors the voice profile in `.claude/voice-profile` — `dev` (terse, default), `mid` (one context sentence per major result), or `eli5` (plain language, conversational). The profile is set via a 2-question plain-language intake — never by asking the developer to self-select a tier. The intake runs automatically during `/g-kickoff` (if no profile is set) and when `/g-voice` is called with no argument. The profile changes **rendering**, never verdicts or numeric values. See `g-docs/voice-profiles.md` for canonical samples.
 
@@ -56,15 +56,15 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 | Skill | Purpose |
 |-------|---------|
 | `/g-update` | Pull latest plugin from GitHub, realign all G-Forge-managed project files |
-| `/g-brief` | Refresh `project_brief.md` from the current conversation |
+| `/g-brief` | Refresh `g-docs/project_brief.md` from the current conversation |
 | `/g-status` | One-shot snapshot: branch, active milestone, next task |
 | `/g-help` | Context-aware help — reads project state and detects workflow phase |
 | `/g-doctor` | Health check: missing files, broken hooks, config drift, sentinel state |
 | `/g-listen` | Enter Tier 3 listen mode for smoke test collection |
-| `/g-retro` | Synthesize a session retrospective from the silent-observer journal — no interview; reads `.claude/journal/`, git, and todo.md |
+| `/g-retro` | Synthesize a session retrospective from the silent-observer journal — no interview; reads `.claude/journal/`, git, and g-docs/todo.md |
 | `/g-resume` | Re-hydrate a fresh session — selectively pull the relevant retro, ADRs, journal, and handoff into a clean window, then point at the first task. The read side of the §A7 reset |
 | `/g-intake` | Triage a dropped feature against the brief — classify, propose placement + version + risk, then ask before writing |
-| `/g-align` | Brief-deviation check — compares trajectory against `project_brief.md`; reports ALIGNED / DRIFTING. Advisory |
+| `/g-align` | Brief-deviation check — compares trajectory against `g-docs/project_brief.md`; reports ALIGNED / DRIFTING. Advisory |
 | `/g-trim` | Weekly read-only audit of CLAUDE.md and agent memory — surfaces issues for human review, never modifies files |
 
 The **silent observer** (`hooks/observe.sh` + `hooks/agent-lifecycle.sh`) passively journals what happens — commits, branches, tests, pushes, reverts, agent dispatches — to `.claude/journal/YYYY-MM-DD.jsonl`. It writes nothing to the chat and never interrupts. `/g-retro` synthesizes from it. The observer is off on the `light` tier.

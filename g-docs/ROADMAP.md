@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: main | v2.1.0
+HANDOFF — g-forge | branch: claude/g-doctor-gitignore-docs-1njpam | v2.1.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · M27 Documentation Review Gate BUILT + MERGED to main: doc-reviewer agent (read-only, DOCS READY/HOLD), /g-doc-review skill+command, check-commit.sh file-set classifier (code/doc/mixed) + .claude/g-forge-docs-approved sentinel, post-commit-cleanup dual-sentinel, code-reviewer backstop-deferral, §G two-gate model, g-doctor Check 10, hook tests 14/14. · Reviewed MERGE READY + DOCS READY (dogfooded the new gate on its first real use). · Multi-session collision: 2.0.1 had shipped from another machine (6 commits, +feature-implementer agent); rebased M27 onto it, resolved 4 conflicts, re-derived true counts. · Closed out as v2.1.0 (bumped plugin.json+marketplace.json, CHANGELOG [2.1.0] dated, README §3 two-gate narrative updated).
-Next up:          · M26 — Provable Wave Dispatch (v2.2.0): deferred, feasibility-spike-gated. · M25 — reliability benchmark pilot (compute-gated). · Backlog: concurrent multi-session orchestration (claim/lock primitive) — this pass hit the exact collision it describes; strong candidate to promote.
-Active context:   · main = v2.1.0; M1–M27 shipped except M25/M26. The doc-review gate is LIVE and self-hosting — this repo's own commits now pass through it. Counts: 19 agents · 37 skills · 38 commands · 56 profiles. Re-enter with /g-resume.
+Done this pass:   · Opened M28 — g-docs becomes the canonical home for ALL G-Forge docs (tracking included). Dogfooded the move: ROADMAP.md → g-docs/ROADMAP.md; created g-docs/milestones/ + g-docs/todo.md + g-docs/milestones/M28-g-docs-canonical-tracking.md. Plan captured (roadmap milestone + todo). · Blast radius mapped: 472 refs / 65 files; live targets = skills/hooks/rules/agents/commands/templates/README, historical records excluded.
+Next up:          · Execute M28: update live path refs (root tracking → g-docs/), add /g-init .gitignore step + g-docs scaffolding, add /g-doctor checks (gitignore vet · stray-doc relocate · writes-under-g-docs), sync CHANGELOG+README, verify grep-clean + /g-doctor green. · Then M26 (v2.2.0, deferred) · M25 (compute-gated).
+Active context:   · branch claude/g-doctor-gitignore-docs-1njpam off main (v2.1.0). M28 in flight — tracking home moved + plan written; reference sweep + g-init/g-doctor edits pending. Scope boundary + task list in g-docs/milestones/M28-g-docs-canonical-tracking.md. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -370,6 +370,23 @@ plainly with the reason — don't paper over it.
 **Depends on:** M23 (review infrastructure). Independent of M24/M25/M26.
 
 **Re-prioritization:** Promoted to the next buildable milestone (v2.2.0) — strongest fit for the M24 governance positioning and actively in design. Sits ahead of the deferred M26. (M25 is compute-gated and runs on a parallel track.)
+
+---
+
+### M28 — g-docs as the canonical home for all G-Forge documents
+**Status:** ✅ Built — pending release (v2.2.0)
+**Goal:** Make `g-docs/` the single home for every G-Forge document — including the project-tracking files (`ROADMAP.md`, `todo.md`, `todo-done.md`, `milestones/`, `project_brief.md`) that live at the root today — and give `/g-doctor` the checks to keep it that way.
+**Scope:**
+- [x] **Migrate tracking into `g-docs/`** — `git mv`'d the root tracking paths under `g-docs/`; updated every *live* reference (skills, hooks, rules, agents, commands, templates, README, live `g-docs/` doctrine docs) to the new path. Historical records (retros, archive, CHANGELOG history, the M23 kickoff block) untouched.
+- [x] **`/g-init` defines the `.gitignore`** — new Step 5a writes/merges a project `.gitignore` that **ignores** runtime/dev artifacts (OS files, `.env*`, `.worktrees/`, ephemeral `.claude/` state + sentinels + journal, `g-docs/agent-output/`) and **tracks** the software code plus the project-tracking value (`g-docs/` records, `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, `g-wiki/`, `CLAUDE.md`, `G-RULES.md`) and shared `.claude/` config. Idempotent merge.
+- [x] **`/g-doctor` vets the `.gitignore`** — new advisory Check 19: runtime-artifact exclusions present, nothing tracked-by-design ignored (incl. over-broad bare patterns).
+- [x] **`/g-doctor` finds + relocates stray g-forge docs** — new advisory Check 20: scans root + non-`g-docs/` doc folders, reports each with a `git mv` fix, offers to move.
+- [x] **Confirm every skill writes under `g-docs/`** — audited; canonical `g-docs/` subpath map encoded in `g-rules-I-project-tracking`.
+- [x] Sync CHANGELOG + README to the new layout; grep-clean of old root paths. Version bump deferred to release (developer's call).
+
+**Scope boundary:** `CLAUDE.md` (Claude Code reads it at root), `G-RULES.md` (`@`-referenced config), and `CHANGELOG.md`/`README.md`/`LICENSE` stay at the root. Full breakdown in `g-docs/milestones/M28-g-docs-canonical-tracking.md`.
+
+**Depends on:** nothing — touches scaffolding/docs/hooks paths only. Independent of M25/M26.
 
 ---
 

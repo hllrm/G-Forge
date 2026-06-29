@@ -13,7 +13,7 @@ If the developer passed a topic or question in `$ARGUMENTS` (e.g. `/g-help how d
 1. Announce: `> Using g-help to answer: "[the topic]".`
 2. Resolve it to the right lens — a **command**, an **archive path**, or a **rule/doc** — and answer concisely:
    - "how / what command for X" → name the command and one line on what it does (use the grouped list in Step 5). E.g. review → `/g-review`; capture a decision → `/g-adr`.
-   - "where is / show me X" → point at the archive path from the **Archives & lenses** map below, and if a concrete file is being asked for, Glob/Read the most relevant one and summarise it. E.g. decisions → `g-docs/decisions/`; last session → newest `g-docs/retros/*.md` + `.claude/journal/`; agent findings → `g-docs/agent-output/`; what's next → `ROADMAP.md` `## Active Session`.
+   - "where is / show me X" → point at the archive path from the **Archives & lenses** map below, and if a concrete file is being asked for, Glob/Read the most relevant one and summarise it. E.g. decisions → `g-docs/decisions/`; last session → newest `g-docs/retros/*.md` + `.claude/journal/`; agent findings → `g-docs/agent-output/`; what's next → `g-docs/ROADMAP.md` `## Active Session`.
    - "what is / how does X work" (a concept like the commit gate, tiers, the wave model, the context gate) → answer from `G-RULES.md` / `.claude/rules/` and the docs, then point at the file.
 3. End with the single most useful next command. Keep it tight — topic mode is an answer, not the full dashboard. Skip Steps 2–5 unless the answer genuinely needs the full state.
 
@@ -28,12 +28,12 @@ Output exactly:
 
 Attempt to read each of the following files from the current working directory. If a file is missing, note it as "not found" and continue — never error out.
 
-1. `todo.md` — current tasks · `ROADMAP.md` `## Active Session` — the handoff
+1. `g-docs/todo.md` — current tasks · `g-docs/ROADMAP.md` `## Active Session` — the handoff
 2. `g-docs/plans/` — use Glob to find the most recent plan file (e.g. `g-docs/plans/*.md`); if multiple exist, use the one with the latest modification time or highest sort order
-3. `ROADMAP.md` — current milestone and status
+3. `g-docs/ROADMAP.md` — current milestone and status
 4. `.claude/g-forge-approved` — presence indicates the commit gate is open
 5. `.claude/hooks/workflow-checkpoint.sh` — presence indicates workflow hooks are installed
-6. `project_brief.md` — presence indicates the project has been onboarded or kicked off
+6. `g-docs/project_brief.md` — presence indicates the project has been onboarded or kicked off
 7. Current git branch — run `git branch --show-current` via Bash (skip gracefully if git is unavailable)
 8. `.claude/integration-tier` — active integration tier (default: `full`)
 9. `.claude/voice-profile` — active voice profile (default: `dev`)
@@ -52,12 +52,12 @@ Apply the following rules in order (first match wins):
 
 | Condition | Phase |
 |---|---|
-| `CLAUDE.md` is missing OR has no G-Forge Rules block, AND `project_brief.md` is missing | Not initialized |
-| `project_brief.md` is missing | Not initialized |
+| `CLAUDE.md` is missing OR has no G-Forge Rules block, AND `g-docs/project_brief.md` is missing | Not initialized |
+| `g-docs/project_brief.md` is missing | Not initialized |
 | `CLAUDE.md` exists but has no G-Forge Rules block | Not initialized |
 | G-Forge Rules block exists, no plan file found in `g-docs/plans/` | Initialized |
-| Plan file exists AND `.claude/g-forge-approved` is absent AND `todo.md` shows tasks remaining | Execution in progress |
-| Plan file exists AND `.claude/g-forge-approved` is absent AND `todo.md` shows all tasks done | Review pending |
+| Plan file exists AND `.claude/g-forge-approved` is absent AND `g-docs/todo.md` shows tasks remaining | Execution in progress |
+| Plan file exists AND `.claude/g-forge-approved` is absent AND `g-docs/todo.md` shows all tasks done | Review pending |
 | Plan file exists AND `.claude/g-forge-approved` is absent | Active plan |
 | `.claude/g-forge-approved` exists | Ready to merge |
 
@@ -65,11 +65,11 @@ Default to "Initialized" if none of the above conditions clearly match and the p
 
 **Next step mapping:**
 
-- Not initialized (no project_brief.md) → suggest `/g-kickoff` (new project) or `/g-onboard` (existing repo)
-- Not initialized (project_brief.md exists, no G-Forge Rules block) → suggest `/g-init`
+- Not initialized (no g-docs/project_brief.md) → suggest `/g-kickoff` (new project) or `/g-onboard` (existing repo)
+- Not initialized (g-docs/project_brief.md exists, no G-Forge Rules block) → suggest `/g-init`
 - Initialized (no plan file) → suggest `/g-plan`
 - Active plan → suggest `/g-execute` to dispatch waves
-- Execution in progress → summarize remaining tasks from `todo.md` and suggest continuing or running `/g-review` if all tasks are done
+- Execution in progress → summarize remaining tasks from `g-docs/todo.md` and suggest continuing or running `/g-review` if all tasks are done
 - Review pending → suggest `/g-review`
 - Ready to merge → suggest merging the branch or running `/g-review` if not yet reviewed
 
@@ -86,13 +86,13 @@ Branch: [current git branch]
 Phase: [phase]
 
 What's active:
-  - [milestone from ROADMAP.md, e.g. "M2: Workflow Engine — in progress"]
+  - [milestone from g-docs/ROADMAP.md, e.g. "M2: Workflow Engine — in progress"]
   - [plan file name if found, e.g. "g-docs/plans/wave-plan-2025-05-01.md"]
   - [wave info if detectable from plan file, e.g. "Wave 3 of 4"]
-  - [count of remaining tasks from todo.md, e.g. "3 tasks remaining in todo.md"]
+  - [count of remaining tasks from g-docs/todo.md, e.g. "3 tasks remaining in g-docs/todo.md"]
   - [workflow hooks: installed / not installed]
   - [commit gate: open / not set]
-  - [project_brief.md: present / missing]
+  - [g-docs/project_brief.md: present / missing]
 
 Configuration:
   - Tier:           [full / balanced / light] ([file present / using default])
@@ -108,9 +108,9 @@ Next step:
   [one clear action the developer should take right now, including the exact command to run]
 
 Archives & lenses (where to read what's going on — only list paths that exist):
-  State:     ROADMAP.md ## Active Session — the handoff (where you are / what's next)
-             ROADMAP.md — milestone plan · project_brief.md — goals & constraints
-             todo.md / todo-done.md — active task ledger / archive
+  State:     g-docs/ROADMAP.md ## Active Session — the handoff (where you are / what's next)
+             g-docs/ROADMAP.md — milestone plan · g-docs/project_brief.md — goals & constraints
+             g-docs/todo.md / g-docs/todo-done.md — active task ledger / archive
   Decisions: g-docs/decisions/ — ADRs (decisions + rationale) · CHANGELOG.md — version history
              g-docs/env-vars.md — env var reference
   Work:      g-docs/plans/ — approved wave plans
@@ -124,12 +124,12 @@ All commands (grouped by purpose):
 
   Setup:
     /g-init        — the single front door: detect → onboard|kickoff → scaffold → specialize → ready
-    /g-kickoff     — (sub-step of /g-init) new project: interview → project_brief.md
-    /g-onboard     — (sub-step of /g-init) existing repo: deep-read → project_brief.md
+    /g-kickoff     — (sub-step of /g-init) new project: interview → g-docs/project_brief.md
+    /g-onboard     — (sub-step of /g-init) existing repo: deep-read → g-docs/project_brief.md
     /g-specialize  — (sub-step of /g-init) install stack architect agent + architecture rules
 
   Planning:
-    /g-roadmap     — feature dump → cluster → sequence → ROADMAP.md
+    /g-roadmap     — feature dump → cluster → sequence → g-docs/ROADMAP.md
     /g-intake      — triage a dropped feature vs the brief → propose → ask
     /g-align       — brief-deviation check: ALIGNED / DRIFTING (advisory)
 
@@ -151,7 +151,7 @@ All commands (grouped by purpose):
     /g-voice       — voice profile: dev / mid / eli5
 
   Hygiene:
-    /g-brief       — refresh project_brief.md as project evolves
+    /g-brief       — refresh g-docs/project_brief.md as project evolves
     /g-status      — quick one-line state snapshot
     /g-resume      — re-hydrate a fresh session with the right slice of the durable record
     /g-doctor      — health check: hooks, settings, rules block, duplicate/legacy installs

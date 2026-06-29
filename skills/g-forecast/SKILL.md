@@ -94,7 +94,7 @@ For each candidate failure mode, judge whether the current plan exposes that sur
 | `layer-boundary-skip` | crosses architecture layers (any `core ↔ ui`, `agent ↔ skill`, `service ↔ component` mix) |
 | `agent-given-write-tool` | new agents in scope |
 | `version-mismatch-plugin-vs-marketplace` | version bump touches one but not both manifest files |
-| `stale-handoff-block` | release pass touches ROADMAP.md |
+| `stale-handoff-block` | release pass touches g-docs/ROADMAP.md |
 
 Keep candidates that match the plan's surface; drop the rest.
 

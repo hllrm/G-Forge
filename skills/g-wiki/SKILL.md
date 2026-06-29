@@ -35,8 +35,8 @@ Don't invent pages with no content. Start with `README.md` + `architecture.md`, 
 
 In parallel, read the ground truth so the wiki is accurate, not aspirational:
 - The codebase — the actual module/directory structure and the key entry points (Glob the source tree; read the files that matter for the page in scope).
-- `ROADMAP.md` — milestones and the feature set (what exists vs. planned).
-- `project_brief.md` — goals, constraints, stack decisions.
+- `g-docs/ROADMAP.md` — milestones and the feature set (what exists vs. planned).
+- `g-docs/project_brief.md` — goals, constraints, stack decisions.
 - `g-docs/decisions/` — in-force ADRs (the "why" behind the architecture). Cite them; never contradict one.
 - The most recent `g-docs/retros/` — recent changes worth reflecting.
 

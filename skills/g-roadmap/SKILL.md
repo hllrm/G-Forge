@@ -1,6 +1,6 @@
 ---
 name: g-roadmap
-description: Project-manager-driven milestone planner. Gated phases — feature dump → cluster → sequence → premortem & re-prioritize → approve → write. Narrates reasoning at every step, and runs a premortem + re-prioritization of the whole roadmap whenever a milestone is added or modified. Auto-triggers when no ROADMAP.md exists, no active milestone is present, or any feature idea is mentioned. Never writes ROADMAP.md until the developer explicitly approves.
+description: Project-manager-driven milestone planner. Gated phases — feature dump → cluster → sequence → premortem & re-prioritize → approve → write. Narrates reasoning at every step, and runs a premortem + re-prioritization of the whole roadmap whenever a milestone is added or modified. Auto-triggers when no g-docs/ROADMAP.md exists, no active milestone is present, or any feature idea is mentioned. Never writes g-docs/ROADMAP.md until the developer explicitly approves.
 ---
 
 **Announce:** "Using g-roadmap to plan your milestones."
@@ -11,7 +11,7 @@ The developer brings the vision. You bring structure, risk awareness, and honest
 
 ## Step 0 — Check context
 
-Read `ROADMAP.md` if it exists. Scan for:
+Read `g-docs/ROADMAP.md` if it exists. Scan for:
 - Any milestone marked 🔄 (active / in progress)
 - Any milestone marked ✅ (complete)
 - The backlog section
@@ -22,11 +22,11 @@ Note the current state:
 - `completed_milestones`: [list] / none
 - `backlog_items`: [list] / none
 
-Read `project_brief.md` if it exists — extract the goal, constraints, and tech decisions.
+Read `g-docs/project_brief.md` if it exists — extract the goal, constraints, and tech decisions.
 
 **Read the current version.** Check (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`. Record it as `current_version`. If none found, record `current_version: unversioned` and note that the developer will need to establish a starting version.
 
-**Baseline dependency scan.** If any manifest file is present (`package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`, `Pipfile`, `pyproject.toml`, `pom.xml`, `build.gradle`), dispatch `dependency-auditor` now — in parallel with reading `project_brief.md`. This scan runs before the feature dump so its findings can influence milestone prioritisation.
+**Baseline dependency scan.** If any manifest file is present (`package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`, `Pipfile`, `pyproject.toml`, `pom.xml`, `build.gradle`), dispatch `dependency-auditor` now — in parallel with reading `g-docs/project_brief.md`. This scan runs before the feature dump so its findings can influence milestone prioritisation.
 
 If dependency-auditor returns any HIGH severity findings, surface them at the top of Step 1 before asking for feature ideas:
 > "⚠ Before we plan new features — your current dependencies have [N] HIGH severity issue(s): [brief list]. These should be a milestone in the roadmap, likely early. I'll flag this during sequencing."
@@ -125,7 +125,7 @@ Wait for the developer's response. Revise if needed. Do not proceed to Step 4 un
 
 Any time this run **adds a new milestone or changes an existing one** — the Step 0 "adding to the plan" path, or an edit to a milestone's scope/version on an existing roadmap — run a premortem and re-prioritize *before* the buy-in gate. A new or changed milestone shifts risk and ordering across the whole roadmap; never just append it. (On a full from-scratch plan, the sequencing in Step 3 already covers this — run the premortem here once, then proceed.)
 
-1. **Premortem each added/modified milestone.** Imagine it's later and this milestone went badly. For each, surface the top 3 failure scenarios — scope blow-up, hidden dependency, volatile/repeatedly-touched systems, unclear done condition — with a likelihood (low / med / high) and a one-line mitigation. Seed the scenarios from `/g-patterns` history (`g-docs/retros/`, `todo-done.md`), any `dependency-auditor` findings from Step 0, and any existing `g-docs/forecasts/*.md` or `g-docs/blast-radius/*.md` for related work. Only premortem the changed milestones — leave stable ones alone.
+1. **Premortem each added/modified milestone.** Imagine it's later and this milestone went badly. For each, surface the top 3 failure scenarios — scope blow-up, hidden dependency, volatile/repeatedly-touched systems, unclear done condition — with a likelihood (low / med / high) and a one-line mitigation. Seed the scenarios from `/g-patterns` history (`g-docs/retros/`, `g-docs/todo-done.md`), any `dependency-auditor` findings from Step 0, and any existing `g-docs/forecasts/*.md` or `g-docs/blast-radius/*.md` for related work. Only premortem the changed milestones — leave stable ones alone.
 
 2. **Re-prioritize the full sequence.** Given the premortem, re-evaluate ordering across **all non-completed** milestones (completed ✅ are frozen — never reorder history):
    - Does the new/changed milestone add a dependency that forces something earlier or later?
@@ -168,17 +168,17 @@ Version plan:  v[current] → v[M1] → v[M2] → ...
 ```
 
 Ask:
-> "Ready to write ROADMAP.md? Once written, this becomes the project's source of truth for milestone planning. Type **approve** to confirm, or tell me what to change."
+> "Ready to write g-docs/ROADMAP.md? Once written, this becomes the project's source of truth for milestone planning. Type **approve** to confirm, or tell me what to change."
 
 Do not write any files until the developer types "approve" or an explicit equivalent ("yes", "looks good, write it", etc.).
 
 If they request changes, make them and re-present. Loop until explicit approval.
 
-## Step 5 — Write ROADMAP.md
+## Step 5 — Write g-docs/ROADMAP.md
 
 Only after explicit approval:
 
-Write `ROADMAP.md` with this structure:
+Write `g-docs/ROADMAP.md` with this structure:
 
 ```markdown
 # Roadmap
@@ -206,15 +206,15 @@ Write `ROADMAP.md` with this structure:
 - [item]
 ```
 
-If `ROADMAP.md` already exists and contains completed milestones (✅), preserve them above the newly written milestones — never remove history.
+If `g-docs/ROADMAP.md` already exists and contains completed milestones (✅), preserve them above the newly written milestones — never remove history.
 
 Milestone status key: ⬜ Not started · 🔄 In progress · ✅ Complete
 
 After writing, confirm:
-> "ROADMAP.md written. M1 is your next active milestone. When you're ready to start, run `/g-plan` with the M1 scope and I'll break it into tasks and a wave schedule."
+> "g-docs/ROADMAP.md written. M1 is your next active milestone. When you're ready to start, run `/g-plan` with the M1 scope and I'll break it into tasks and a wave schedule."
 
 ## Rules
-- Never write ROADMAP.md before explicit developer approval in Step 4. "Looks good" or silence is not approval.
+- Never write g-docs/ROADMAP.md before explicit developer approval in Step 4. "Looks good" or silence is not approval.
 - Narrate reasoning at every cluster, sequence, and assumption — results without reasoning are just output.
 - Surface assumptions explicitly at each phase so the developer can correct them early.
 - Do not advance between phases without explicit developer sign-off.
@@ -226,6 +226,6 @@ After writing, confirm:
 - Adding or modifying a milestone is never a silent append — Step 3b (premortem + re-prioritization across all non-completed milestones) is mandatory before the buy-in gate whenever the roadmap changes.
 - Every milestone must have a target version. Version planning is part of sequencing, not an afterthought — reason about it the same way you reason about dependencies.
 - Auto-trigger conditions (Claude detects and initiates without being asked):
-  - No `ROADMAP.md` exists in the project
-  - `ROADMAP.md` exists but contains no active (🔄) or unstarted (⬜) milestones
+  - No `g-docs/ROADMAP.md` exists in the project
+  - `g-docs/ROADMAP.md` exists but contains no active (🔄) or unstarted (⬜) milestones
   - The developer mentions any feature idea, even a single one, regardless of whether a roadmap already exists

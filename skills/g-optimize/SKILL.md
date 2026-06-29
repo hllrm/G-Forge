@@ -196,7 +196,7 @@ After the report:
 Print the condensed findings summary, then ask:
 > "Found [N] performance issues. Add these to the roadmap as a prioritised optimisation milestone? (y/n)"
 
-If yes, write `milestones/M-optimize-[YYYY-MM].md`:
+If yes, write `g-docs/milestones/M-optimize-[YYYY-MM].md`:
 
 ```markdown
 # M-optimize-[YYYY-MM] — Performance: Full Codebase Audit
@@ -234,12 +234,12 @@ If yes, write `milestones/M-optimize-[YYYY-MM].md`:
 ---
 
 ## Execution notes
-- Run `/g-refactor milestones/M-optimize-[YYYY-MM].md` to begin guided execution.
+- Run `/g-refactor g-docs/milestones/M-optimize-[YYYY-MM].md` to begin guided execution.
 - For every P0 fix: add a benchmark or assertion that will catch regression before merging.
 - P0 and P1 items must pass `/g-review` before P2 work begins.
 ```
 
-Append to `ROADMAP.md`:
+Append to `g-docs/ROADMAP.md`:
 ```markdown
 ### M-optimize-[YYYY-MM] — Performance Audit ([date])
 **Status:** ⬜ Not started
@@ -252,7 +252,7 @@ Append to `ROADMAP.md`:
 ```
 
 Confirm:
-> "Milestone written to `milestones/M-optimize-[YYYY-MM].md` and added to ROADMAP.md. Run `/g-refactor milestones/M-optimize-[YYYY-MM].md` to begin."
+> "Milestone written to `g-docs/milestones/M-optimize-[YYYY-MM].md` and added to g-docs/ROADMAP.md. Run `/g-refactor g-docs/milestones/M-optimize-[YYYY-MM].md` to begin."
 
 ## Rules
 - Report findings only — no fixes.

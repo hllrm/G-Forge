@@ -34,7 +34,7 @@ Before reviewing any code, verify the test suite passes.
 1. Check `package.json` scripts for `"test"` — if found, use `npm test` (or `bun test` / `yarn test` based on lockfile)
 2. Check for `pytest.ini`, `pyproject.toml` with `[tool.pytest]`, or `tests/` with `.py` files — use `pytest`
 3. Check for `Makefile` with a `test` target — use `make test`
-4. Check `project_brief.md` Tests field for the framework name
+4. Check `g-docs/project_brief.md` Tests field for the framework name
 5. If no test command can be detected: ask the developer — "What command runs your test suite?" — wait for answer
 
 **Run the test command.** Capture the output.
@@ -74,7 +74,7 @@ After capturing the diff, check whether it includes changes to any dependency ma
 
 Check for done conditions in this order:
 1. The relevant plan file (check `g-docs/plans/` for the most recent `.md` file, or a spec mentioned by the developer)
-2. The current milestone file in `milestones/`
+2. The current milestone file in `g-docs/milestones/`
 3. Ask the developer: "What are the done conditions for this implementation?"
 
 If no done conditions can be found, note this — code-lead will flag it as a process gap.
@@ -138,20 +138,20 @@ Present code-lead's verdict to the developer verbatim.
 
 **Milestone close-out (MERGE READY only):**
 
-1. Read `todo.md` — identify tasks marked as done or the tasks being reviewed in this session.
-2. Read `ROADMAP.md` — find the current active milestone (look for `🔄 In progress`).
-3. Read the active milestone file from `milestones/` (e.g. `milestones/M1.md`). If the `milestones/` directory does not exist or no matching tasks are found, skip silently — do not report anything.
+1. Read `g-docs/todo.md` — identify tasks marked as done or the tasks being reviewed in this session.
+2. Read `g-docs/ROADMAP.md` — find the current active milestone (look for `🔄 In progress`).
+3. Read the active milestone file from `g-docs/milestones/` (e.g. `g-docs/milestones/M1.md`). If the `g-docs/milestones/` directory does not exist or no matching tasks are found, skip silently — do not report anything.
 4. For each task in the milestone's `## Scope` checklist that matches a completed task from this review, mark it `[x]`.
 5. If ALL scope items in the milestone are now `[x]`:
    - Update the milestone status header to `✅ Complete`
-   - Update the corresponding milestone entry in `ROADMAP.md` from `🔄 In progress` to `✅ Complete`
+   - Update the corresponding milestone entry in `g-docs/ROADMAP.md` from `🔄 In progress` to `✅ Complete`
    - Leave the completed milestone in place under `## Milestones` marked `✅ Complete` — there is no separate `## Done` section; completed milestones stay as history where they are (status key: ⬜ Not started · 🔄 In progress · ✅ Complete)
    - Report: `✓ Milestone [ID — Name] closed out`
-   - **Version bump prompt:** Check the milestone entry in `ROADMAP.md` for a `**Version:**` field. If present, use that as the target. If absent, detect the current version from (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`, and suggest a bump based on the milestone's nature (features → minor, fixes → patch, breaking → major).
+   - **Version bump prompt:** Check the milestone entry in `g-docs/ROADMAP.md` for a `**Version:**` field. If present, use that as the target. If absent, detect the current version from (in order): `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`, `Cargo.toml`, and suggest a bump based on the milestone's nature (features → minor, fixes → patch, breaking → major).
    - Tell the developer:
      ```
      ✓ Milestone closed — version bump recommended
-       Target version:  [from ROADMAP.md Version field, or suggested]
+       Target version:  [from g-docs/ROADMAP.md Version field, or suggested]
        Run /g-update after bumping to sync project files.
      ```
    - Do not bump the version automatically — the developer decides and commits it separately.
@@ -159,9 +159,9 @@ Present code-lead's verdict to the developer verbatim.
    - **Milestone close swarm:** Once the retro is written, dispatch the following concurrently — they are all read-only analysis and can run in parallel:
      - `/g-patterns` — mines the retro just written alongside previous retros. Use Glob to find `skills/g-patterns/SKILL.md` and follow its instructions.
      - `/g-telemetry` — refreshes reliability metrics now that the milestone is in the corpus. Use Glob to find `skills/g-telemetry/SKILL.md` and follow its instructions.
-     - `/g-align` — brief-deviation check now that a milestone has closed: confirms the project is still serving `project_brief.md` (goals, non-goals, MVP, tech decisions) rather than drifting. Use Glob to find `skills/g-align/SKILL.md` and follow its instructions. Advisory — surfaces ALIGNED or DRIFTING with a recommendation; never blocks the close-out. Skip silently if `project_brief.md` does not exist.
+     - `/g-align` — brief-deviation check now that a milestone has closed: confirms the project is still serving `g-docs/project_brief.md` (goals, non-goals, MVP, tech decisions) rather than drifting. Use Glob to find `skills/g-align/SKILL.md` and follow its instructions. Advisory — surfaces ALIGNED or DRIFTING with a recommendation; never blocks the close-out. Skip silently if `g-docs/project_brief.md` does not exist.
      - **ADR prompt** — ask the developer once: "Were any significant architectural decisions made during this milestone that should be recorded as an ADR? (e.g. a new pattern adopted, a library chosen, a structural constraint introduced) — yes/no." If yes, run `/g-adr`. If no, continue.
-   - **Wiki refresh (end-of-milestone task):** After the close swarm, run `/g-wiki` to update the human-facing project wiki (`g-wiki/`) for the milestone that just shipped — use Glob to find `skills/g-wiki/SKILL.md` and follow its instructions (incremental scope: document what this milestone built and reconcile existing pages against the code). The wiki is committed project content; refreshing it at each milestone close is what stops it going stale. If the developer would rather defer, note `Refresh g-wiki for [milestone]` as a pending task in `todo.md` instead of running it now.
+   - **Wiki refresh (end-of-milestone task):** After the close swarm, run `/g-wiki` to update the human-facing project wiki (`g-wiki/`) for the milestone that just shipped — use Glob to find `skills/g-wiki/SKILL.md` and follow its instructions (incremental scope: document what this milestone built and reconcile existing pages against the code). The wiki is committed project content; refreshing it at each milestone close is what stops it going stale. If the developer would rather defer, note `Refresh g-wiki for [milestone]` as a pending task in `g-docs/todo.md` instead of running it now.
    - **Every-other-milestone health check:** Read `.claude/milestone-count` if it exists (contains an integer, default 0 if absent). Increment by 1. If the result is odd, run `/g-doctor` after the close swarm — use Glob to find `skills/g-doctor/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions. Write the new count back to `.claude/milestone-count`.
 6. If only some tasks are done:
    - Save the partial updates to the milestone file

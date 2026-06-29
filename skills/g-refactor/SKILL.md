@@ -1,7 +1,7 @@
 ---
 name: g-refactor
 description: Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review. Accepts a scope path, an audit milestone file, or runs interactively. Safe-by-default: checks test coverage before execution and runs the full review gate after.
-argument-hint: [path/to/scope | milestones/M-audit-*.md]
+argument-hint: [path/to/scope | g-docs/milestones/M-audit-*.md]
 ---
 
 **Announce:** "Using g-refactor to run the guided refactor workflow."
@@ -10,7 +10,7 @@ You orchestrate the refactor pipeline. You do not write code yourself — you co
 
 ## Step 1 — Identify the target
 
-**If the argument is a milestone file** (e.g. `milestones/M-audit-2025-05.md`):
+**If the argument is a milestone file** (e.g. `g-docs/milestones/M-audit-2025-05.md`):
 - Read the milestone file.
 - Print the P0 and P1 task tables.
 - Ask: "Which task(s) do you want to refactor in this session? Enter task number(s) or **all P0** / **all P1**."
@@ -23,7 +23,7 @@ You orchestrate the refactor pipeline. You do not write code yourself — you co
 **If no argument was provided**, ask:
 > "What do you want to refactor? Options:
 > a) Path or file — e.g. `src/services/UserService.ts`
-> b) Load findings from an audit — e.g. `milestones/M-audit-2025-05.md`
+> b) Load findings from an audit — e.g. `g-docs/milestones/M-audit-2025-05.md`
 > c) Describe what to improve in plain English"
 
 Wait for the answer and resolve to a concrete target list before continuing.
@@ -153,13 +153,13 @@ If code-lead issues **HOLD**: present the blocking findings. Ask:
 > "The review has [N] blocking findings. Fix them now and re-run `/g-review`, or open a follow-up task? (fix / defer)"
 
 - **"fix"**: for each blocking finding, dispatch `spec-writer` to produce a targeted fix spec, get approval (Step 6 abbreviated), execute. Re-run `/g-review` after all fixes.
-- **"defer"**: add each unresolved finding as a follow-up task to `todo.md`. Stop.
+- **"defer"**: add each unresolved finding as a follow-up task to `g-docs/todo.md`. Stop.
 
 ## Step 9 — Update the milestone (if launched from audit/optimize milestone)
 
 If this refactor session was launched from an audit or optimize milestone file:
 - Mark each completed task row as `✅` in the milestone file.
-- If all P0 tasks are now ✅, update the milestone status in `ROADMAP.md` to `🔄 In progress` (or `✅ Complete` if all tiers are done).
+- If all P0 tasks are now ✅, update the milestone status in `g-docs/ROADMAP.md` to `🔄 In progress` (or `✅ Complete` if all tiers are done).
 - Commit both files with message: `chore: mark [task names] complete in [milestone file]`
 
 ## Rules
@@ -169,4 +169,4 @@ If this refactor session was launched from an audit or optimize milestone file:
 - Never skip the Step 8 review gate — a refactor that doesn't pass `/g-review` is not done.
 - If `coverage_risk: HIGH` and the developer chose to proceed anyway (Step 3b): remind them at Step 6 and Step 8 that regressions may be silent without test coverage.
 - Public API contracts must be preserved — if the spec requires a breaking change, surface it explicitly and wait for developer acknowledgment before approving.
-- Scope creep is a hard stop: if refactor-executor reports adjacent issues, do not act on them. Log them to `todo.md` as follow-up items.
+- Scope creep is a hard stop: if refactor-executor reports adjacent issues, do not act on them. Log them to `g-docs/todo.md` as follow-up items.

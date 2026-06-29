@@ -23,7 +23,7 @@ Apply the scope filter to all subsequent searches.
 
 ## Step 2 — Detect project documentation standard
 
-Read `CLAUDE.md` and `project_brief.md` to establish:
+Read `CLAUDE.md` and `g-docs/project_brief.md` to establish:
 - Language(s) in use — determines the expected doc format (JSDoc, docstrings, doc comments)
 - Whether a public API is exposed (REST, GraphQL, SDK) — determines if an API reference is expected
 - Whether env vars are used (`process.env`, `os.environ`, `std::env`) — determines if an env var reference is expected
@@ -206,10 +206,10 @@ Ask:
 > "Fix P0 and P1 gaps now (doc-writer will run on each), add all gaps to the roadmap as a documentation milestone, or both?"
 
 - **Fix now**: dispatch `doc-writer` on each P0 and P1 gap in parallel waves (P0 first). Report completions.
-- **Roadmap**: write `milestones/M-docs-[YYYY-MM].md` and append entry to `ROADMAP.md`.
+- **Roadmap**: write `g-docs/milestones/M-docs-[YYYY-MM].md` and append entry to `g-docs/ROADMAP.md`.
 - **Both**: fix first, then write the milestone with P2 items only.
 
-**Milestone format** (`milestones/M-docs-[YYYY-MM].md`):
+**Milestone format** (`g-docs/milestones/M-docs-[YYYY-MM].md`):
 ```markdown
 # M-docs-[YYYY-MM] — Documentation Debt
 
