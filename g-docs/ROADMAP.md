@@ -403,7 +403,7 @@ Possible scope when promoted to a milestone:
 - A handoff/merge protocol for *concurrent* (not just sequential) sessions — who owns `main`, how waves from different operators reconcile.
 - Decide the honest boundary: is this "orchestrating humans," or just safer git-mediated coordination? (Aligns with the M24 positioning — governance, not orchestration-for-its-own-sake.)
 
-A brainstormed approach — coordinate through an always-available, instantly-visible **shared surface reached via an MCP** (GitHub field, shared doc, Confluence page with version-CAS, …) rather than git, which only propagates on push/fetch — is captured in `g-docs/multi-session-coordination.md` (surface-agnostic; the pattern is the asset).
+A brainstormed approach — coordinate through an always-available, instantly-visible **shared surface reached via an MCP** rather than git, which only propagates on push/fetch — is captured in `g-docs/multi-session-coordination.md`. Direction chosen: ship three spread surfaces (**Gmail · Discord · Confluence**) behind a common, extensible adapter; mechanism not yet scoped.
 
 *Status: idea only — not scoped, not scheduled.*
 

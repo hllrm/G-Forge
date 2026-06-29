@@ -2,7 +2,9 @@
 
 > Status: **idea / exploration only** — not scoped, not scheduled. Elaborates the
 > ROADMAP backlog candidate "Multi-session / multi-operator orchestration."
-> Captured from a brainstorm so it doesn't evaporate. No decision made.
+> Captured from a brainstorm. **Direction chosen:** ship three deliberately-spread
+> surfaces (Gmail · Discord · Confluence) behind a common adapter, extensible over
+> time. The mechanism (claim protocol, schema) is not yet scoped.
 
 ## The problem
 
@@ -93,6 +95,35 @@ one; only the version-CAS surfaces (Confluence-style) give a real lock.
    real lock with zero code. The general rule: **prefer a surface whose MCP supports
    conditional/versioned writes** — that, not the specific vendor, is the property
    that matters.
+
+## Chosen direction — three spread surfaces (decided)
+
+Ship support for **three** coordination surfaces, picked to be *maximally spread*
+across audience and capability, behind a common adapter so more can be added later
+without changing the protocol (the pattern is the asset; surfaces are pluggable):
+
+| Surface | Who it's for | Modality | Identity | Atomic claim |
+|---------|--------------|----------|----------|--------------|
+| **Gmail** — drafts = register, self-emails = log | anyone; zero-setup, universal | poll | shared account (sign messages) | no — convention |
+| **Discord** — pinned msg = register, channel = log | indie / community / real-time | push | native per-author | no — convention |
+| **Confluence** — page = register, page history = log | enterprise / teams | poll | native | **yes — version CAS** |
+
+The trio is intentional: Gmail covers *lowest-friction / consumer*, Discord covers
+*free real-time / community*, Confluence covers *enterprise with a genuine lock*.
+Between them they span poll↔push, convention↔CAS, and consumer↔enterprise, so almost
+any team already lives on one of them. Start here; add surfaces (GitHub field, Slack,
+a hosted scratchpad) over time behind the same adapter.
+
+**Cross-surface requirement (from the surface-availability finding).** Each adapter
+must reach its surface through a **remote HTTP/SSE MCP server declared in the repo's
+`.mcp.json`** — a local stdio MCP would only coordinate local / Remote-Control
+sessions, because Claude Code on the web, Slack-spawned, and GitHub Actions sessions
+cannot see local stdio servers (only remote servers committed to the repo). This is
+the same mechanism that lets G-Forge's *enforcement* travel at all: hooks fire on
+every surface only because `/g-init` writes them into the **committed** project
+`.claude/` (M28 deliberately kept `.claude/hooks/`, `settings.json`, `rules/`,
+`agents/` tracked rather than ignored). Commit the config → governance and
+coordination both follow you to the phone, the web, and CI.
 
 ## Open question (the actual decision, deferred)
 
