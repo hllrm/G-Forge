@@ -137,6 +137,7 @@ All commands (grouped by purpose):
     /g-plan        — decompose task → wave schedule → approval
     /g-execute     — dispatch waves
     /g-review      — full review pipeline → MERGE READY or HOLD
+    /g-doc-review  — standalone documentation-review gate → DOCS READY or DOCS HOLD
 
   Intelligence:
     /g-patterns    — mine retros + todo-done for recurring failure patterns

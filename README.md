@@ -100,7 +100,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 /plugin install g-forge
 ```
 
-All 18 G-Forge agents, 36 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All **19** G-Forge agents, **37** skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -297,6 +297,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
+| `/g-doc-review` | Standalone documentation-review gate — own verdict (DOCS READY / DOCS HOLD), distinct from code review. Read-only `doc-reviewer` lens: accuracy-vs-code, currency (docs that contradict the code), completeness (public exports, README sections, env vars, ADR/CHANGELOG coverage), clarity. Gates doc-only and mixed commits; may recommend `/g-docs`, never writes |
 | `/g-update` | Pull latest plugin from GitHub, then realign all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
 | `/g-afk` | Autonomous milestone executor — runs all pending waves + review unattended. Requires approved plan. Safety net blocks remote push, recursive delete, and publish commands. Structured cycle-break report on any stop. |
 | `/g-listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
@@ -323,7 +324,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ## Agents
 
-18 agents ship with every install. Full reference: [g-docs/agents.md](g-docs/agents.md)
+**19** agents ship with every install. Full reference: [g-docs/agents.md](g-docs/agents.md)
 
 | Agent | Tier | Role |
 |-------|------|------|

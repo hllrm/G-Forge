@@ -1,6 +1,6 @@
 # G-Forge Agents
 
-All 18 agents ship with every install. Stack-specific architect *and implementer* agents are installed per-project by `/g-specialize` and are not listed here — each detected stack gets a `<stack>-architect` (read-side review) and a `<stack>-implementer` (write-side execution), both preloading that stack's architecture rules.
+All **19** agents ship with every install. Stack-specific architect *and implementer* agents are installed per-project by `/g-specialize` and are not listed here — each detected stack gets a `<stack>-architect` (read-side review) and a `<stack>-implementer` (write-side execution), both preloading that stack's architecture rules.
 
 ## Model tiers
 
@@ -101,6 +101,15 @@ Agents that audit code changes and report findings. None of them fix what they f
 **Use when:** Changes are ready for quality review before merge, or you want a second opinion on a specific implementation.  
 **Give it:** The diff or the files to review, plus context on what the code is supposed to do.  
 **Returns:** Findings grouped by severity (Critical / Major / Minor) with `file:line` refs and specific remediation guidance in prose.
+
+---
+
+### `doc-reviewer`
+**Tier:** Opus  
+**Role:** Read-only documentation review gate — audits docs through four lenses (accuracy-vs-code, currency, completeness, clarity) and issues a verdict. Reports findings only; never fixes what it finds.  
+**Use when:** Documentation needs a pre-merge gate, or you want a structured review of docs against the code they describe (run via `/g-doc-review`).  
+**Give it:** The documentation files (or doc diff) plus the source files they describe.  
+**Returns:** Findings grouped by lens with `file:line` refs, and a DOCS READY / DOCS HOLD verdict.
 
 ---
 

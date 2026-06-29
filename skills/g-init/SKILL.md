@@ -174,6 +174,8 @@ For each of the following seven hook files, copy from `<plugin-hooks>/<filename>
 
 After copying each file, ensure it is executable: `chmod +x .claude/hooks/<filename>` (best effort — on Windows, file mode bits may not apply but Claude Code still runs the script via bash).
 
+The commit gate now has **two sentinels**: `post-commit-cleanup.sh` deletes both `.claude/g-forge-approved` (the code-review gate, written by `/g-review` on MERGE READY) and `.claude/g-forge-docs-approved` (the doc-review gate, written by `/g-doc-review` on DOCS READY) after every successful commit, so both gates reset together.
+
 Report:
 ```
   ✓ .claude/hooks/check-commit.sh — installed (canonical from plugin cache)
