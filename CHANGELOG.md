@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Repositioned around "educated, enforced project management."** The README, marketplace, and plugin descriptions now lead with G-Forge's actual differentiator — a *governance layer* (educated PM + enforced gates + session-wide context hygiene) that makes any model ship like a senior team — rather than "another multi-agent coder." Grounded in a landscape benchmark: of G-Forge's design choices, the **hard git-hook commit gate is the one genuinely novel mechanism** (every comparable Claude Code workflow enforces review only advisorily), and the problems it targets are externally validated (LLMs can't reliably self-correct without external feedback — Huang et al., ICLR 2024; a 48-point "verification gap" — Sonar 2026).
+
+### Added
+
+- **`g-docs/benchmark.md`** — a reproducible reliability-benchmark methodology (the same model + G-Forge vs. that model run raw, scored on success rate plus the eight `/g-telemetry` hygiene metrics) that turns the "punch above its weight" claim into a measured number instead of an assertion. Includes a concrete **3-task pilot protocol** (the cheap gate that must show lift before the full n≥20 run is funded).
+- **Roadmap: M24 + M25.** M24 (Positioning & Reliability Methodology) recorded as ✅ complete; **M25 (Run the Reliability Benchmark)** added as the next planned milestone — deferred by decision, gated on the pilot, with its premortem captured per `/g-roadmap` Step 3b.
+
 ## [2.0.0] — 2026-06-28
 
 G-Forge 2.0 — production-readiness audit. A ruthless consistency, clarity, and

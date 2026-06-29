@@ -1,8 +1,8 @@
 # G-Forge
 
-> Multi-agent Claude Code plugin — planned execution, production architecture, enforced review.
+> **Educated, enforced project management for AI development.** Make any model ship like a senior team — planned, reviewed, and context-clean.
 
-G-Forge installs a structured development workflow into any Claude Code project: decompose tasks into parallel waves, implement with specialist agents, gate every commit behind a full review pipeline.
+G-Forge installs a structured engineering *process* into any Claude Code project: a project-manager layer that challenges scope and sequences risk, parallel implementation waves, and a commit gate that **can't be skipped** — only opened by a full multi-agent review. The point isn't a smarter model; it's discipline that lets the model you already have punch above its weight.
 
 ---
 
@@ -11,6 +11,14 @@ G-Forge installs a structured development workflow into any Claude Code project:
 Most AI coding tools are built around a single idea: automate as much as possible and get the human out of the loop. The result is tools that are complex to configure, fragmented across a dozen commands, and optimised for the appearance of productivity — not for whether the project actually succeeds.
 
 G-Forge is built on a different assumption: **the human is the most valuable part of the loop.** Claude handles the structured, repetitive, and cost-optimisable work. The decisions that determine whether a project succeeds — what to build, in what order, and whether it's actually done — stay with you.
+
+Most tools in this space are **agent orchestrators** — they dispatch and review agents. G-Forge is something else: a **governance layer**. Three pillars carry it:
+
+- **Educated** — a PM that *reasons*: it challenges scope before it's a commitment, sequences milestones by dependency, runs a premortem when the plan changes, and checks drift against the brief. Judgment-shaped, not a template.
+- **Enforced** — gates with *teeth*. The commit gate is a git hook, not a suggestion: nothing merges until a full review pipeline issues MERGE READY. Every comparable workflow enforces review advisorily; G-Forge enforces it infrastructurally.
+- **Context-clean** — reliability held session-wide. Single-use agents, off-context decision deliberation, and a depth gate that resets *before* the window compacts keep the model trustworthy deeper into the work.
+
+The result is the bet: discipline lets a cheaper or smaller model ship at a higher success and hygiene rate than it would raw. Not a smarter model — a better-run one. *(See [g-docs/benchmark.md](g-docs/benchmark.md) for the head-to-head methodology that turns that claim into a number.)*
 
 That means:
 
