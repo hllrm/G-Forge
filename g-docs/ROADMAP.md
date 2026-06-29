@@ -9,7 +9,7 @@
 HANDOFF — g-forge | branch: claude/g-doctor-gitignore-docs-1njpam | v2.2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Done this pass:   · M28 shipped + merged to main as v2.2.0 (g-docs canonical tracking; /g-init .gitignore; /g-doctor Checks 19/20). · Brainstormed + SCOPED M29 — multi-session coordination: coordinate concurrent sessions through a shared MCP-reached surface (claim/lease register + append log), three pluggable backends chosen for spread (Gmail · Discord · Confluence) behind one adapter. Captured the design (g-docs/multi-session-coordination.md) and the buildable scope (g-docs/milestones/M29-multi-session-coordination.md); promoted from the backlog candidate. · Confirmed via claude-code-guide: hooks/MCP travel to web/mobile/Slack/Actions only when config is in committed .claude/ (validates M28) and coordination MCP must be remote+.mcp.json.
-Next up:          · Await go on M29; start with Phase A (protocol core + Discord reference adapter) to test "is convention enough?" · M26 (deferred/spike-gated) · M25 (compute-gated).
+Next up:          · Await go on M29 (phase one). Start Phase A (protocol core + Discord reference adapter) to test "is convention enough?" · Multiplayer arc sketched as M30 (membership/presence/assignment) → M31 (cross-person handoff/review) → M32 (reconciliation), all provisional pending M29 learnings. · M26 (deferred/spike-gated) · M25 (compute-gated).
 Active context:   · branch claude/multi-session-coordination-idea, off main (v2.2.0). M29 scoped, status ⬜ awaiting go — non-goals fence it to collision-avoidance, not orchestration. Phasing A→B→C in the milestone file. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -403,6 +403,45 @@ plainly with the reason — don't paper over it.
 **Cross-surface requirement:** each adapter's MCP must be **remote HTTP/SSE in `.mcp.json`** so cloud / Slack / GitHub-Actions sessions can reach it (local stdio servers are invisible to those surfaces). Same property that makes G-Forge enforcement travel — committed config follows you everywhere.
 
 **Premortem + done condition:** full breakdown in `g-docs/milestones/M29-multi-session-coordination.md`. Promoted from the backlog candidate below; this is the milestone version of it.
+
+---
+
+### M30 — Membership, presence & assignment  *(multiplayer arc — sketch)*
+**Status:** ⬜ Sketch (provisional — firms up after M29 ships)
+**Goal:** Know who's on the project, and let work be owned by *people*. The layer where the multiplayer framework's identity and activation live.
+**Scope (sketch):**
+- Membership roster + stable per-member identities (built on M29's session identity).
+- Live **presence** / heartbeat → "who's active, and on what."
+- **Assignment:** an owner on milestones / waves / tasks; `/g-roadmap` + `/g-plan` can assign to a person.
+- **Activation rules:** the framework engages when >1 identity is present, is tier-gated, and degrades back to single-player when alone.
+
+**Depends on:** M29 (identity, register, heartbeat).
+
+---
+
+### M31 — Cross-person handoff & review  *(multiplayer arc — sketch)*
+**Status:** ⬜ Sketch (provisional)
+**Goal:** Make handoff and review cross *people*, not just sessions.
+**Scope (sketch):**
+- **Person→person handoff:** the `## Active Session` block generalizes from session→session to person→person; `/g-resume` can re-hydrate from a teammate's handoff.
+- **Cross-person review gate:** `/g-review` / `/g-doc-review` can require approval from a *different* member; the approval sentinel is keyed to approver identity.
+- **Notifications** via the chosen surface ("@you — review requested on wave-3").
+
+**Depends on:** M30 (identity/assignment), M29 (register/log).
+
+---
+
+### M32 — Reconciliation of concurrent work  *(multiplayer arc — sketch)*
+**Status:** ⬜ Sketch (provisional — hardest phase; spike-gate before building)
+**Goal:** When people work concurrently, reconcile branches / waves with conflicts **surfaced**, never auto-merged behind anyone's back.
+**Scope (sketch):**
+- Detect overlapping file-sets / waves across members (uses M29's claim granularity).
+- Conflict surfacing + **guided** reconciliation — who integrates, in what order.
+- A team convention for "who owns `main`" and ordered integration.
+
+**Depends on:** M30, M31. This is the genuinely distributed part — feasibility-spike it before committing.
+
+> *The M30–M32 split is a **provisional sketch** of the multiplayer arc, not a commitment — the exact boundaries, sequence, and contents are expected to change once M29 is built and we learn whether convention-based coordination is sufficient. North star + framework in `g-docs/multi-session-coordination.md`.*
 
 ---
 
