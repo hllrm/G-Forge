@@ -61,6 +61,32 @@ The deliverable is one chart and one table:
 
 That chart — *"same model, +X% success and −Y% regressions with the gate on"* — is the entire marketing case, and it's defensible precisely because the instrument (telemetry) and the process (the gate) are the product.
 
+## Pilot protocol (run this first — M25 gate)
+
+Cheap, ~3-task dry run to (a) shake out the harness and (b) decide if a full benchmark is worth funding. Do **not** build the full runner before the pilot shows signal.
+
+**Model:** one cheaper model (e.g. Sonnet), held identical across both arms.
+**Arms:** A (raw Claude Code, no plugin) and B (G-Forge `full` tier). Skip C/D in the pilot.
+
+**Tasks (pre-register before running):**
+1. A **multi-file feature** with a failing-then-passing test (this is where lift should show — the gate + waves engage).
+2. A **bug fix** with a provided failing repro (mechanical pass/fail).
+3. A **one-line/trivial edit** (the *control* — expect ≈ no lift, possibly negative; this proves you're measuring honestly, not cherry-picking).
+
+Prefer 3 public **SWE-bench Lite** instances so scoring is the instance's own `FAIL_TO_PASS`/`PASS_TO_PASS` test set — zero grader judgment, externally credible.
+
+**Per task, per arm (start each from the same clean commit):**
+- **Arm A:** a fresh plain Claude Code session, "fix this / implement this," one pass.
+- **Arm B:** a fresh session with G-Forge installed, driven through the *real* process — `/g-init` if needed → `/g-plan` → approve → `/g-execute` → `/g-review` until MERGE READY. **The operator does not hand-hold past the skills** — if a fresh model session can't drive the plugin to green, that's a finding.
+- Score = the task's done-condition (SWE-bench tests). Record tokens + wall-clock.
+
+**Read of the pilot:**
+- B passes the **multi-file** task where A fails (or B's hygiene metrics are clearly better) → **signal; fund the full n ≥ 20.**
+- No difference on the multi-file task → the lift is narrower than hoped; **stop, record it, don't publish a headline.**
+- B worse on the **trivial** task → expected (process overhead); it validates the honesty of the measurement and informs `light`-tier guidance.
+
+The pilot is hours and a fresh session or two — not the multi-day full run. It exists so you never build the big harness on a hypothesis the cheap test could have killed.
+
 ## Why this should work (prior, not proof)
 
 The mechanism is backed even though G-Forge's specific number isn't measured yet:
