@@ -64,7 +64,7 @@ Write the chosen profile name as a single line to `.claude/telemetry-profile`. O
 
 ## Step 5b — Compute agent coverage
 
-The 17 G-Forge agents are: `task-decomposer`, `wave-planner`, `spec-writer`, `code-reviewer`, `security-auditor`, `architecture-enforcer`, `performance-auditor`, `debugger`, `error-detective`, `project-manager`, `review-orchestrator`, `code-lead`, `test-writer`, `doc-writer`, `pr-writer`, `refactor-executor`, `dependency-auditor`.
+The 18 G-Forge agents are: `task-decomposer`, `wave-planner`, `spec-writer`, `code-reviewer`, `security-auditor`, `architecture-enforcer`, `performance-auditor`, `debugger`, `error-detective`, `project-manager`, `review-orchestrator`, `code-lead`, `test-writer`, `doc-writer`, `pr-writer`, `refactor-executor`, `dependency-auditor`, `feature-implementer`. (Per-project `<stack>-implementer` agents installed by `/g-specialize` are not counted here.)
 
 Read all files in `g-docs/retros/` (up to the 10 most recent by filename date, or all if fewer). For each agent name, count how many retro files mention it at least once (case-insensitive, whole-word match).
 
@@ -134,7 +134,7 @@ Profile: [stable / cautious / defensive / recovery]   ⚠ [N] of 8 metrics out o
 Effect on adaptive orchestration:
   [list the behavioural changes that apply to the chosen profile per g-docs/telemetry-metrics.md — e.g. for cautious: "/g-review will add one extra reviewer on next dispatch"]
 
-Coverage: [N] of 17 agents used · never: [list or "none"] · rarely: [list or "none"]
+Coverage: [N] of 18 agents used · never: [list or "none"] · rarely: [list or "none"]
   (workflow-checkpoint will surface suggestions for never-used agents once per day)
 
 Snapshot written: g-docs/telemetry/[YYYY-MM-DD].md

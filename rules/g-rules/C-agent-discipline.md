@@ -11,7 +11,7 @@
 | Non-trivial feature or multi-step task | `/g-plan` first |
 | All agent work ready to merge | `/g-review` gate before commit |
 | Open-ended search, unknown locations, >3 files | Spawn **Explore** agent |
-| Self-contained implementation, inputs fully known | Spawn **general-purpose** agent |
+| Self-contained implementation, inputs fully known | Spawn the matching **`<stack>-implementer`** (if `/g-specialize` installed one for the task's stack), else **`feature-implementer`** — never a bare general-purpose agent |
 | Long task that would bloat main context | Spawn agent |
 | Exact file:line known, <3 targeted edits | Inline |
 | Needs mid-task judgment or back-and-forth | Inline — keep in HQ |

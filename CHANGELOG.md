@@ -6,8 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Stack-native implementation agents.** `/g-specialize` now installs a write-side **`<stack>-implementer`** alongside each `<stack>-architect`, generated from a new `templates/stack-implementer.md` and preloading the same `architecture-<stack>` skill — so the agent that *writes* wave code knows the stack's layer map, not just the one that reviews it. A shipped, stack-agnostic **`feature-implementer`** is the generic fallback (and the default for un-specialized projects). Shipped agent count is now 18 (plus per-project stack implementers).
+
 ### Changed
 
+- **Wave execution is no longer dispatched to bare `general-purpose` agents.** `wave-planner` now tags every task with the executor that should run it (a discovered `<stack>-implementer`, or `feature-implementer` / `test-writer` / `doc-writer` / `refactor-executor`); the plan's wave schedule persists the `(agent: …)` tag; `g-execute` dispatches each task as that `subagent_type`. The ad-hoc-dispatch rule in `C-agent-discipline` now spawns the matching implementer instead of a general-purpose agent, and `/g-update` resyncs installed `<stack>-implementer` agents from the template.
 - **Repositioned around "educated, enforced project management."** The README, marketplace, and plugin descriptions now lead with G-Forge's actual differentiator — a *governance layer* (educated PM + enforced gates + session-wide context hygiene) that makes any model ship like a senior team — rather than "another multi-agent coder." Grounded in a landscape benchmark: of G-Forge's design choices, the **hard git-hook commit gate is the one genuinely novel mechanism** (every comparable Claude Code workflow enforces review only advisorily), and the problems it targets are externally validated (LLMs can't reliably self-correct without external feedback — Huang et al., ICLR 2024; a 48-point "verification gap" — Sonar 2026).
 
 ### Added

@@ -100,7 +100,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 /plugin install g-forge
 ```
 
-All 17 G-Forge agents, 36 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All 18 G-Forge agents, 36 skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 
@@ -163,7 +163,7 @@ Run **one** command in your project directory:
 
 1. **Intake** — routes to `/g-kickoff` (new/empty project: interview → brief) or `/g-onboard` (existing codebase: deep-read the repo → resolve conflicts → brief). Skipped if a `project_brief.md` already exists.
 2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the `## Active Session` handoff), milestones/, todo.md, and the seven commit/workflow hooks.
-3. **Specialize** — runs `/g-specialize` to detect your stack and install the architect agent + architecture rules.
+3. **Specialize** — runs `/g-specialize` to detect your stack and install the architect agent, the matching implementer agent, and architecture rules.
 
 You end up ready to `/g-plan`. After `/g-init`, `git commit` is gated — it blocks until `/g-review` issues MERGE READY.
 
@@ -218,7 +218,7 @@ Existing project:
 Then for both:
 /g-init        →   scaffolded project + commit gate + workflow hooks
 /g-roadmap     →   features → milestones → ROADMAP.md
-/g-specialize  →   stack architect agent + architecture rules
+/g-specialize  →   stack architect + implementer agents + architecture rules
 
 Day-to-day (auto-triggered — no command needed):
 /g-plan        →   approved wave schedule  →  saved to g-docs/plans/
@@ -293,7 +293,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-align` | Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `project_brief.md` (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory — never blocks. Auto-runs at each milestone close; nudged between milestones. |
 | `/g-brief` | Refresh project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
 | `/g-init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, ROADMAP.md (with the Active Session handoff), milestones/, todo.md, and the seven hooks → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
-| `/g-specialize [stack]` | Detect stack from brief + deps → install architect agent + rules |
+| `/g-specialize [stack]` | Detect stack from brief + deps → install architect + implementer agents + rules |
 | `/g-plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
@@ -323,7 +323,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ## Agents
 
-17 agents ship with every install. Full reference: [g-docs/agents.md](g-docs/agents.md)
+18 agents ship with every install. Full reference: [g-docs/agents.md](g-docs/agents.md)
 
 | Agent | Tier | Role |
 |-------|------|------|
@@ -343,11 +343,12 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `doc-writer` | Haiku | Inline docs explaining WHY not WHAT |
 | `pr-writer` | Haiku | PR descriptions from git diff |
 | `refactor-executor` | Haiku | Spec-exact refactoring, no scope creep |
+| `feature-implementer` | Sonnet | Generic wave implementer — the fallback executor when no stack implementer matches |
 | `dependency-auditor` | Sonnet | Manifest security advisories, deprecations, license conflicts, unused declarations |
 
 ### Agent output architecture
 
-All 15 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`g-docs/agent-output/wave-N/<task-slug>.md` for wave agents; `g-docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
+All 16 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`g-docs/agent-output/wave-N/<task-slug>.md` for wave agents; `g-docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
 
 ```
 RESULT: DONE|FAILED|BLOCKED  (or PASS|HOLD for review agents)
@@ -415,7 +416,7 @@ Running 6 agents in parallel in one wave costs the main session one round-trip o
 
 ## Stack Profiles
 
-Installed per-project by `/g-specialize`. Each profile adds a stack-specific architect agent and appends architecture rules to `CLAUDE.md`. Once installed, the agent is project-native — no plugin required at runtime.
+Installed per-project by `/g-specialize`. Each profile adds a stack-specific **architect** agent (read-side, reviews for layer violations) and a matching **implementer** agent (write-side, executes wave tasks in the stack's idioms — wave-planner routes implementation tasks to it), and appends architecture rules to `CLAUDE.md`. Both agents preload the same architecture rules. Once installed, they are project-native — no plugin required at runtime.
 
 48 stack profiles ship with the plugin, plus 1 supplementary profile (`frontend-data-flow`) that auto-installs alongside any component-framework stack. Auto-detected from your project's dependency files when you run `/g-specialize`.
 
@@ -486,7 +487,7 @@ Quick reference for the most common workflows.
                                .claude/hooks/pre-compact.sh (PreCompact — handoff snapshot)
                      Registers all seven in .claude/settings.json (the plugin manifest registers none)
 
-/g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect agents
+/g-specialize   Reads project_brief.md → detects stacks → confirms → installs architect + implementer agents
 ```
 
 ### Planning the roadmap
@@ -524,7 +525,7 @@ Auto-triggers:  — no ROADMAP.md exists in the project
                      Produces project_brief.md with current state + planned work
 
 /g-init         Installs commit enforcement, injects G-rules into CLAUDE.md, installs G-RULES.md
-/g-specialize   Reads project_brief.md → installs architect agent + rules
+/g-specialize   Reads project_brief.md → installs architect + implementer agents + rules
 ```
 
 ### Where am I?
