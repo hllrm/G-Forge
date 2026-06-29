@@ -402,7 +402,9 @@ plainly with the reason — don't paper over it.
 
 **Cross-surface requirement:** each adapter's MCP must be **remote HTTP/SSE in `.mcp.json`** so cloud / Slack / GitHub-Actions sessions can reach it (local stdio servers are invisible to those surfaces). Same property that makes G-Forge enforcement travel — committed config follows you everywhere.
 
-**Premortem + done condition:** full breakdown in `g-docs/milestones/M29-multi-session-coordination.md`. Promoted from the backlog candidate below; this is the milestone version of it.
+**Premortem + done condition:** full breakdown in `g-docs/milestones/M29-multi-session-coordination.md` (top risks: credential leakage · convention races on Gmail/Discord · local-vs-remote MCP divergence · stale claims · scope creep). Promoted from the backlog candidate below; this is the milestone version of it.
+
+**Re-prioritization:** promoted to the **next buildable milestone → v2.3.0**, ahead of the deferred M26 — M26 is spike-gated with nothing depending on it, while M29 is buildable now and strategically central (governance scaled to teams, per M24). Its Phase A doubles as the **de-risking spike for the whole arc** — it answers "is convention enough?" before M30–M32 commit. (M25 stays a parallel compute-gated track.)
 
 ---
 
@@ -414,6 +416,11 @@ plainly with the reason — don't paper over it.
 - Live **presence** / heartbeat → "who's active, and on what."
 - **Assignment:** an owner on milestones / waves / tasks; `/g-roadmap` + `/g-plan` can assign to a person.
 - **Activation rules:** the framework engages when >1 identity is present, is tier-gated, and degrades back to single-player when alone.
+
+**Premortem (sketch-level):**
+- *Session-identity vs person-identity conflated* (med) — a person across machines/sessions must map to **one** identity or presence + assignment fragment. → Make person-identity primary in M30; session-ids map onto it (carried deliberately from M29).
+- *Presence flap* (med) — noisy/stale heartbeats toggle the framework on/off. → TTL + debounce on presence; activation **hysteresis** (don't switch on a single missed beat).
+- *Toothless or rigid assignment* (med) — "owned by X" is either a meaningless label or a hard block. → Assignment = advisory claim with logged override (reuse M29 claim semantics), not a lock.
 
 **Depends on:** M29 (identity, register, heartbeat).
 
@@ -427,6 +434,11 @@ plainly with the reason — don't paper over it.
 - **Cross-person review gate:** `/g-review` / `/g-doc-review` can require approval from a *different* member; the approval sentinel is keyed to approver identity.
 - **Notifications** via the chosen surface ("@you — review requested on wave-3").
 
+**Premortem (sketch-level):**
+- *Cross-person review deadlock* (high) — A needs B's approval, B is offline → work stalls. → Timeout + logged self-approve fallback (tier-gated); async notify; cross-approval never unconditionally mandatory.
+- *Handoff race reintroduces the M29 collision* (med) — concurrent person→person edits to the one `## Active Session` block. → Per-member handoff lanes, or treat the handoff itself as an M29-claimed resource.
+- *Untrustworthy identity-keyed sentinels* (low–med) — approver identity in the gate sentinel must be forgeable-proof. → Signed approvals tied to M30 identity.
+
 **Depends on:** M30 (identity/assignment), M29 (register/log).
 
 ---
@@ -439,7 +451,14 @@ plainly with the reason — don't paper over it.
 - Conflict surfacing + **guided** reconciliation — who integrates, in what order.
 - A team convention for "who owns `main`" and ordered integration.
 
+**Premortem (sketch-level):**
+- *Scope blow-up into a full merge/consensus engine* (high) — "who owns `main`" distributed coordination is the hard part and easy to overbuild past the governance lane. → Spike-gate; ship "surface conflicts + recommend an integration order," **never auto-merge**; auto-resolution is an explicit non-goal.
+- *Fuzzy done condition* (high) — "reconcile concurrent work" is vague. → Done = overlapping file-sets/waves across members are **detected and surfaced with a recommended order**, not auto-resolved.
+- *Weak overlap detection from coarse claims* (med) — if M29/M30 file-set claims aren't granular, conflict detection is blind. → Validate claim granularity upstream before M32; spike.
+
 **Depends on:** M30, M31. This is the genuinely distributed part — feasibility-spike it before committing.
+
+**Re-prioritization (arc):** M30→M31→M32 kept in strict dependency order; **M32 stays last and spike-gated** (highest likelihood + fuzziest done condition). The whole arc is provisional behind M29 — building M29 Phase A first is the deliberate de-risking move. **M26** (Provable Wave Dispatch) is pushed behind the arc's first release onto its own spike-gated track (nothing depends on it); **M25** unchanged (compute-gated, parallel).
 
 > *The M30–M32 split is a **provisional sketch** of the multiplayer arc, not a commitment — the exact boundaries, sequence, and contents are expected to change once M29 is built and we learn whether convention-based coordination is sufficient. North star + framework in `g-docs/multi-session-coordination.md`.*
 
@@ -469,7 +488,8 @@ A brainstormed approach — coordinate through an always-available, instantly-vi
 ```
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
-       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅** → v2.3.0 (M26, deferred) · M25 benchmark ships its number when run
+       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
+       → v2.3.0 (M29 — multiplayer phase one) → v2.4.0+ (M30–M32 multiplayer arc, provisional) · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
