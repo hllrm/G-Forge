@@ -41,8 +41,10 @@ Look for the plan in this order:
 
 Read the plan file fully. Extract:
 - The full task list with done conditions
-- The wave schedule (Wave 1 tasks, Wave 2 tasks, etc.)
+- The wave schedule (Wave 1 tasks, Wave 2 tasks, etc.) — including each task's `(agent: <name>)` tag
 - Any BLOCKED or incomplete tasks from a previous run
+
+Each wave-schedule task carries an `(agent: <name>)` tag assigned by wave-planner (a stack implementer like `vue-implementer`, or `feature-implementer` / `test-writer` / `doc-writer` / `refactor-executor`). You dispatch each task **as that agent** (Step 3). If a task has no tag — an older plan written before agent tagging — default it to `feature-implementer`.
 
 ## Step 2 — Determine starting wave
 
@@ -82,6 +84,8 @@ Dispatching [N] tasks in parallel:
 Before Wave 1, create `g-docs/agent-output/` if it does not exist. Before each wave create `g-docs/agent-output/wave-[N]/`.
 
 Dispatch all tasks in the current wave as parallel subagents **in a single message**. Never split a wave across multiple messages.
+
+Dispatch each task **as the agent named in its `(agent: <name>)` tag** — pass that as the subagent type. This is what makes execution stack-native: a task tagged `vue-implementer` runs as the Vue implementer (which has the stack's layer map preloaded), not a generic agent. If a task has no tag, dispatch it as `feature-implementer`. Never dispatch a wave task as `general-purpose`.
 
 Use this compact template for every agent prompt. Derive `[task-slug]` by lowercasing the task name, replacing spaces and special chars with hyphens, truncated to 40 chars.
 

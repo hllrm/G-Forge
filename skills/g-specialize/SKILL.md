@@ -1,11 +1,11 @@
 ---
 name: g-specialize
-description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin, claude-plugin. Supplementary: frontend-data-flow (auto-installed alongside component frameworks).
+description: Determine which stack profiles to apply by reading the project brief, roadmap, and dependency files. Handles multi-stack projects. Detects known stack combos and installs combo architecture rules covering emergent cross-stack patterns. Consults code-lead when the picture is ambiguous or risky. Installs architect agents, a write-side implementer agent per stack, and architecture rules. Supported stacks: angular, asp-net-core, astro, bun, c-embedded, capacitor, cpp-cmake, django, electron, express, fastapi, flask, flutter, go-fiber, go-gin, godot-csharp, godot-gdscript, hono, kotlin-android, kotlin-ktor, laravel, maui, nest-js, next-js, node-ts, nuxt, phoenix-liveview, pygame, python-cli, python-data, python-ml, python-textual, rails, react, react-native, remix, rust-axum, rust-cli, spring-boot, sveltekit, swift-ios, tauri, unity, unreal, vue-pinia, wpf-csharp, xamarin, claude-plugin. Supplementary: frontend-data-flow (auto-installed alongside component frameworks).
 ---
 
 **Announce:** "Using g-specialize to apply the stack profile."
 
-You are wiring stack-specific architect agents into this project. The agent files and rules will be project-native after this runs — no plugin dependency required.
+You are wiring stack-specific agents into this project: an **architect** (read-side, reviews for layer violations) and an **implementer** (write-side, executes wave tasks in the stack's idioms) for each detected stack, plus the architecture rules both rely on. The agent files and rules will be project-native after this runs — no plugin dependency required.
 
 ## Step 1 — Gather context
 
@@ -199,8 +199,8 @@ Present the full list of profiles to apply:
 ```
 Based on [brief / deps / your input], I'll apply these profiles:
 
-  • vue-pinia  →  vue-architect agent + Vue 3 + Pinia architecture rules
-  • fastapi    →  fastapi-architect agent + FastAPI architecture rules
+  • vue-pinia  →  vue-architect + vue-implementer agents + Vue 3 + Pinia architecture rules
+  • fastapi    →  fastapi-architect + fastapi-implementer agents + FastAPI architecture rules
 
 And combo rules (if combos were detected):
   ↳ [combo-key]  →  [combo-key] combo architecture rules (no agent)
@@ -209,10 +209,14 @@ Current stable/LTS versions confirmed:
   [paste each stack's version note from Step 2 — omit stacks with no material changes]
 
 This will:
-  ✦ Write [N] agent file(s) to .claude/agents/
+  ✦ Write [N] architect + [N] implementer agent file(s) to .claude/agents/
   ✦ Append architecture rules for each stack to CLAUDE.md
   ✦ Append combo rules section(s) to CLAUDE.md (if combos apply)
   ✦ Append version notes to each installed architect agent
+
+The implementer agents are the write-side counterparts to the architects: wave
+execution routes implementation tasks in each stack to its implementer, so the
+code written conforms to that stack's layer map instead of a generic executor.
 
 Continue? (y/n)
 ```
@@ -352,7 +356,33 @@ Report per profile:
 ✓ .claude/agents/[agent].md — skills: [architecture-[stack]] injected
 ```
 
-Combo profiles have no agent file — skip agent installation and skill creation for any combo key in the install list.
+**Also after writing each architect agent**, install the stack's **implementer** — the write-side counterpart to the architect. The architect reviews; the implementer writes code that conforms to the same rules. This is what makes wave execution stack-native: implementation tasks in this stack route to an agent that knows its layer map, not a generic executor.
+
+1. Locate the implementer template `templates/stack-implementer.md` using the same local-first / plugin-cache fallback as the profile files (Step 5). Read it.
+2. Derive the substitutions from the architect you just installed:
+   - `{{IMPLEMENTER_NAME}}` — the architect's filename base with `-architect` replaced by `-implementer` (e.g. `vue-architect` → `vue-implementer`, `fastapi-architect` → `fastapi-implementer`, `nest-architect` → `nest-implementer`).
+   - `{{ARCHITECT_NAME}}` — the architect's `name:` (e.g. `vue-architect`).
+   - `{{STACK_LABEL}}` — the human stack label (e.g. `Vue 3 + Pinia`, `FastAPI`), the same label used in the Step 4 confirmation.
+   - `{{ARCHITECTURE_SKILL}}` — `architecture-[stack]`, the skill created above.
+   - `{{OWNS_GLOBS}}` — derive from the stack's architecture rules (`profiles/[stack]/rules/architecture.md`, which you read in Step 5). Find the `**Layer map:**` section and collect each backtick-quoted path from its bullets. Convert each path to a glob:
+     - path ending in `/` (a directory) → `"<path>**"` (e.g. `` `src/components/` `` → `"src/components/**"`)
+     - path with a `<placeholder>` segment → replace each `<…>` with `*` (e.g. `` `apps/<feature>/views.py` `` → `"apps/*/views.py"`)
+     - a concrete file path → keep it verbatim (e.g. `` `src/state.rs` `` → `"src/state.rs"`)
+
+     Emit the result as a YAML list, each item on its own line indented two spaces:
+     ```
+       - "src/components/**"
+       - "src/stores/**"
+     ```
+     If the rules have no `**Layer map:**` section or no extractable paths, set `{{OWNS_GLOBS}}` to empty and **remove the entire `owns:` key** (the `owns:` line and its placeholder) from the rendered file — wave-planner will fall back to stack-label routing for that implementer.
+3. Substitute all placeholders, strip the leading `<!-- ... -->` template-usage comment, and write the result to `.claude/agents/[implementer-name].md`. If a file with that `name:` already exists, ask "[implementer-name] is already installed. Overwrite? (y/n)" and wait, same as for the architect.
+
+Report per profile:
+```
+✓ .claude/agents/[implementer-name].md — stack implementer installed (skills: architecture-[stack])
+```
+
+Combo profiles have no agent file — skip architect, implementer, and skill creation for any combo key in the install list.
 
 ## Step 7 — Install architecture rules
 
@@ -388,14 +418,18 @@ Report per profile:
 ```
 Stack profiles applied ✓
 
-  ✓ .claude/agents/vue-architect.md    — vue-pinia architect installed
-  ✓ .claude/agents/tauri-architect.md  — tauri architect installed
+  ✓ .claude/agents/vue-architect.md      — vue-pinia architect installed
+  ✓ .claude/agents/vue-implementer.md    — vue-pinia implementer installed
+  ✓ .claude/agents/tauri-architect.md    — tauri architect installed
+  ✓ .claude/agents/tauri-implementer.md  — tauri implementer installed
   ✓ CLAUDE.md — Vue 3 + Pinia architecture rules appended
   ✓ CLAUDE.md — Tauri architecture rules appended
   ↳ CLAUDE.md — tauri-vue-pinia combo rules appended
 
 These agents are now project-native. They will appear in Claude Code's agent list.
-Dispatch them during any review or planning task that touches their stack.
+Dispatch the architects during review or planning that touches their stack; wave
+execution dispatches the implementers automatically (wave-planner routes each
+implementation task to the matching stack implementer).
 ```
 
 List only the profiles that were actually applied.
