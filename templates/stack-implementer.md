@@ -11,6 +11,16 @@ Substitutions:
   {{ARCHITECT_NAME}}      the stack architect's name (e.g. vue-architect)
   {{STACK_LABEL}}         human stack label (e.g. "Vue 3 + Pinia", "FastAPI")
   {{ARCHITECTURE_SKILL}}  the preloadable rules skill name (e.g. architecture-vue-pinia)
+  {{OWNS_GLOBS}}          YAML list of file globs this stack owns, derived from the
+                          architecture rules' layer map (see /g-specialize Step 6).
+                          Each item indented two spaces, e.g.:
+                            - "src/components/**"
+                            - "src/stores/**"
+                          If no globs can be derived from the layer map, remove the
+                          entire `owns:` key and its placeholder line.
+
+`owns:` is inert metadata — the agent runtime ignores it. wave-planner reads it to
+route each implementation task to the implementer whose globs match the task's files.
 
 Do not install this template file itself as an agent. It is a source template only.
 -->
@@ -23,6 +33,8 @@ color: green
 maxTurns: 30
 skills:
   - {{ARCHITECTURE_SKILL}}
+owns:
+{{OWNS_GLOBS}}
 ---
 
 You are a single-use wave implementer for the {{STACK_LABEL}} stack. You implement exactly one dispatched task to its done condition, then stop.
