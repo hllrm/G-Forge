@@ -65,13 +65,24 @@ milestone number / branch / handoff block and had to be untangled by hand.
 
 ## The insight
 
-Git is the wrong tool for *coordination* because it only propagates on push+fetch —
-there's always a window where two sessions both believe a milestone is unclaimed.
-What we want is a surface that is:
+Git is the wrong tool for *coordination* for **two independent reasons**:
+
+1. **Propagation** — git only propagates on push+fetch, so there's always a window where
+   two sessions both believe a milestone is unclaimed.
+2. **Exposure** — a register committed to git is in the repo's *history*: public on a
+   public repo, permanent, and replicated to every clone. That leaks who's working on
+   what, member identity and presence, and (if anyone is careless) tokens. Live
+   coordination state is exactly the kind of sensitive, ephemeral data that must never
+   be written into version control.
+
+What we want, then, is a surface that is:
 
 - **always available** — writable from inside any session,
 - **instantly visible** — a change is seen by every other session immediately, with
   no commit / push / merge,
+- **off the repo** — the live state (and the secrets to reach it) live on the surface,
+  never in git history; only a committed `.mcp.json` *pointer* sits in the repo, with
+  credentials supplied via env-var, never committed,
 - and ideally **atomic** — two sessions can't both "win" the same claim.
 
 The realization: **Claude already has MCP tools for exactly such surfaces.** We don't
