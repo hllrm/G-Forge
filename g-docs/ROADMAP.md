@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: claude/g-doctor-gitignore-docs-1njpam | v2.1.0
+HANDOFF — g-forge | branch: claude/g-doctor-gitignore-docs-1njpam | v2.2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · Opened M28 — g-docs becomes the canonical home for ALL G-Forge docs (tracking included). Dogfooded the move: ROADMAP.md → g-docs/ROADMAP.md; created g-docs/milestones/ + g-docs/todo.md + g-docs/milestones/M28-g-docs-canonical-tracking.md. Plan captured (roadmap milestone + todo). · Blast radius mapped: 472 refs / 65 files; live targets = skills/hooks/rules/agents/commands/templates/README, historical records excluded.
-Next up:          · Execute M28: update live path refs (root tracking → g-docs/), add /g-init .gitignore step + g-docs scaffolding, add /g-doctor checks (gitignore vet · stray-doc relocate · writes-under-g-docs), sync CHANGELOG+README, verify grep-clean + /g-doctor green. · Then M26 (v2.2.0, deferred) · M25 (compute-gated).
-Active context:   · branch claude/g-doctor-gitignore-docs-1njpam off main (v2.1.0). M28 in flight — tracking home moved + plan written; reference sweep + g-init/g-doctor edits pending. Scope boundary + task list in g-docs/milestones/M28-g-docs-canonical-tracking.md. Re-enter with /g-resume.
+Done this pass:   · M28 BUILT — g-docs is now the canonical home for ALL G-Forge docs (tracking included). Migrated ROADMAP/todo/todo-done/milestones/project_brief under g-docs/; rewrote 472 live refs across skills/hooks/rules/agents/commands/templates/README + live g-docs doctrine; historical records untouched. · /g-init Step 5a defines the project .gitignore; /g-doctor +Check 19 (gitignore vet) +Check 20 (stray-doc relocate) → 20 checks. · g-rules-I subpath map added. · Bumped to v2.2.0 (plugin.json + marketplace.json + CHANGELOG dated). · Committed + pushed; PR opened.
+Next up:          · Merge the M28 PR. · Then M26 — Provable Wave Dispatch (v2.3.0, deferred/spike-gated) · M25 — reliability benchmark (compute-gated).
+Active context:   · branch claude/g-doctor-gitignore-docs-1njpam, v2.2.0, off main. M28 built + verified (no strays; no tracked path ignored; grep-clean). Scope boundary + tasks in g-docs/milestones/M28-g-docs-canonical-tracking.md. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -412,7 +412,7 @@ Possible scope when promoted to a milestone:
 ```
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
-       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → v2.2.0 (M26) · M25 benchmark ships its number when run
+       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅** → v2.3.0 (M26, deferred) · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.

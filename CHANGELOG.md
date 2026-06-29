@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-06-29
+
 ### Changed
 
 - **`g-docs/` is now the canonical home for every G-Forge document, project tracking included (M28).** The tracking files that lived at the project root — `ROADMAP.md`, `todo.md`, `todo-done.md`, `milestones/`, `project_brief.md` — now live under `g-docs/` (`g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, …). Every skill, hook (`workflow-checkpoint.sh`, `pre-compact.sh`), rule, agent, command, template, and the README was updated to the new paths; the canonical `g-docs/` subpath map is documented in `g-rules-I-project-tracking`. Historical records (retros, archive, CHANGELOG history) were left untouched. `CLAUDE.md`, `G-RULES.md`, and `CHANGELOG.md` stay at the root by tooling/convention.
