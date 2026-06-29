@@ -8,9 +8,9 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HANDOFF — g-forge | branch: claude/g-doctor-gitignore-docs-1njpam | v2.2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · M28 BUILT — g-docs is now the canonical home for ALL G-Forge docs (tracking included). Migrated ROADMAP/todo/todo-done/milestones/project_brief under g-docs/; rewrote 472 live refs across skills/hooks/rules/agents/commands/templates/README + live g-docs doctrine; historical records untouched. · /g-init Step 5a defines the project .gitignore; /g-doctor +Check 19 (gitignore vet) +Check 20 (stray-doc relocate) → 20 checks. · g-rules-I subpath map added. · Bumped to v2.2.0 (plugin.json + marketplace.json + CHANGELOG dated). · Committed + pushed; PR opened.
-Next up:          · Merge the M28 PR. · Then M26 — Provable Wave Dispatch (v2.3.0, deferred/spike-gated) · M25 — reliability benchmark (compute-gated).
-Active context:   · branch claude/g-doctor-gitignore-docs-1njpam, v2.2.0, off main. M28 built + verified (no strays; no tracked path ignored; grep-clean). Scope boundary + tasks in g-docs/milestones/M28-g-docs-canonical-tracking.md. Re-enter with /g-resume.
+Done this pass:   · M28 shipped + merged to main as v2.2.0. · Defined the higher goal — **multiplayer G-Forge**: full multi-user cooperation on one project ("human orchestration, powered by humans"), a framework that engages on concurrency and degrades to single-player. · Scoped M29 (claim/lease substrate, phase one) + sketched the arc M30 (membership/presence/assignment) → M31 (cross-person handoff/review) → M32 (reconciliation); premortemed + re-prioritized per /g-roadmap (M29 → v2.3.0 ahead of deferred M26). · Adapter decision: lead on **official MCPs** — Google (Gmail/Drive) flow+floor + Confluence lock; Discord demoted to optional (community MCP). · Confirmed via claude-code-guide: hooks/MCP travel to web/mobile/Slack/Actions only when config is committed in .claude/ (validates M28); coordination MCP must be remote+.mcp.json.
+Next up:          · Build M29 **Phase A as a standalone gating spike** — protocol core + Google adapter; step one is confirming the official MCP gives a usable mutable field (Gmail labels vs Drive). Answers "is convention enough?" before the arc commits. · Then B-integration / C-adapters per the verdict. · M26 (deferred) · M25 (compute-gated).
+Active context:   · branch claude/multi-session-coordination-idea, off main (v2.2.0). M29 scoped, status ⬜ awaiting go — non-goals fence it to collision-avoidance, not orchestration. Phasing A→B→C in the milestone file. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -390,6 +390,80 @@ plainly with the reason — don't paper over it.
 
 ---
 
+### M29 — Multi-session coordination (claim/lease for concurrent sessions)
+**Status:** ⬜ Not started (scoped, awaiting go)
+**Goal:** Stop concurrent sessions from silently colliding on milestone numbers, branches, and the handoff — by coordinating through a shared, MCP-reached surface, with three pluggable backends behind one adapter, degrading cleanly to today's git handoff when none is configured.
+**Scope (phased):**
+- [ ] **Phase A — core + first adapter:** surface-agnostic claim protocol + register schema (resource = milestone/branch/wave; claim = holder/session/ts/lease/status), session identity + signed writes + lease/heartbeat + stale-claim reclaim, a capability-flagged adapter interface (`push|poll`, `cas|convention`, identity), and the **Google (Gmail/Drive)** reference adapter — official MCP, the flow+floor — to answer "is convention enough?" (ships as a standalone gating spike; rest of the arc proceeds on its verdict)
+- [ ] **Phase B — workflow integration:** collision check in `/g-roadmap` + `/g-plan` (fetch + warn + offer alternatives before assigning), hook surfacing of others' active claims + heartbeat in `workflow-checkpoint.sh`/`session-start.sh`, release on milestone close. Honors tiers (off on `light`).
+- [ ] **Phase C — setup, health, more adapters:** **Confluence** adapter (version-CAS = real lock) + optional **Discord** adapter (real-time, **community/unofficial MCP — flagged**), `/g-init` opt-in setup wiring a **remote MCP into `.mcp.json`** (tokens via env-var, never committed) + `/g-doctor` reachability check, graceful degradation + docs.
+
+**Position:** phase one of **multiplayer G-Forge** — full multi-user cooperation on one project ("human orchestration, powered by humans"), a framework that engages whenever >1 session/user is live and degrades to single-player when alone. M29 is the claim/lease substrate; **assignment-by-person, cross-person handoff, cross-person review, and reconciliation** are later phases of the arc (not cut). Permanent line: humans orchestrate — no autonomous AI-dispatches-AI, no hosted authority.
+
+**Cross-surface requirement:** each adapter's MCP must be **remote HTTP/SSE in `.mcp.json`** so cloud / Slack / GitHub-Actions sessions can reach it (local stdio servers are invisible to those surfaces). Same property that makes G-Forge enforcement travel — committed config follows you everywhere.
+
+**Premortem + done condition:** full breakdown in `g-docs/milestones/M29-multi-session-coordination.md` (top risks: credential leakage · convention races on Gmail/Discord · local-vs-remote MCP divergence · stale claims · scope creep). Promoted from the backlog candidate below; this is the milestone version of it.
+
+**Re-prioritization:** promoted to the **next buildable milestone → v2.3.0**, ahead of the deferred M26 — M26 is spike-gated with nothing depending on it, while M29 is buildable now and strategically central (governance scaled to teams, per M24). Its Phase A doubles as the **de-risking spike for the whole arc** — it answers "is convention enough?" before M30–M32 commit. (M25 stays a parallel compute-gated track.)
+
+---
+
+### M30 — Membership, presence & assignment  *(multiplayer arc — sketch)*
+**Status:** ⬜ Sketch (provisional — firms up after M29 ships)
+**Goal:** Know who's on the project, and let work be owned by *people*. The layer where the multiplayer framework's identity and activation live.
+**Scope (sketch):**
+- Membership roster + stable per-member identities (built on M29's session identity).
+- Live **presence** / heartbeat → "who's active, and on what."
+- **Assignment:** an owner on milestones / waves / tasks; `/g-roadmap` + `/g-plan` can assign to a person.
+- **Activation rules:** the framework engages when >1 identity is present, is tier-gated, and degrades back to single-player when alone.
+
+**Premortem (sketch-level):**
+- *Session-identity vs person-identity conflated* (med) — a person across machines/sessions must map to **one** identity or presence + assignment fragment. → Make person-identity primary in M30; session-ids map onto it (carried deliberately from M29).
+- *Presence flap* (med) — noisy/stale heartbeats toggle the framework on/off. → TTL + debounce on presence; activation **hysteresis** (don't switch on a single missed beat).
+- *Toothless or rigid assignment* (med) — "owned by X" is either a meaningless label or a hard block. → Assignment = advisory claim with logged override (reuse M29 claim semantics), not a lock.
+
+**Depends on:** M29 (identity, register, heartbeat).
+
+---
+
+### M31 — Cross-person handoff & review  *(multiplayer arc — sketch)*
+**Status:** ⬜ Sketch (provisional)
+**Goal:** Make handoff and review cross *people*, not just sessions.
+**Scope (sketch):**
+- **Person→person handoff:** the `## Active Session` block generalizes from session→session to person→person; `/g-resume` can re-hydrate from a teammate's handoff.
+- **Cross-person review gate:** `/g-review` / `/g-doc-review` can require approval from a *different* member; the approval sentinel is keyed to approver identity.
+- **Notifications** via the chosen surface ("@you — review requested on wave-3").
+
+**Premortem (sketch-level):**
+- *Cross-person review deadlock* (high) — A needs B's approval, B is offline → work stalls. → Timeout + logged self-approve fallback (tier-gated); async notify; cross-approval never unconditionally mandatory.
+- *Handoff race reintroduces the M29 collision* (med) — concurrent person→person edits to the one `## Active Session` block. → Per-member handoff lanes, or treat the handoff itself as an M29-claimed resource.
+- *Untrustworthy identity-keyed sentinels* (low–med) — approver identity in the gate sentinel must be forgeable-proof. → Signed approvals tied to M30 identity.
+
+**Depends on:** M30 (identity/assignment), M29 (register/log).
+
+---
+
+### M32 — Reconciliation of concurrent work  *(multiplayer arc — sketch)*
+**Status:** ⬜ Sketch (provisional — hardest phase; spike-gate before building)
+**Goal:** When people work concurrently, reconcile branches / waves with conflicts **surfaced**, never auto-merged behind anyone's back.
+**Scope (sketch):**
+- Detect overlapping file-sets / waves across members (uses M29's claim granularity).
+- Conflict surfacing + **guided** reconciliation — who integrates, in what order.
+- A team convention for "who owns `main`" and ordered integration.
+
+**Premortem (sketch-level):**
+- *Scope blow-up into a full merge/consensus engine* (high) — "who owns `main`" distributed coordination is the hard part and easy to overbuild past the governance lane. → Spike-gate; ship "surface conflicts + recommend an integration order," **never auto-merge**; auto-resolution is an explicit non-goal.
+- *Fuzzy done condition* (high) — "reconcile concurrent work" is vague. → Done = overlapping file-sets/waves across members are **detected and surfaced with a recommended order**, not auto-resolved.
+- *Weak overlap detection from coarse claims* (med) — if M29/M30 file-set claims aren't granular, conflict detection is blind. → Validate claim granularity upstream before M32; spike.
+
+**Depends on:** M30, M31. This is the genuinely distributed part — feasibility-spike it before committing.
+
+**Re-prioritization (arc):** M30→M31→M32 kept in strict dependency order; **M32 stays last and spike-gated** (highest likelihood + fuzziest done condition). The whole arc is provisional behind M29 — building M29 Phase A first is the deliberate de-risking move. **M26** (Provable Wave Dispatch) is pushed behind the arc's first release onto its own spike-gated track (nothing depends on it); **M25** unchanged (compute-gated, parallel).
+
+> *The M30–M32 split is a **provisional sketch** of the multiplayer arc, not a commitment — the exact boundaries, sequence, and contents are expected to change once M29 is built and we learn whether convention-based coordination is sufficient. North star + framework in `g-docs/multi-session-coordination.md`.*
+
+---
+
 ## Backlog
 
 ### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
@@ -403,7 +477,9 @@ Possible scope when promoted to a milestone:
 - A handoff/merge protocol for *concurrent* (not just sequential) sessions — who owns `main`, how waves from different operators reconcile.
 - Decide the honest boundary: is this "orchestrating humans," or just safer git-mediated coordination? (Aligns with the M24 positioning — governance, not orchestration-for-its-own-sake.)
 
-*Status: idea only — not scoped, not scheduled.*
+A brainstormed approach — coordinate through an always-available, instantly-visible **shared surface reached via an MCP** rather than git, which only propagates on push/fetch — is captured in `g-docs/multi-session-coordination.md`. Direction chosen: ship spread surfaces behind a common, extensible adapter, **leading on official MCPs** — **Google (Gmail/Drive)** as flow+floor, **Confluence** as the enterprise lock, **Discord** optional (community MCP). Scoped as M29.
+
+*Status: **the goal is now explicit — multiplayer G-Forge** (full multi-user cooperation on one project; "human orchestration, powered by humans"). The concurrent claim/lease is **M29** (phase one, scoped, awaiting go); the cooperation layer — assignment, cross-person handoff/review, reconciliation — is the milestone arc beyond it. North star + framework captured in `g-docs/multi-session-coordination.md`.*
 
 ---
 
@@ -412,7 +488,8 @@ Possible scope when promoted to a milestone:
 ```
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
-       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅** → v2.3.0 (M26, deferred) · M25 benchmark ships its number when run
+       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
+       → v2.3.0 (M29 — multiplayer phase one) → v2.4.0+ (M30–M32 multiplayer arc, provisional) · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
