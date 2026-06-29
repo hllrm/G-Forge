@@ -273,11 +273,11 @@ All plans produced by this skill are saved to `g-docs/plans/<feature-slug>.md` i
 ## Wave Schedule
 
 ### Wave 1
-- Task 1 — [task name]
-- Task 2 — [task name]
+- Task 1 — [task name] (agent: feature-implementer)
+- Task 2 — [task name] (agent: test-writer)
 
 ### Wave 2
-- Task 3 — [task name]
+- Task 3 — [task name] (agent: vue-implementer)
 
 ## Progress
 
