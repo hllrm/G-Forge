@@ -1,6 +1,6 @@
 ---
 name: g-update
-description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect agents, all installed architecture rules, and all seven G-Forge hooks. Safe — only touches content between G-Forge markers.
+description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect and implementer agents, all installed architecture rules, and all seven G-Forge hooks. Safe — only touches content between G-Forge markers.
 ---
 
 **Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
@@ -84,6 +84,7 @@ Read and record:
 **.claude/agents/:**
 - List all `.md` files. For each, read the `name:` field from frontmatter.
 - Flag any whose name matches a known G-Forge architect pattern: `*-architect` or `node-architect`.
+- Flag any whose name matches the stack-implementer pattern `*-implementer` (e.g. `vue-implementer`, `fastapi-implementer`). These are installed by `/g-specialize` from the implementer template and are updated in Step 5.
 
 **.claude/rules/:**
 - List all `.md` files if directory exists.
@@ -174,9 +175,9 @@ If a stack's profile no longer exists in the plugin (removed), tell the develope
 
 ---
 
-## Step 5 — Update architect agents in .claude/agents/
+## Step 5 — Update architect and implementer agents in .claude/agents/
 
-For each G-Forge architect agent file found in Step 2:
+**Architect agents** — for each G-Forge architect agent file found in Step 2:
 
 1. Determine which profile it came from by matching the `name:` frontmatter field against the plugin's profile agent filenames:
    - Read each file in `[plugin-root]/profiles/*/agents/*.md`
@@ -184,6 +185,14 @@ For each G-Forge architect agent file found in Step 2:
 2. Replace the file content with the current version from the plugin.
 
 If a match cannot be found (agent name doesn't match any current profile), tell the developer: "Could not find a current profile for `[name]` — skipping. It may have been renamed or removed." Do not delete the file.
+
+**Implementer agents** — for each `*-implementer` agent file found in Step 2 (skip `feature-implementer` — that is a shipped agent, not a per-stack one): re-render it from the current implementer template so template improvements propagate.
+
+1. Read the implementer template `[plugin-root]/templates/stack-implementer.md`.
+2. Recover the substitutions from the installed file's frontmatter: `{{IMPLEMENTER_NAME}}` is its `name:`; `{{ARCHITECTURE_SKILL}}` is its existing `skills:` entry; `{{ARCHITECT_NAME}}` is the implementer name with `-implementer` → `-architect`; `{{STACK_LABEL}}` from its description (or the matching architect's). Re-derive `{{OWNS_GLOBS}}` from the stack's **current** plugin architecture rules (`[plugin-root]/profiles/[stack]/rules/architecture.md`) using the same layer-map → glob conversion as `/g-specialize` Step 6, so rule changes propagate (remove the `owns:` key if none can be derived).
+3. Substitute, strip the leading template-usage comment, and overwrite the file.
+
+If an implementer's stack skill no longer exists in the plugin, tell the developer: "Could not find a current profile for `[name]` — skipping." Do not delete the file.
 
 Report: `✓ .claude/agents/[filename] — updated` for each agent.
 

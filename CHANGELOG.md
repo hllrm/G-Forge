@@ -6,14 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Changed
+## [2.0.1] — 2026-06-29
 
-- **Repositioned around "educated, enforced project management."** The README, marketplace, and plugin descriptions now lead with G-Forge's actual differentiator — a *governance layer* (educated PM + enforced gates + session-wide context hygiene) that makes any model ship like a senior team — rather than "another multi-agent coder." Grounded in a landscape benchmark: of G-Forge's design choices, the **hard git-hook commit gate is the one genuinely novel mechanism** (every comparable Claude Code workflow enforces review only advisorily), and the problems it targets are externally validated (LLMs can't reliably self-correct without external feedback — Huang et al., ICLR 2024; a 48-point "verification gap" — Sonar 2026).
+Patch release. Fixes a bug where wave execution deployed non-specialized agents, and ships the stack-native implementer roster that replaces them. Also folds in the positioning refresh and the reliability-benchmark methodology.
+
+### Fixed
+
+- **Non-specialized (`general-purpose`) agents were deployed for wave execution instead of G-Forge agents.** No skill passed a `subagent_type` for wave tasks and the roster had no implementer agent, so `g-execute` — and the ad-hoc-dispatch rule in `C-agent-discipline` — fell back to bare `general-purpose` agents. The specialized roster had been wired into planning and review but never into execution. Wave tasks now always run as named G-Forge implementers (see Added / Changed).
 
 ### Added
 
+- **Stack-native implementation agents.** `/g-specialize` now installs a write-side **`<stack>-implementer`** alongside each `<stack>-architect`, generated from a new `templates/stack-implementer.md` and preloading the same `architecture-<stack>` skill — so the agent that *writes* wave code knows the stack's layer map, not just the one that reviews it. A shipped, stack-agnostic **`feature-implementer`** is the generic fallback (and the default for un-specialized projects). Shipped agent count is now 18 (plus per-project stack implementers).
 - **`g-docs/benchmark.md`** — a reproducible reliability-benchmark methodology (the same model + G-Forge vs. that model run raw, scored on success rate plus the eight `/g-telemetry` hygiene metrics) that turns the "punch above its weight" claim into a measured number instead of an assertion. Includes a concrete **3-task pilot protocol** (the cheap gate that must show lift before the full n≥20 run is funded).
 - **Roadmap: M24 + M25.** M24 (Positioning & Reliability Methodology) recorded as ✅ complete; **M25 (Run the Reliability Benchmark)** added as the next planned milestone — deferred by decision, gated on the pilot, with its premortem captured per `/g-roadmap` Step 3b.
+
+### Changed
+
+- **Wave execution routes to tagged implementers.** `wave-planner` now tags every task with the executor that should run it (a discovered `<stack>-implementer`, or `feature-implementer` / `test-writer` / `doc-writer` / `refactor-executor`); the plan's wave schedule persists the `(agent: …)` tag; `g-execute` dispatches each task as that `subagent_type`. Routing to a stack implementer is by **owned file globs**: `/g-specialize` derives an `owns:` glob list for each implementer from its stack's architecture-rules layer map, and `wave-planner` matches a task's files against those globs (most-specific wins; ties fall back to `feature-implementer`). The ad-hoc-dispatch rule in `C-agent-discipline` now spawns the matching implementer instead of a general-purpose agent, and `/g-update` resyncs installed `<stack>-implementer` agents from the template (re-deriving `owns:` from current rules).
+- **Repositioned around "educated, enforced project management."** The README, marketplace, and plugin descriptions now lead with G-Forge's actual differentiator — a *governance layer* (educated PM + enforced gates + session-wide context hygiene) that makes any model ship like a senior team — rather than "another multi-agent coder." Grounded in a landscape benchmark: of G-Forge's design choices, the **hard git-hook commit gate is the one genuinely novel mechanism** (every comparable Claude Code workflow enforces review only advisorily), and the problems it targets are externally validated (LLMs can't reliably self-correct without external feedback — Huang et al., ICLR 2024; a 48-point "verification gap" — Sonar 2026).
 
 ## [2.0.0] — 2026-06-28
 

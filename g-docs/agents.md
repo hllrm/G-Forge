@@ -1,6 +1,6 @@
 # G-Forge Agents
 
-All 17 agents ship with every install. Stack-specific architect agents are installed per-project by `/g-specialize` and are not listed here.
+All 18 agents ship with every install. Stack-specific architect *and implementer* agents are installed per-project by `/g-specialize` and are not listed here — each detected stack gets a `<stack>-architect` (read-side review) and a `<stack>-implementer` (write-side execution), both preloading that stack's architecture rules.
 
 ## Model tiers
 
@@ -78,6 +78,16 @@ Agents that plan and execute concrete work: decomposing requests, scheduling wav
 **Use when:** You have a complete spec from `spec-writer` and want it executed mechanically.  
 **Give it:** The complete refactor spec and the files to touch.  
 **Returns:** The refactored files, a step-by-step completion report, and a list of adjacent issues noticed but not acted on.
+
+---
+
+### `feature-implementer`
+**Tier:** Sonnet  
+**Role:** The generic, stack-agnostic wave implementer — implements one wave task to its done condition using a single committed approach. Single-use: one approach, one attempt.  
+**Use when:** Dispatched by `g-execute` for any implementation task that has no matching stack implementer installed by `/g-specialize`, and as the fallback for projects that have not been specialized. `wave-planner` tags tasks with the agent that should run them; this is the default tag.  
+**Give it:** The task name, done condition, files in scope, and an output file path (the standard `g-execute` dispatch prompt).  
+**Returns:** The compact `RESULT / SUMMARY / FILES / DONE_CONDITION / LEARNINGS / DETAIL` block, plus a full implementation summary written to its output file.  
+**Note:** In a specialized project, implementation tasks route instead to the stack's `<stack>-implementer` (installed by `/g-specialize`), which knows that stack's layer map. `feature-implementer` is the catch-all.
 
 ---
 
