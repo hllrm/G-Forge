@@ -6,7 +6,7 @@
 **Design note:** the full rationale, surface ladder, and the chosen-direction trade-offs live in `g-docs/multi-session-coordination.md`. This file is the buildable scope.
 
 ## Goal
-Stop **concurrent** sessions from silently colliding on milestone numbers, branches, and the handoff block, by coordinating through a shared, MCP-reached surface — with three pluggable backends (Gmail · Discord · Confluence) behind one adapter, and a clean fall-back to today's sequential git handoff when nothing is configured.
+Stop **concurrent** sessions from silently colliding on milestone numbers, branches, and the handoff block, by coordinating through a shared, MCP-reached surface — with pluggable backends behind one adapter — leading on official MCPs (**Google: Gmail/Drive** as flow+floor, **Confluence** as the enterprise lock), with **Discord** an optional flagged real-time adapter (community MCP) — and a clean fall-back to today's sequential git handoff when nothing is configured.
 
 ## Position in the bigger goal — phase one of multiplayer G-Forge
 The north star is **full multi-user cooperation on one project** — "human orchestration,
@@ -39,7 +39,7 @@ work — is a **milestone arc beyond M29**, not cut. M29 makes the rest *safe*.
 - [ ] **A1 — Coordination protocol + register schema.** Define the resource keys we claim (milestone number · branch · wave/file-set), and the claim record: `{resource, holder_identity, session_id, ts, lease_ttl, status:(active|released)}`. Define operations: `read_register`, `claim`, `release`, `heartbeat`, `list_active`. Define the **tiebreak rule** for non-atomic surfaces (earliest `ts`; ties broken by lexically-lowest `session_id`) and the **CAS rule** where the surface supports it.
 - [ ] **A2 — Session identity + lease/heartbeat.** A stable per-session id; every write is **signed** with it (mandatory on shared-account Gmail). Lease TTL + periodic heartbeat so a crashed session's claim auto-expires; define **stale-claim reclamation** (a claim past TTL with no heartbeat is reclaimable, logged as a takeover).
 - [ ] **A3 — Adapter interface.** Thin contract every backend implements: `readRegister() · writeClaim() · appendLog() · casUpdate?(version)`. **Capability flags** per adapter: `push|poll`, `cas|convention`, `nativeIdentity|sharedAccount`. The workflow logic reads flags, never vendor specifics.
-- [ ] **A4 — First reference adapter: Discord.** Real-time (push), free, native identity — cheapest to build and dogfood. Pinned message = register, channel = append log. Convention tiebreak (no CAS). Reached via a **remote HTTP/SSE MCP in `.mcp.json`**. Use this to answer the open question: *is convention enough in practice?*
+- [ ] **A4 — First reference adapter: Google (Gmail or Drive).** Chosen because it rides an **official** MCP and is the *flow + floor* almost everyone already has. Register + log via whatever the official MCP actually exposes — e.g. Gmail **labels** as the mutable claim field + a thread as the append log, or a Drive doc/file set. **Step one of the spike is confirming the official MCP gives a usable mutable field** (labels vs draft-edit vs file-create) — not an assumption. Convention tiebreak (no CAS). Reached via a **remote MCP in `.mcp.json`**. This is the spike that answers *is convention enough in practice?* (Discord — real-time but **community/unofficial** MCP — is deferred to an optional adapter in the C-phase.)
 
 ### Phase B — Workflow integration
 - [ ] **B1 — Collision check in `/g-roadmap` + `/g-plan`.** Before assigning a milestone number (roadmap) or starting a wave (plan), `read_register` + a fresh fetch; if the target is claimed by another live session, **warn with who/when and offer alternatives** (next free number / different wave); on proceed, `claim` it.
@@ -47,7 +47,7 @@ work — is a **milestone arc beyond M29**, not cut. M29 makes the rest *safe*.
 
 ### Phase C — Setup, health, docs, and the other two adapters
 - [ ] **C1 — Confluence adapter (the lock).** Page = register, page history = log, **version-CAS** = genuine atomic claim. This is the answer if Phase-A convention proves insufficient for teams.
-- [ ] **C2 — Gmail adapter (the floor).** Draft = register (JSON), self-emails = log, poll, signed entries, convention tiebreak. Lowest-common-denominator, zero-setup.
+- [ ] **C2 — Discord adapter (optional, real-time).** Push + native identity for teams that want live coordination — **flagged**: rides a community (unofficial) MCP, so it's opt-in, behind the same adapter interface. (The Google flow+floor already shipped in Phase A; if a JSON-in-Drive register proves awkward, a Gmail-labels variant is the fallback floor.)
 - [ ] **C3 — `/g-init` opt-in setup + `/g-doctor` check.** Optional `/g-init` step: "Configure multi-session coordination? (none | discord | confluence | gmail)" → wires the chosen **remote MCP into `.mcp.json`** (token via env-var expansion, **never committed**) and writes `.claude/coordination` config. New `/g-doctor` advisory check: configured surface's MCP is reachable and the register is readable.
 - [ ] **C4 — Degradation + docs.** No surface configured → behavior byte-identical to today (sequential git handoff). Surface unreachable → warn + fall back, **never block work**. Update `g-rules-I` and the README.
 
@@ -66,4 +66,4 @@ work — is a **milestone arc beyond M29**, not cut. M29 makes the rest *safe*.
 - **Scope creep into orchestration.** *Mitigate:* the non-goals section above; reject merge/dispatch work into a later milestone.
 
 ## Sequencing
-Phase A is the spike that answers "is convention enough?" Ship it, dogfood it on this repo's own multi-machine workflow, then decide whether Confluence's hard lock (C1) is needed before, or alongside, the Gmail floor (C2).
+**Phase A ships as a standalone gating spike** — core protocol + the official-MCP Google adapter — and answers "is convention enough?" Dogfood it on this repo's own multi-machine workflow. **B-phase integration and the C-phase adapters proceed only on its verdict:** if convention holds, the Confluence hard lock (C1) becomes optional rather than urgent; if it doesn't, C1 leads. Discord (C2) is opt-in regardless.

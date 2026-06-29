@@ -3,7 +3,8 @@
 > Status: **idea / exploration only** — not scoped, not scheduled. Elaborates the
 > ROADMAP backlog candidate "Multi-session / multi-operator orchestration."
 > Captured from a brainstorm. **Direction chosen:** ship three deliberately-spread
-> surfaces (Gmail · Discord · Confluence) behind a common adapter, extensible over
+> surfaces — **Google (Gmail/Drive) · Confluence**, plus optional Discord — behind a
+> common adapter, leading on official MCPs, extensible over
 > time. The mechanism (claim protocol, schema) is not yet scoped.
 
 ## North star — multiplayer G-Forge (the real goal)
@@ -149,17 +150,25 @@ Ship support for **three** coordination surfaces, picked to be *maximally spread
 across audience and capability, behind a common adapter so more can be added later
 without changing the protocol (the pattern is the asset; surfaces are pluggable):
 
-| Surface | Who it's for | Modality | Identity | Atomic claim |
-|---------|--------------|----------|----------|--------------|
-| **Gmail** — drafts = register, self-emails = log | anyone; zero-setup, universal | poll | shared account (sign messages) | no — convention |
-| **Discord** — pinned msg = register, channel = log | indie / community / real-time | push | native per-author | no — convention |
-| **Confluence** — page = register, page history = log | enterprise / teams | poll | native | **yes — version CAS** |
+| Surface | Who it's for | Modality | Identity | Atomic claim | MCP |
+|---------|-------------|----------|----------|--------------|-----|
+| **Google — Gmail / Drive** (labels or doc = register; threads / revisions = log) | anyone; zero-setup, universal | poll | per-edit (Drive) / shared + signed (Gmail) | no — convention | **official** |
+| **Confluence** — page = register, page history = log | enterprise / teams | poll | native | **yes — version CAS** | **official (Atlassian)** |
+| **Discord** — pinned msg = register, channel = log | indie / community / real-time | push | native per-author | no — convention | **community (unofficial)** |
 
-The trio is intentional: Gmail covers *lowest-friction / consumer*, Discord covers
-*free real-time / community*, Confluence covers *enterprise with a genuine lock*.
-Between them they span poll↔push, convention↔CAS, and consumer↔enterprise, so almost
-any team already lives on one of them. Start here; add surfaces (GitHub field, Slack,
-a hosted scratchpad) over time behind the same adapter.
+The set is chosen for *spread*: **Google** is the **flow + floor** — lowest-friction,
+official MCP, what almost everyone already has; **Confluence** is the **enterprise
+lock** (real version-CAS mutual exclusion); **Discord** is the **real-time / community**
+option. Between them they span poll↔push, convention↔CAS, and consumer↔enterprise.
+
+**Prefer official MCPs.** The lead / reference adapter must ride an **official** MCP, so
+the thing the whole layer depends on is trustworthy and maintained — that's why
+**Google (Gmail/Drive)** leads and is the Phase-A reference, **not Discord** (whose MCP
+is community-maintained). Discord stays a flagged, optional adapter behind the same
+interface; add it when a team wants real-time and accepts the unofficial dependency.
+*Implementation caveat:* the mutable-register mechanism depends on what the official MCP
+actually exposes (Gmail **labels** vs draft-edit; Drive file-create vs revisions) —
+confirming that is step one of the spike, not an assumption.
 
 **Cross-surface requirement (from the surface-availability finding).** Each adapter
 must reach its surface through a **remote HTTP/SSE MCP server declared in the repo's
