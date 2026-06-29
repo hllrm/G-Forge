@@ -50,9 +50,13 @@ A **wave** is a batch of tasks that can run in parallel without depending on eac
 
 ### 3. The commit gate
 
-Every `git commit` in a G-Forge project is blocked by a pre-commit hook. The hook checks for `.claude/g-forge-approved`. That file is written only when `/g-review` issues a **MERGE READY** verdict after the full review pipeline passes. No other path writes it.
+Every `git commit` in a G-Forge project is blocked by a pre-commit hook. The hook classifies the staged file set as **code**, **doc**, or **mixed** and requires the matching review sentinel:
 
-The sentinel is consumed (deleted) on every successful commit, so each commit cycle requires a fresh review.
+- **Code commits** require `.claude/g-forge-approved`, written only when `/g-review` issues a **MERGE READY** verdict after the full review pipeline passes.
+- **Doc-only commits** (README, `g-wiki/`, ADRs, etc.) require `.claude/g-forge-docs-approved`, written only when `/g-doc-review` issues a **DOCS READY** verdict — so documentation is gated even when there's no code change.
+- **Mixed commits** require **both** sentinels.
+
+Both sentinels are consumed (deleted) on every successful commit, so each commit cycle requires a fresh review.
 
 ### 4. G-RULES.md
 
@@ -65,8 +69,8 @@ You don't configure G-Forge per session. You configure it once via G-RULES.md an
 Seven shell scripts registered in `.claude/settings.json` keep Claude oriented automatically:
 
 - **UserPromptSubmit** (`workflow-checkpoint.sh`) — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` for a new task, `/g-execute` once a plan is approved, `/g-review` when waves finish).
-- **PreToolUse** (`check-commit.sh`) — blocks `git commit` unless the review sentinel exists.
-- **PostToolUse** (`post-commit-cleanup.sh`, `observe.sh`) — clears the sentinel after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
+- **PreToolUse** (`check-commit.sh`) — classifies the staged file set (code / doc / mixed) and blocks `git commit` unless the matching review sentinel exists.
+- **PostToolUse** (`post-commit-cleanup.sh`, `observe.sh`) — clears both sentinels after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
 - **SessionStart** (`session-start.sh`, `observe.sh`) — checks local and remote git state (uncommitted changes, stash count, ahead/behind), marks the session open in the journal, and resets the context-depth counters on a genuine open — carrying them across a `compact` restart so auto-compaction can't silently reset the gate.
 - **SubagentStart / SubagentStop** (`agent-lifecycle.sh`) — records every agent dispatch into the same journal.
 - **PreCompact** (`pre-compact.sh`) — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
@@ -258,9 +262,9 @@ Context depth uses mode-aware thresholds. **The goal is to reset before the wind
 
 Amber is **active monitoring**, not a one-time warning: Claude runs `/context` every turn and resets the moment remaining capacity drops below ~25% — capacity-driven, not waiting for the red exchange count (only `/context` reads true context pressure, and only the model can run it). `/g-execute` adds the same `/context` check at every wave boundary — the heaviest token-burn point — catching fast-burning sessions the exchange count misses. At red it's enforced: no new scope, `/g-retro` auto-triggers, the user is told to open a fresh session. If a compaction still slips through, it's recorded as a backstop and tightens the threshold so it doesn't recur.
 
-**`check-commit.sh`** (`PreToolUse`) — blocks `git commit` unless `.claude/g-forge-approved` exists. Prints a non-blocking advisory when committing directly to `main` with approval.
+**`check-commit.sh`** (`PreToolUse`) — classifies the staged file set (code / doc / mixed) and blocks `git commit` unless the matching sentinel exists: `.claude/g-forge-approved` for code, `.claude/g-forge-docs-approved` for docs, both for mixed. Prints a non-blocking advisory when committing directly to `main` with approval.
 
-**`post-commit-cleanup.sh`** (`PostToolUse`) — clears `.claude/g-forge-approved` after a successful commit.
+**`post-commit-cleanup.sh`** (`PostToolUse`) — clears both sentinels after a successful commit.
 
 **`observe.sh`** (`PostToolUse` + `SessionStart`) — the **silent observer**: journals meaningful events (commits, branches, tests, pushes, reverts) and session opens to `.claude/journal/YYYY-MM-DD.jsonl`. Writes nothing to chat; `/g-retro` synthesizes from it.
 

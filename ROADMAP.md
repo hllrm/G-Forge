@@ -6,11 +6,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: main (99187d6)
+HANDOFF — g-forge | branch: main | v2.1.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · Shipped & MERGED 2.0.1 (PR #13 → merge 99187d6) — FIXED the bug where wave execution deployed non-specialized (general-purpose) agents instead of G-Forge agents (root cause: no subagent_type passed for wave tasks + no implementer in the roster; the specialized roster was wired into planning/review but never execution). · Added stack-native implementers: /g-specialize now installs a <stack>-implementer beside each <stack>-architect (write-side counterpart, preloads architecture-<stack>, owns: globs derived from the layer map), plus a shipped generic feature-implementer fallback and templates/stack-implementer.md (c475710, c571989). · Routing wired end-to-end: wave-planner tags each task → plan wave schedule persists (agent: …) → g-execute dispatches that subagent_type; deterministic owns:-glob matching (most-specific wins, ties → feature-implementer); C-agent-discipline ad-hoc rule + /g-update resync updated. · Release: plugin.json + marketplace.json → 2.0.1, CHANGELOG [Unreleased]→[2.0.1] (Fixed/Added/Changed), agent count 17→18 across README/agents.md/g-telemetry. Tests 6/6 + 14/14 green.
-Next up:          · M27 — Documentation Review Gate (v2.2.0): next buildable, not yet /g-plan'd. · M25 — reliability benchmark pilot when compute is allocated (pilot-first gate; g-docs/benchmark.md). · M26 — Provable Wave Dispatch (v2.3.0): deferred — NOTE: its workflow engine must preserve the (agent:…)→subagent_type tag for parity. · Maintenance nudges: /g-trim (weekly CLAUDE.md compaction) + /g-align (brief-alignment check).
-Active context:   · main = 99187d6, v2.0.1 (released — 2.0.1 hotfix merged via PR #13), clean tree. M1–M24 all ✅ · M25 ⬜ planned · M26/M27 ⬜ queued. Shipped agent roster now 18 (added feature-implementer); per-project <stack>-implementer agents are installed by /g-specialize and not counted here. Hooks: single registrar via /g-init, manifest registers none, all 7 self-guard on .claude/integration-tier. Handoff = THIS block; todo.md = tasks only. Counts: 18 agents · 36 skills · 37 commands · 56 profiles. Re-enter with /g-resume.
+Done this pass:   · M27 Documentation Review Gate BUILT + MERGED to main: doc-reviewer agent (read-only, DOCS READY/HOLD), /g-doc-review skill+command, check-commit.sh file-set classifier (code/doc/mixed) + .claude/g-forge-docs-approved sentinel, post-commit-cleanup dual-sentinel, code-reviewer backstop-deferral, §G two-gate model, g-doctor Check 10, hook tests 14/14. · Reviewed MERGE READY + DOCS READY (dogfooded the new gate on its first real use). · Multi-session collision: 2.0.1 had shipped from another machine (6 commits, +feature-implementer agent); rebased M27 onto it, resolved 4 conflicts, re-derived true counts. · Closed out as v2.1.0 (bumped plugin.json+marketplace.json, CHANGELOG [2.1.0] dated, README §3 two-gate narrative updated).
+Next up:          · M26 — Provable Wave Dispatch (v2.2.0): deferred, feasibility-spike-gated. · M25 — reliability benchmark pilot (compute-gated). · Backlog: concurrent multi-session orchestration (claim/lock primitive) — this pass hit the exact collision it describes; strong candidate to promote.
+Active context:   · main = v2.1.0; M1–M27 shipped except M25/M26. The doc-review gate is LIVE and self-hosting — this repo's own commits now pass through it. Counts: 19 agents · 37 skills · 38 commands · 56 profiles. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -346,17 +346,17 @@ plainly with the reason — don't paper over it.
 ---
 
 ### M27 — Documentation Review Gate (separate from code review)
-**Status:** ⬜ Not started
-**Version:** v2.2.0
+**Status:** ✅ Complete
+**Version:** v2.1.0
 **Goal:** Make documentation review its own gate with its own verdict — distinct from code review in trigger, lens, and process. Today doc review is a sub-check of `code-reviewer`; this promotes it to a first-class gate that can run **even when there are no code commits**.
 **Scope:**
-- [ ] New **`doc-reviewer`** agent (read-only: Read/Glob/Grep). Lens: accuracy-vs-code, **currency** (docs that contradict the code), completeness (public exports, README sections, env vars, ADR/CHANGELOG coverage), clarity. Output: BLOCKING / WARNING / PASS → **DOCS READY / DOCS HOLD**. (17 → 18 agents)
-- [ ] New **`/g-doc-review`** standalone gate skill — own verdict, own cadence. (36 → 37 skills · 37 → 38 commands)
-- [ ] **File-set-keyed enforcement** *(the hard part)* — gate triggers on the changed file set, not on the presence of a code diff: docs touched (incl. **no-code-commit** changes — wiki, README, ADRs) **|** public/exported surface changed **|** milestone close. Doc-only commits must require a doc-review sentinel (e.g. `.claude/g-forge-docs-approved`); mixed commits require **both** gates; code-only commits are unaffected.
-- [ ] **Defense-in-depth split** — `code-reviewer` keeps its "missing public-export doc = Major" as a fast **backstop**; `doc-reviewer` owns the deep review. Define precedence so the two don't double-report (backstop defers when the doc gate ran).
-- [ ] **Blocking on public, advisory on internal** — public-API/exported doc gaps + docs that *contradict code* → DOCS HOLD; internal-only gaps + clarity/terseness → WARNING.
-- [ ] Clean boundary vs. `/g-docs` (audit+**generate**/write) and `doc-writer` (fills gaps): `/g-doc-review` only **judges & gates** — read-only, may *recommend* `/g-docs`, never writes. Update G-RULES §G to document the two-gate model; update `check-commit.sh` + tests.
-- [ ] Version bump to v2.2.0 — update plugin.json and marketplace.json version fields in one commit (developer commits at milestone close)
+- [x] New **`doc-reviewer`** agent (read-only: Read/Glob/Grep). Lens: accuracy-vs-code, **currency** (docs that contradict the code), completeness (public exports, README sections, env vars, ADR/CHANGELOG coverage), clarity. Output: BLOCKING / WARNING / PASS → **DOCS READY / DOCS HOLD**. (17 → 18 agents)
+- [x] New **`/g-doc-review`** standalone gate skill — own verdict, own cadence. (36 → 37 skills · 37 → 38 commands)
+- [x] **File-set-keyed enforcement** *(the hard part)* — gate triggers on the changed file set, not on the presence of a code diff: docs touched (incl. **no-code-commit** changes — wiki, README, ADRs) **|** public/exported surface changed **|** milestone close. Doc-only commits must require a doc-review sentinel (e.g. `.claude/g-forge-docs-approved`); mixed commits require **both** gates; code-only commits are unaffected.
+- [x] **Defense-in-depth split** — `code-reviewer` keeps its "missing public-export doc = Major" as a fast **backstop**; `doc-reviewer` owns the deep review. Define precedence so the two don't double-report (backstop defers when the doc gate ran).
+- [x] **Blocking on public, advisory on internal** — public-API/exported doc gaps + docs that *contradict code* → DOCS HOLD; internal-only gaps + clarity/terseness → WARNING.
+- [x] Clean boundary vs. `/g-docs` (audit+**generate**/write) and `doc-writer` (fills gaps): `/g-doc-review` only **judges & gates** — read-only, may *recommend* `/g-docs`, never writes. Update G-RULES §G to document the two-gate model; update `check-commit.sh` + tests.
+- [x] Version bump to v2.1.0 — update plugin.json and marketplace.json version fields in one commit (developer commits at milestone close)
 
 **Tier 3 DoD:** A doc-only change (stale README section + a `g-wiki/` edit) with **no code commit** triggers `/g-doc-review`, the gate blocks the commit until DOCS READY, and a public-export doc gap yields DOCS HOLD; a code+doc PR runs both gates; a code-only PR is untouched by the doc gate (code backstop still catches a missing public-export doc).
 
@@ -395,7 +395,7 @@ Possible scope when promoted to a milestone:
 ```
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
-       → **v2.0.0 (M23) ✅** → v2.1.0 (M24/M25) → v2.2.0 (M27) → v2.3.0 (M26)
+       → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → v2.2.0 (M26) · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
