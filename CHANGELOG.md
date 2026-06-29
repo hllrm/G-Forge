@@ -12,7 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **`g-docs/benchmark.md`** — a reproducible reliability-benchmark methodology (the same model + G-Forge vs. that model run raw, scored on success rate plus the eight `/g-telemetry` hygiene metrics) that turns the "punch above its weight" claim into a measured number instead of an assertion.
+- **`g-docs/benchmark.md`** — a reproducible reliability-benchmark methodology (the same model + G-Forge vs. that model run raw, scored on success rate plus the eight `/g-telemetry` hygiene metrics) that turns the "punch above its weight" claim into a measured number instead of an assertion. Includes a concrete **3-task pilot protocol** (the cheap gate that must show lift before the full n≥20 run is funded).
+- **Roadmap: M24 + M25.** M24 (Positioning & Reliability Methodology) recorded as ✅ complete; **M25 (Run the Reliability Benchmark)** added as the next planned milestone — deferred by decision, gated on the pilot, with its premortem captured per `/g-roadmap` Step 3b.
 
 ## [2.0.0] — 2026-06-28
 

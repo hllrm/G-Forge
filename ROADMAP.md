@@ -8,9 +8,9 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HANDOFF — g-forge | branch: claude/m23-release-u3rx0d
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · v2.0.0 (M23) audit + follow-ons, all committed+pushed on claude/m23-release-u3rx0d (8 commits): hooks → one canonical 7-hook set, single-registrar + self-guard (manifest registers none; guard on .claude/integration-tier; idempotent install; g-doctor dupe + legacy-plugin checks) · "G-Team" purged · tests/ split out · docs/ → g-docs/ everywhere · g-init reviewed/hardened (marker written before hooks; 7-hook report) · handoff unified on ROADMAP ## Active Session (todo.md = tasks only; /g-retro Step 5b owns the write; format in G-RULES §I) · killed /g-team command duplication (alias removed, router completed to 35 subs, migration detection in /g-update + /g-doctor) · GPL-3.0 declared in README · /g-help <topic> + archive map · /g-roadmap premortem+reprio (Step 3b) on M change · NEW /g-wiki skill (committed g-wiki/, refreshed each milestone) · final README pre-merge review (fixed stale 5-hook copy, missing /g-wiki, pre-compact todo.md→ROADMAP, rule-path) · /g-init turned into the SINGLE FRONT DOOR (detect → /g-onboard existing | /g-kickoff new → scaffold → /g-specialize → ready); /g-onboard reviewed (solid, fits the flow); README/g-help/router repositioned around it
-Next up:          · ALL STRAYS CLEARED this pass: LICENSE now full GPL-3.0 text · ROADMAP skeleton + markers unified (## Milestones/### MN, ⬜/🔄/✅) across g-init/g-roadmap/g-resume/g-status/g-align/g-intake/g-review · v2.0.0 PR opened to main. · Remaining = live verification only: run the /g-init front-door flow on a real existing repo (→ onboard) and a greenfield dir (→ kickoff) in an interactive session to confirm routing; then merge the PR once CI/review is green.
-Active context:   · v2.0.0 on branch claude/m23-release-u3rx0d, fully pushed; working tree clean after the next commit. Name kept as G-Forge. Hooks: single registrar (.claude/settings.json via /g-init), manifest registers none, all 7 self-guard on .claude/integration-tier. Handoff = THIS block (ROADMAP ## Active Session); todo.md is tasks only. G-Forge writes under g-docs/; the human wiki is committed g-wiki/. Both hook test suites green (tests/). Counts: 17 agents · 36 skills · 37 commands (36 skill-backed + /g-forge router) · 56 profiles (48+7+1). Re-enter with /g-resume.
+Done this pass:   · v2.0.0 (M23) audit + follow-ons, all committed+pushed on claude/m23-release-u3rx0d (8 commits): hooks → one canonical 7-hook set, single-registrar + self-guard (manifest registers none; guard on .claude/integration-tier; idempotent install; g-doctor dupe + legacy-plugin checks) · "G-Team" purged · tests/ split out · docs/ → g-docs/ everywhere · g-init reviewed/hardened (marker written before hooks; 7-hook report) · handoff unified on ROADMAP ## Active Session (todo.md = tasks only; /g-retro Step 5b owns the write; format in G-RULES §I) · killed /g-team command duplication (alias removed, router completed to 35 subs, migration detection in /g-update + /g-doctor) · GPL-3.0 declared in README · /g-help <topic> + archive map · /g-roadmap premortem+reprio (Step 3b) on M change · NEW /g-wiki skill (committed g-wiki/, refreshed each milestone) · final README pre-merge review (fixed stale 5-hook copy, missing /g-wiki, pre-compact todo.md→ROADMAP, rule-path) · /g-init turned into the SINGLE FRONT DOOR (detect → /g-onboard existing | /g-kickoff new → scaffold → /g-specialize → ready); /g-onboard reviewed (solid, fits the flow); README/g-help/router repositioned around it · M24: repositioned around "educated, enforced project management" (README + marketplace + plugin), added g-docs/benchmark.md methodology + pilot protocol, recorded M24/M25 in ROADMAP
+Next up:          · M25 — RUN the reliability benchmark (DEFERRED by decision; pilot-first gate). Methodology + the concrete 3-task pilot are ready in g-docs/benchmark.md — run the pilot when a session/compute budget is allocated; only fund the full n≥20 if it shows lift. · Also pending (low priority): merge the M24 commit (8a20f92, branch-only) to main — M23/2.0.0 is already on main, M24 positioning/benchmark is not yet, by choice.
+Active context:   · M23/2.0.0 MERGED to main (PR #11, 1d4a88a; main = v2.0.0, M1–M23 all ✅). Branch claude/m23-release-u3rx0d = 1 commit ahead of main (M24 positioning+benchmark, not merged by choice). M24 ✅ done; M25 (benchmark run) ⬜ planned, pilot-first. NOTE: if a session reports an older milestone (e.g. "M15"), it's reading a stale plugin cache/clone — /g-update or git pull; main is ground truth at 2.0.0. Hooks: single registrar via /g-init, manifest registers none, all 7 self-guard on .claude/integration-tier. Handoff = THIS block; todo.md = tasks only. Counts: 17 agents · 36 skills · 37 commands · 56 profiles. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -288,6 +288,39 @@ naming; all counts/claims true; README v2 approved and named; CHANGELOG + docs i
 sync; /g-doctor green. If something can't be made production-ready in scope, say so
 plainly with the reason — don't paper over it.
 ```
+
+---
+
+### M24 — Positioning & Reliability Methodology
+**Status:** ✅ Complete
+**Version:** v2.1.0 (docs-only; ships with the next release)
+**Goal:** State what G-Forge actually is, and define how to prove it.
+**Scope:**
+- [x] Reposition README + marketplace + plugin descriptions around "educated, enforced project management" (governance layer, not another agent orchestrator) — grounded in the 107-agent landscape research.
+- [x] `g-docs/benchmark.md` — reproducible reliability-benchmark methodology (model + G-Forge vs. raw, scored on success rate + the 8 `/g-telemetry` metrics).
+
+**Depends on:** M23. *(Committed on `claude/m23-release-u3rx0d` (`8a20f92`); lands on `main` with the next merge.)*
+
+---
+
+### M25 — Run the Reliability Benchmark
+**Status:** ⬜ Not started
+**Version:** v2.1.0 (or whenever the number ships)
+**Goal:** Turn "punch above its weight" from a claim into a defensible, published number.
+**Scope:**
+- [ ] **Pilot first** — run the 2–3 task B-vs-A pilot in `g-docs/benchmark.md` to shake out the harness and check for signal on a multi-file / architecture-touching task.
+- [ ] **Gate:** only fund the full run if the pilot shows a lift; a null result on a task class is recorded honestly and stops the spend.
+- [ ] Full benchmark (n ≥ 20, arms A–D), blind mechanical scoring, the chart + 8-metric table.
+
+**Premortem (per `/g-roadmap` Step 3b — this milestone was added, so it ran):**
+- *Harness is the real cost, not the run* — automating the G-Forge arm headless (plan→execute→review) is eval engineering; mitigate by piloting on 2–3 tasks before building the full runner.
+- *Operator confound* — the G-Forge arm must be driven by a fresh model session executing the plugin, never hand-simulated, or the result is meaningless.
+- *Task-class dependence* — lift concentrates on multi-file/architecture work; report per-class, never a single blended number.
+- *Skeptical market* — a sloppy number is net-negative (87% distrust accuracy); do not publish until n and scoring are defensible.
+
+**Depends on:** M24 (methodology), and a session/compute budget allocated to run it.
+
+**Re-prioritization:** M25 sits after M24 and is gated on a pilot — it does not block any other planned work; the run happens when compute is deliberately allocated.
 
 ---
 
