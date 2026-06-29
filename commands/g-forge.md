@@ -1,6 +1,6 @@
 ---
-description: G-Forge workflow commands. Subcommands — help, status, resume, doctor, audit, init, kickoff, onboard, brief, roadmap, intake, plan, forecast, blast-radius, execute, review, align, afk, specialize, update, skill-design, skill-validate, adr, docs, wiki, patterns, telemetry, identity, retro, listen, optimize, refactor, train, trim, tier, voice.
-argument-hint: <help|status|resume|doctor|audit|init|kickoff|onboard|brief|roadmap|intake|plan|forecast|blast-radius|execute|review|align|afk|specialize|update|skill-design|skill-validate|adr|docs|wiki|patterns|telemetry|identity|retro|listen|optimize|refactor|train|trim|tier|voice> [args]
+description: G-Forge workflow commands. Subcommands — help, status, resume, doctor, audit, init, kickoff, onboard, brief, roadmap, intake, plan, forecast, blast-radius, execute, review, doc-review, align, afk, specialize, update, skill-design, skill-validate, adr, docs, wiki, patterns, telemetry, identity, retro, listen, optimize, refactor, train, trim, tier, voice.
+argument-hint: <help|status|resume|doctor|audit|init|kickoff|onboard|brief|roadmap|intake|plan|forecast|blast-radius|execute|review|doc-review|align|afk|specialize|update|skill-design|skill-validate|adr|docs|wiki|patterns|telemetry|identity|retro|listen|optimize|refactor|train|trim|tier|voice> [args]
 ---
 
 Route to the correct skill file based on the subcommand in $ARGUMENTS.
@@ -23,6 +23,7 @@ For each subcommand, use Glob to find the corresponding SKILL.md inside `~/.clau
 - `blast-radius` → `skills/g-blast-radius/SKILL.md`  (remaining args: $ARGUMENTS)
 - `execute`     → `skills/g-execute/SKILL.md`  (remaining args: $ARGUMENTS)
 - `review`      → `skills/g-review/SKILL.md`
+- `doc-review`  → `skills/g-doc-review/SKILL.md`  (remaining args: $ARGUMENTS)
 - `align`       → `skills/g-align/SKILL.md`  (remaining args: $ARGUMENTS)
 - `afk`         → `skills/g-afk/SKILL.md`
 - `specialize`  → `skills/g-specialize/SKILL.md`  (remaining args: $ARGUMENTS)
@@ -61,6 +62,7 @@ If $ARGUMENTS is empty or unrecognized, list available subcommands:
   - `blast-radius [file|plan|feature]` — forward + reverse dependency graph, per-file volatility, aggregate rating
   - `execute [wave]` — dispatch parallel agents per wave; optionally resume from a wave number
   - `review` — run the full review pipeline; issues MERGE READY or HOLD
+  - `doc-review [scope]` — documentation review gate via doc-reviewer; issues DOCS READY or DOCS HOLD
   - `align [milestone]` — brief-deviation check; ALIGNED / DRIFTING with evidence (advisory)
   - `afk` — autonomous milestone executor: runs all waves + review unattended; requires an approved plan
   - `specialize [stack]` — auto-detect or apply a named stack profile

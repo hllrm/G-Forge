@@ -60,7 +60,75 @@ if echo "$CMD" | grep -q "git commit"; then
         exit 0
     fi
 
-    if [ ! -f ".claude/g-forge-approved" ]; then
+    # File-set classifier — the gate triggers on WHAT is being committed, not
+    # merely that a commit is happening. Two review surfaces, two sentinels:
+    #   CODE (executable/instruction surface) → /g-review writes .claude/g-forge-approved
+    #   DOC  (narrative documentation surface) → /g-doc-review writes .claude/g-forge-docs-approved
+    # A commit is classified by its staged file set into one of four buckets:
+    #   code  — only CODE paths            → require the code sentinel (unchanged behavior)
+    #   doc   — only DOC paths             → require the doc sentinel
+    #   mixed — both present               → require BOTH sentinels
+    #   none  — empty staged set / unknown → fall through to the code gate (fail safe)
+    # Unmatched paths default to CODE (the stricter gate) so a misclassification
+    # never weakens enforcement.
+    STAGED=$(git diff --cached --name-only 2>/dev/null)
+    HAS_CODE=0
+    HAS_DOC=0
+    while IFS= read -r _f; do
+        [ -z "$_f" ] && continue
+        case "$_f" in
+            # DOC paths — narrative documentation surface (M27: "doc-only
+            # changes — wiki, README, ADRs"). Documentation directories first.
+            g-docs/*|g-wiki/*|docs/*) HAS_DOC=1 ;;
+            # Root-level documentation files (README*, CHANGELOG*, LICENSE*) and
+            # any root-level *.md (no slash in the path = repo root) treated as docs.
+            README*|CHANGELOG*|LICENSE*) HAS_DOC=1 ;;
+            *.md) case "$_f" in */*) HAS_CODE=1 ;; *) HAS_DOC=1 ;; esac ;;
+            # CODE paths — plugin executable/instruction surface. .claude/rules/
+            # is instruction surface (code); anything under it gates as code.
+            hooks/*|skills/*|agents/*|commands/*|profiles/*|tests/*|.claude-plugin/*|.claude/rules/*) HAS_CODE=1 ;;
+            # When in doubt, treat as CODE — the code gate is the stricter one.
+            *) HAS_CODE=1 ;;
+        esac
+    done <<EOF
+$STAGED
+EOF
+
+    if [ "$HAS_CODE" -eq 1 ] && [ "$HAS_DOC" -eq 1 ]; then
+        CLASS="mixed"
+    elif [ "$HAS_DOC" -eq 1 ]; then
+        CLASS="doc"
+    elif [ "$HAS_CODE" -eq 1 ]; then
+        CLASS="code"
+    else
+        # Empty staged set or no parseable paths — preserve existing behavior by
+        # routing through the code gate (the historical default).
+        CLASS="code"
+    fi
+
+    if [ "$CLASS" = "doc" ]; then
+        if [ ! -f ".claude/g-forge-docs-approved" ]; then
+            echo "G-Forge: No doc-review sign-off. Run /g-doc-review and wait for its verdict before committing documentation." >&2
+            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
+            exit 1
+        fi
+    elif [ "$CLASS" = "mixed" ]; then
+        if [ ! -f ".claude/g-forge-approved" ] && [ ! -f ".claude/g-forge-docs-approved" ]; then
+            echo "G-Forge: Mixed commit (code + docs) needs both sign-offs. Run /g-review (code) and /g-doc-review (docs) before committing." >&2
+            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
+            exit 1
+        fi
+        if [ ! -f ".claude/g-forge-approved" ]; then
+            echo "G-Forge: Mixed commit missing code sign-off. Run /g-review and wait for MERGE READY before committing." >&2
+            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
+            exit 1
+        fi
+        if [ ! -f ".claude/g-forge-docs-approved" ]; then
+            echo "G-Forge: Mixed commit missing doc sign-off. Run /g-doc-review and wait for its verdict before committing." >&2
+            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
+            exit 1
+        fi
+    elif [ ! -f ".claude/g-forge-approved" ]; then
         echo "G-Forge: No code-lead sign-off. Run /g-review and wait for MERGE READY before committing." >&2
         echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
         exit 1

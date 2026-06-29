@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Documentation review promoted to a first-class gate (M27).** Documentation review was a sub-check inside `code-reviewer`; it is now a standalone gate with its own verdict and sentinel. `code-reviewer` keeps a public-export-doc backstop that defers when the doc gate has run, so coverage is never double-counted or dropped. G-RULES §G now documents the two-gate model.
+- **Commit gate (`check-commit.sh`) now classifies the changed file set** (code / doc / mixed) and enforces doc review on doc-only and mixed commits — documentation review now gates even when there is no code commit.
+
+### Added
+
+- **`doc-reviewer` agent (M27).** A read-only documentation reviewer that checks accuracy-vs-code, currency, completeness, and clarity, and returns a **DOCS READY / DOCS HOLD** verdict.
+- **`/g-doc-review` — a standalone documentation-review gate (M27).** New skill + command with its own verdict and the `.claude/g-forge-docs-approved` sentinel, parallel to the code-review commit gate.
+
 ## [2.0.1] — 2026-06-29
 
 Patch release. Fixes a bug where wave execution deployed non-specialized agents, and ships the stack-native implementer roster that replaces them. Also folds in the positioning refresh and the reliability-benchmark methodology.

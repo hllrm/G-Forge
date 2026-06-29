@@ -34,7 +34,7 @@ A set of changed files or a git diff.
   - *ISP*: a parameter that is a large object where the function uses ≤2 fields, or an interface with stub/`throw` implementations because the class doesn't need those methods. Flag as Minor; suggest narrowing the type or splitting the interface.
   - *DIP*: `new ConcreteService()` inside business logic or a domain module; an import of a concrete infrastructure module (ORM model, HTTP client, third-party SDK) directly in a service or use-case layer. Flag as Major. Suggest constructor/function injection with an interface type.
 
-- **Documentation coverage** (flag by severity):
+- **Documentation coverage** (BACKSTOP — flag by severity): this check is now a backstop for the dedicated documentation gate (`/g-doc-review` + the `doc-reviewer` agent). Fire it **only when the doc gate did not run for this commit** — i.e. when `.claude/g-forge-docs-approved` is absent. If that sentinel is present, `doc-reviewer` owns the deep documentation review; **defer** these findings to avoid double-reporting.
   - *Missing public API docs*: an exported function, class, or interface with non-obvious behaviour and no JSDoc/docstring/doc comment. Flag as Major. The doc should explain WHY — the constraint or decision — not restate the type signature.
   - *Stale docs*: the function signature or behaviour changed but the comment still reflects the old version. Flag as Major — actively misleads callers, worse than no docs.
   - *Missing module header*: a new source file >100 lines with no leading comment explaining its purpose and constraints when the filename alone is insufficient. Flag as Minor.

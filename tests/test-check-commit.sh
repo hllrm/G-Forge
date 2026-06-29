@@ -30,6 +30,28 @@ mkdir -p .claude
 printf 'full\n' > .claude/integration-tier
 rm -f "$SENTINEL"
 
+# Make the fixture a real git repo so the hook's file-set classifier
+# (git diff --cached --name-only) has an index to read. Tests that stage no
+# files keep an empty index → classifier routes through the code gate, exactly
+# the historical behavior the original cases above rely on.
+git init -q 2>/dev/null
+git config user.email "test@g-forge.local" 2>/dev/null
+git config user.name "g-forge-test" 2>/dev/null
+
+DOCS_SENTINEL=".claude/g-forge-docs-approved"
+
+# stage <path>... — reset the index, create + stage the given paths so the
+# hook's classifier sees a known staged file set for the next run() call.
+stage() {
+    git rm -r --cached --quiet . >/dev/null 2>&1
+    local p
+    for p in "$@"; do
+        mkdir -p "$(dirname "$p")"
+        printf 'x\n' > "$p"
+        git add "$p" >/dev/null 2>&1
+    done
+}
+
 # 1: git commit without sign-off → blocked
 run "git commit blocked without sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: add feature\""}}' \
@@ -77,6 +99,85 @@ else
     echo "FAIL: gate fell OPEN with no working parser"; FAIL=$((FAIL+1))
 fi
 rm -rf "$STUBDIR"
+
+# ── File-set classification gate (code / doc / mixed sentinels) ──────────────
+# The hook classifies a commit by its staged file set and requires the matching
+# sentinel(s): code paths → .claude/g-forge-approved; doc paths →
+# .claude/g-forge-docs-approved; mixed → both. g-docs/* and root *.md are docs.
+
+# 7: doc-only commit blocked when the doc sentinel is absent
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "g-docs/notes.md"
+run "doc-only commit blocked without doc sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"docs: notes\""}}' \
+    1
+
+# 8: doc-only commit allowed when the doc sentinel is present
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$DOCS_SENTINEL"
+stage "g-docs/notes.md"
+run "doc-only commit allowed with doc sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"docs: notes\""}}' \
+    0
+rm -f "$DOCS_SENTINEL"
+
+# 9: doc-only commit blocked when only the CODE sentinel is present (wrong gate)
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$SENTINEL"
+stage "README.md"
+run "doc-only commit blocked when only code sign-off present" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"docs: readme\""}}' \
+    1
+rm -f "$SENTINEL"
+
+# 10: mixed commit (code + doc) blocked when only the code sentinel is present
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$SENTINEL"
+stage "hooks/thing.sh" "g-docs/notes.md"
+run "mixed commit blocked with only code sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code + docs\""}}' \
+    1
+rm -f "$SENTINEL"
+
+# 11: mixed commit blocked when only the doc sentinel is present
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$DOCS_SENTINEL"
+stage "hooks/thing.sh" "g-docs/notes.md"
+run "mixed commit blocked with only doc sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code + docs\""}}' \
+    1
+rm -f "$DOCS_SENTINEL"
+
+# 12: mixed commit allowed when BOTH sentinels are present
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$SENTINEL"
+echo "approved" > "$DOCS_SENTINEL"
+stage "hooks/thing.sh" "g-docs/notes.md"
+run "mixed commit allowed with both sign-offs" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code + docs\""}}' \
+    0
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+
+# 13: code-only commit still allowed with only the code sentinel (regression)
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$SENTINEL"
+stage "hooks/thing.sh"
+run "code-only commit allowed with code sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code\""}}' \
+    0
+rm -f "$SENTINEL"
+
+# 14: code-only commit blocked when only the DOC sentinel is present (wrong gate)
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+run "code-only commit blocked when only doc sign-off present" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code\""}}' \
+    1
+rm -f "$DOCS_SENTINEL"
+
+# Reset the index so any later cases see a clean (empty) staged set.
+stage
 
 cd / && rm -rf "$WORKDIR"
 

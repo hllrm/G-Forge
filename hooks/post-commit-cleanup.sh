@@ -43,4 +43,5 @@ CMD=$(extract_cmd "$INPUT")
 
 if echo "$CMD" | grep -q "git commit"; then
     rm -f ".claude/g-forge-approved"
+    rm -f ".claude/g-forge-docs-approved"
 fi
