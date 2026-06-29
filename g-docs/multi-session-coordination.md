@@ -48,12 +48,32 @@ The surface is **interchangeable**. The pattern is the asset.
 | Rung | Surface | Mutable field | Log | Atomic claim? | Infra |
 |------|---------|---------------|-----|---------------|-------|
 | 1 | **GitHub issue body / pinned comment / Projects v2 field** (github MCP) | yes | comments / events | no | none — already wired in |
-| 2 | **Shared doc** — Google Doc / Drive (Drive MCP) | yes | revision history (+ attribution) | no (revisions only) | a shared doc |
-| 3 | **Confluence page** (Atlassian MCP) | yes | page history | **yes — version CAS** | a Confluence space |
-| 4 | **Shared mailbox** — Gmail drafts (field) + emails-to-self (log) | yes (draft) | thread | no | one shared account |
-| 5 | **Purpose-built scratchpad site with an MCP** | yes | yes | by design | a hosted service |
-| 6 | **Your own tiny presence/lock server** (sessions mint a token w/ random password) | yes | yes | **yes** | run a server |
-| 7 | **Peer-to-peer register over a VPN mesh** (WireGuard / Tailscale) | yes | gossiped | needs consensus | per-machine setup; peers must be online together |
+| 2 | **Real-time chat bus** — Slack / Discord (bot / webhook / `@claude` app or MCP) | pinned message | channel scrollback | no | free workspace/server + a bot or app |
+| 3 | **Shared doc** — Google Doc / Drive (Drive MCP) | yes | revision history (+ attribution) | no (revisions only) | a shared doc |
+| 4 | **Confluence page** (Atlassian MCP) | yes | page history | **yes — version CAS** | a Confluence space |
+| 5 | **Shared mailbox** — Gmail drafts (field) + emails-to-self (log) | yes (draft) | thread | no | one shared account |
+| 6 | **Purpose-built scratchpad site with an MCP** | yes | yes | by design | a hosted service |
+| 7 | **Your own tiny presence/lock server** (sessions mint a token w/ random password) | yes | yes | **yes** | run a server |
+| 8 | **Peer-to-peer register over a VPN mesh** (WireGuard / Tailscale) | yes | gossiped | needs consensus | per-machine setup; peers must be online together |
+
+### Push vs. poll — the third axis (and why the chat bus is special)
+
+The doc/field/mailbox surfaces are **poll**: a session has to go *look* to learn a
+claim changed. A **real-time chat bus (Slack / Discord)** is **push** — events
+arrive, so a claim is seen the instant it's posted, which is closest to the original
+"live field" instinct. The bus also hands you **native per-message identity** for
+free (every message carries its author), which dissolves the "who wrote what" wrinkle
+that a shared Gmail account reintroduces. Structure is built in too: channel per
+milestone, pinned message = register, scrollback = append log.
+
+Free tiers are sufficient for this volume: **Discord** — effectively unlimited
+history, free bots/webhooks (most generous); **Slack free** — fine, but ~90-day
+history retention (a non-issue for coordination, which never needs ancient claims)
+and the cleanest first-party `@claude` mention flow. What the bus still does *not*
+give you is a hard lock — pinned-message edits race and messages are an append log,
+so simultaneous claims both land and you arbitrate by convention (timestamp /
+first-message-wins). It is the best *convention* surface, not a *mutual-exclusion*
+one; only the version-CAS surfaces (Confluence-style) give a real lock.
 
 ## The two axes the brainstorm uncovered
 
