@@ -1,6 +1,7 @@
 # Normalise line endings
 * text=auto
 
-# Shell scripts always LF
-hooks/*.sh text eol=lf
-.claude/hooks/*.sh text eol=lf
+# Shell scripts always LF — everywhere. tests/*.sh was previously missed, which
+# let git-bash receive CRLF test scripts on Windows checkouts and break them
+# (`bad interpreter: /bin/bash^M`). A blanket rule prevents that recurring.
+*.sh text eol=lf

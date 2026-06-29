@@ -25,7 +25,9 @@ kind_of() {
         echo "{\"tool_input\":{\"command\":\"$1\"}}" | ( cd "$dir" && bash "$SCRIPT" log )
     fi
     local f; f=$(ls "$dir"/.claude/journal/*.jsonl 2>/dev/null | head -1)
-    if [ -n "$f" ]; then jq -r '.kind' "$f" 2>/dev/null | head -1; fi
+    # Read the kind with sed, not jq — stock git-bash has no jq, and the hook
+    # must not depend on it either. Journal lines are a fixed flat shape.
+    if [ -n "$f" ]; then sed -n 's/.*"kind":"\([^"]*\)".*/\1/p' "$f" | head -1; fi
     rm -rf "$dir"
 }
 
@@ -41,28 +43,33 @@ check "rm -rf → destructive"           "destructive" "$(kind_of 'rm -rf build'
 check "ls (noise) → skipped"           ""            "$(kind_of 'ls -la')"
 check "cat (noise) → skipped"          ""            "$(kind_of 'cat file.txt')"
 
-# Stub safety: python3 is the Windows Store stub, and no jq/node on PATH.
-# The raw-payload fallback must still recognise the commit and journal it.
-STUB=$(mktemp -d); BIN=$(mktemp -d)
-cat > "$STUB/python3" <<'EOF'
-#!/bin/sh
-echo "Python was not found; run without arguments to install from the Microsoft Store..." >&2
-exit 1
-EOF
-chmod +x "$STUB/python3"
-for t in bash sh cat grep printf echo rm mkdir tr dirname env git sed cut ls date; do
-    p=$(command -v "$t"); [ -n "$p" ] && ln -sf "$p" "$BIN/$t" 2>/dev/null
-done
-ln -sf "$STUB/python3" "$BIN/python3"   # jq and node intentionally absent
-check "commit journaled under python3 stub" "commit" "$(kind_of 'git commit -m wip' "$BIN")"
-rm -rf "$STUB" "$BIN"
+# Stub safety: shadow every JSON parser (jq/python3/node) with exit-1 stubs
+# prepended to the real PATH, so no parser yields a command. The raw-payload
+# fallback must still recognise the commit and journal it. (Replacing PATH
+# wholesale by symlinking coreutils breaks git-bash — bash.exe can't load its
+# DLLs from a bare symlink dir — so we shadow the parsers, not the environment.)
+STUB=$(mktemp -d)
+for p in jq python3 node; do printf '#!/bin/sh\nexit 1\n' > "$STUB/$p"; chmod +x "$STUB/$p"; done
+check "commit journaled with no working parser" "commit" "$(kind_of 'git commit -m wip' "$STUB:$PATH")"
+rm -rf "$STUB"
 
 # Session marker.
 SDIR=$(mktemp -d); ( cd "$SDIR" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier && bash "$SCRIPT" session )
-SKIND=$(jq -r '.kind' "$SDIR"/.claude/journal/*.jsonl 2>/dev/null | head -1)
+JFILE=$(ls "$SDIR"/.claude/journal/*.jsonl 2>/dev/null | head -1)
+SKIND=$(sed -n 's/.*"kind":"\([^"]*\)".*/\1/p' "$JFILE" 2>/dev/null | head -1)
 check "session marker written" "session" "$SKIND"
-# Journal must be valid JSONL.
-if jq -e . "$SDIR"/.claude/journal/*.jsonl >/dev/null 2>&1; then
+# Journal must be valid JSONL. Portable shape check (no jq): every non-empty
+# line is a single brace-wrapped object carrying the ts + kind keys.
+valid=1; lines=0
+while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    lines=$((lines+1))
+    case "$line" in
+        '{"ts":"'*'","kind":"'*'"'*'}') : ;;
+        *) valid=0 ;;
+    esac
+done < "$JFILE"
+if [ "$valid" -eq 1 ] && [ "$lines" -ge 1 ]; then
     echo "PASS: journal is valid JSONL"; PASS=$((PASS+1))
 else
     echo "FAIL: journal is not valid JSONL"; FAIL=$((FAIL+1))
