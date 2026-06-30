@@ -83,7 +83,15 @@ The write gap isn't Drive-specific — it generalizes. Surfaces fall into **capa
 | Tier | Surfaces | `write_living_state` | `append_feed` | Table shape |
 |---|---|---|---|---|
 | **1 — structured, in-place** | Confluence (✅ **in-place write validated live** — page v1→v2 via `get`→splice→`updateConfluencePage`: feed append + section replace both landed), Google **Docs** API (`batchUpdate`) | native in-place section edit | native | **Full Table** — living-state sections + feed; session reads *and* writes. *Best case.* |
-| **2 — append-only exchange** | Email/Gmail (`create_draft`/send), Discord | **latest-wins snapshot** — post a fresh "state" message; newest is canonical (can't edit a sent message) | a message/post = a feed entry (native) | **Feed-native Table** — the thread *is* the feed; living-state reconstructed from the latest state-message. **Universal floor** — zero-setup, everyone has it; where non-programmers already are. |
+| **2 — append-only exchange** | Email/Gmail (✅ **validated live** — label `g-table/G-Forge` created (`bind`), STATE seed `create_draft` written + read back via `list_drafts`; **MCP cannot send → the human sends = the native nod**), Discord | **latest-wins snapshot** — post a fresh "state" message; newest is canonical (can't edit a sent message) | a message/post = a feed entry (native) | **Feed-native Table** — the thread *is* the feed; living-state reconstructed from the latest state-message. **Universal floor** — zero-setup, everyone has it; where non-programmers already are. |
 | **3 — read-only** | Google **Drive** MCP (as connected) | ❌ none | ❌ none | **Not viable** as a Table surface. |
 
 **Consequence for the adapter:** `bind`/`read_section`/`append_feed` are universal; only `write_living_state` varies, and its Tier-2 form (post-a-snapshot, latest-wins) is a clean degradation, not a special case. The skill is unchanged across tiers — exactly what ADR-001's surface-agnostic decision bought. **Confluence is the best-case proof; email is the floor that makes the Table reach the whole audience.**
+
+### Surface recommendation (post-dogfood verdict)
+
+**Confluence is the advised surface for real and shared work; Gmail is solo/fun-tier only.** The deciding factor is the *draft-and-nod* flow that makes the mailbox safe: a draft lives in **one account's** drafts folder. For multiple people to see/tag/send Table drafts, they would need a **shared login** — which is credential-sharing (a `/g-doctor` Check 21 fail) and collapses identity. A Group/list *address* fixes shared **sent** mail, but not shared **drafts** — so the mailbox's signature safety property (human-sends-every-write) doesn't generalize to multi-user without an unsafe shared account.
+
+- **Shared / serious:** **Confluence** — permissioned space, true in-place edit, per-user identity, no credential sharing. *Recommended and advised.*
+- **Solo / casual / "vibe":** **Gmail** — zero-setup, the draft-and-nod is delightful for one person; fine for fun, **not** for a team.
+- `/g-table` should **advise Confluence** when shared mode is requested and **warn** if a shared mailbox is proposed (surface this at `start` and in `/g-doctor`).
