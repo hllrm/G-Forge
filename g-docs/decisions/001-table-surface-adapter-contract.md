@@ -56,3 +56,22 @@ The Table talks to its surface through a **single internal adapter contract**, n
 - **The Google Docs MCP exposes section/range-addressable reads and edits.** *Fragile* — if it only offers whole-doc replace, `write_living_state` degrades to read-modify-write with a concurrency cost; the contract still holds, the adapter absorbs it.
 - **Append-only feed + section ownership is enough concurrency control for Phase A (solo).** *Holds for solo*; shared mode (Phase B) leans on M29 lanes, out of scope here.
 - **A new session will pick up the Google MCP.** *Fragile to environment* — if not, the spike validates against an alternate adapter; the decision still stands.
+
+## Addendum — live dogfood findings (2026-06-30)
+
+First live bind run against the Google MCP that became reachable mid-build. Results, op by op:
+
+| Adapter op | MCP tool | Result |
+|---|---|---|
+| `bind` (create-from-template) | `Google_Drive.create_file` (→ `application/vnd.google-apps.document`) | ✅ Real Doc created (`id 16FBXCWuKF5…`, restricted view URL returned). |
+| `read_section` | `Google_Drive.read_file_content` | ✅ Content round-trips; Drive renders the Doc to text (markdown markers escaped, all sections + feed intact). |
+| security gate | `Google_Drive.get_file_permissions` | ✅ Owner-only permission, no `anyone` entry — the link-restricted-never-public invariant holds on a real file. |
+| `append_feed` / `write_living_state` | — | ❌ **No tool.** The Drive MCP is **create + read only** (`create_file·read_file_content·copy_file·search·get_metadata·get_permissions`); it exposes **no in-place content update.** |
+
+**This is the flagged "section-addressable edits" assumption, resolved with data — and worse than feared:** the gap isn't *section* granularity, it's that the Drive MCP can't update Doc content *at all*. **Resolution (does not change the 4-op contract — constrains which MCP backs the Google adapter):**
+
+- **For write-back, the Google adapter needs the Google *Docs* API** (`documents.batchUpdate` — insert/replace by range), not the Drive API. When a Docs-API MCP is connected, `write_living_state`/`append_feed` map onto `batchUpdate`; the contract is unchanged.
+- **Drive-MCP-only is a valid *read-mostly* Table:** the session **reads** state and **humans write** (type into the Doc). That already supports the human-steers-in-plain-language flow; only the session's own salient-delta writes are blocked.
+- **Rejected:** read-modify-recreate via `create_file` (a new file each write breaks the stable handle/URL and drops comments) — not acceptable for a bind handle.
+
+**Status of the live `bind` from this run:** Doc retained; bound locally via `.claude/table` (gitignored). The heartbeat fires correctly in a managed project (verified). The session-writes-the-feed half of the solo loop waits on a Docs-API MCP.
