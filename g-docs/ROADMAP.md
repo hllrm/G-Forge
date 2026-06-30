@@ -464,6 +464,20 @@ plainly with the reason — don't paper over it.
 
 ---
 
+### M33 — The Table (shared-doc communication layer)  *(multiplayer arc — scoped)*
+**Status:** ⬜ Not started (scoped, awaiting go) — full spec in `g-docs/milestones/M33-the-table.md`
+**Goal:** Give G-Forge a real-time, human-facing **communication surface** — a shared Google Doc ("the Table") that is the live UI between developers, *non-programmers* (PMs, friends vibecoding a game), and their Claude sessions. State of play is visible; humans steer in plain language; live decisions/plans **distill to the durable record + action points** on a human nod. Triggerable; works **solo** or **shared**. This is the **harmonious cooperation layer** — the interface the M30–M32 mechanics render on.
+**Scope (phased):** A — Solo Table (`/g-table start|sync|close`, templates, session rules, end-of-session distill; proves the make-or-break distill loop with one person, no M29 needed). B — Shared Table (link-restricted join, lanes/presence via M29, cross-person catch-up + handoff). C — Maintenance/grooming, `/g-init` opt-in + `/g-doctor` health, templates, clean degradation. **D — Propagation** (every skill/hook/rule that assigns, plans, executes, reviews, resumes, or reports becomes lane/Table-aware — per the §B cross-cutting propagation rule; gated by the architecture-review completeness check).
+
+**Premortem (top risks — full set in the spec):**
+- *Distillation quality is the whole game* (high) — lossy ⇒ intent drifts, noisy ⇒ the Doc swamps. → human nod gates every distill; salience filter on writes; the C grooming step; keep living-state small.
+- *🔴 "Public" doc = data leak* (high) — a public Google Doc is world-readable. → default **link-restricted, never public**; no credentials on the Table; `/g-doctor` flags world-readable.
+- *Propagation forgotten — the island risk* (med) — the Table works alone but `/g-roadmap`/`/g-plan`/hooks ignore it. → Phase D + the §B propagation rule + the gate completeness check. **A Table the engine doesn't respect is not done.**
+
+**Depends on:** M29 (register) for shared-mode lanes/presence; Phase A is standalone. **Relation to the arc:** M33 is the *interface* the provisional M30–M32 sketch (membership · handoff · reconciliation) renders on — when M29 ships and the sketch firms up, expect M30–M32 to reconcile against (and partly fold into) the Table.
+
+---
+
 ## Backlog
 
 ### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
@@ -489,7 +503,7 @@ A brainstormed approach — coordinate through an always-available, instantly-vi
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
        → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
-       → v2.3.0 (M29 — multiplayer phase one) → v2.4.0+ (M30–M32 multiplayer arc, provisional) · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
+       → v2.3.0 (M29 — multiplayer phase one) → v2.4.0+ (M30–M32 multiplayer arc, provisional; **M33 — the Table** ships its own minor, Phase A standalone) · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.

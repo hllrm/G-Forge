@@ -135,6 +135,8 @@ Any time this run **adds a new milestone or changes an existing one** — the St
 
 3. Present the re-prioritized sequence (same format as Step 3), each changed milestone carrying a short **Premortem** block (its top scenarios + mitigations). Then continue to the buy-in gate — the developer approves the *re-prioritized* roadmap, not just the addition.
 
+4. **Cross-cutting propagation check (G-RULES §B).** If an added/modified milestone introduces a *cross-cutting primitive* — a shared concept other skills must respect (lanes/claims, the shared Table, a new gate) — it is not done as an isolated component. Run `/g-blast-radius` to enumerate every skill, hook, and rule that must become aware of it, fold each touchpoint into the milestone's scope, and note the done condition is incomplete until the architecture-review gate confirms none was missed. If the milestone adds no cross-cutting primitive, say so in one line and skip.
+
 ## Step 4 — Buy-in gate
 
 Present the complete roadmap in its final form:
