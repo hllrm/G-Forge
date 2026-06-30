@@ -30,10 +30,21 @@ M29 uses a Google/Drive surface as a **register/log** (structured claim records:
 - [x] **A4 — End-of-session distill.** `/g-table close` → distill the live Doc into the `## Active Session` handoff + ADRs + an action list, **human nod required.** Built and exercised once (this ADR addendum *is* a distilled-to-record finding). **Live dogfood result (2026-06-30, see ADR-001 addendum):** bind ✅ · read ✅ · security ✅ against real Google Drive; **session write-back ❌ — the Drive MCP is create+read-only.** Session-writes-the-feed needs a Google *Docs*-API MCP (`batchUpdate`); Drive-only gives a read-mostly Table (session reads, humans write). Contract unchanged.
 
 ### Phase B — Shared Table (two+ human+AI pairs)
-- [ ] **B1 — Join.** A collaborator binds their session to the same Doc (**link-restricted**, permissioned — not public).
-- [ ] **B2 — Lanes / presence** via the M29 register: who owns what, live, so two sessions don't collide on the same area.
+- [ ] **B1 — Join.** A collaborator binds their session to the same Table (**permissioned, never public**) — the same Confluence page, or the same shared mailbox thread (below).
+- [ ] **B2 — Lanes / presence** via the M29 register: who owns what, live, so two sessions don't collide on the same area. On the mailbox surface, lanes = labels (the M29 "label *is* the mutable field" idea).
 - [ ] **B3 — Cross-person catch-up.** A session re-hydrates *"what your collaborator established since you last synced"* — cross-person `/g-resume`.
 - [ ] **B4 — Person→person handoff/asks** on the Table (the `## Active Session` block generalizing session→session to person→person; ties into the cooperation arc).
+
+**Shared-mode surface scoping (mailbox floor — from the ADR-001 dogfood).** The mailbox is the *universal floor* surface (Tier 2, append-only). How a shared mailbox Table is scoped is the load-bearing choice, and it splits by mode:
+
+| Mode | Anchor | Identity | Lanes |
+|---|---|---|---|
+| **Solo** | a **label** in the user's own mailbox (`g-table/<repo>`) | native — your own `From:` | labels |
+| **Shared** | a **shared address (Google Group / list)** — *not* a shared login | native — each person's real `From:` | labels on the Group thread |
+
+- **Avoid "one shared Gmail account per repo."** A shared *account* shares credentials (a `/g-doctor` security fail) and **collapses identity** — everyone becomes "the project account," destroying *who-said-what*, which is exactly what the cooperation layer exists to preserve.
+- **A Group/list address fixes both:** everyone stays on their own account (real `From:` = native attribution), and the Group thread is the shared feed every session reads. This is the concrete answer to the founding question — *"how do two sessions know what counts?"* → both are on the shared thread; each drafts salient deltas; the human sends; identity rides in the `From:`.
+- **Draft-and-nod is native here:** the Gmail MCP can `create_draft` but not send — the session proposes a feed entry, the human sends it. The salience gate + human nod are enforced by the medium, not bolted on.
 
 ### Phase C — Maintenance, setup, hardening
 - [ ] **C1 — Maintenance / grooming.** A "groom the Table" routine: archive resolved items off the live Doc into the record; keep living-state small; prevent the swamp.
