@@ -24,13 +24,41 @@ The Table never talks to an MCP directly. It uses a four-operation **surface ada
 **Bind record** — `.claude/table` (gitignored), the presence of which *is* the "Table configured" flag:
 
 ```
-surface=<google-drive|confluence|...>
-ref=<file-id or page-id or URL>
-title=<doc title>
+surface=<confluence|gmail|google-docs>
+ref=<page-id | thread-id-or-label | doc-id>      # the surface handle
+title=<table title>
 created=<YYYY-MM-DD>
+watermark=<last-seen marker>                       # page version | message id/epoch (sync delta cursor)
+# surface-specific (only what that surface needs):
+cloudId=<atlassian cloud id>                       # confluence
+spaceId=<confluence space id>                      # confluence
+label=<gmail label id>                             # gmail
 ```
 
-**Surface resolution.** At `start`, resolve an available surface MCP via tool discovery (e.g. Google Drive `create_file`/`read_file_content`, Confluence `createConfluencePage`/`updateConfluencePage`). If none is reachable, say so in one line and stop — do **not** fabricate a Table. Token/credentials are read from the environment at run time and **never** written to `.claude/table` or committed.
+Never store a credential here — tokens come from the environment at run time. `/g-doctor` Check 21 enforces this.
+
+**Surface resolution.** At `start`, resolve an available surface MCP by capability tier (ADR-001), best-first, via tool discovery:
+1. **Confluence** (Tier 1, structured/in-place) — `getAccessibleAtlassianResources` succeeds → use the Confluence adapter.
+2. **Google Docs API** (Tier 1) — a `documents.batchUpdate`-capable MCP is present → use it (reference adapter; not always connected).
+3. **Gmail** (Tier 2, append-only floor) — `search_threads` succeeds → use the mailbox adapter.
+4. **Google Drive only** → **refuse**: it is create+read-only (Tier 3), not a viable Table surface. Say so and stop.
+
+If none is reachable, say so in one line and stop — do **not** fabricate a Table.
+
+## Adapter implementations (per surface)
+
+Each adapter maps the four ops to concrete MCP calls. The skill body (Steps 1–3) is surface-agnostic; it dispatches to the bound surface's row here. Discover exact tool schemas with ToolSearch when invoking.
+
+### Confluence adapter (Tier 1 — full Table)
+- **bind** — `getAccessibleAtlassianResources` → `cloudId`; `getConfluenceSpaces` → pick the space (`spaceId`); `createConfluencePage` (html body from `templates/table/table-template.md`) → record `ref`=pageId, `cloudId`, `spaceId`, `watermark`=version.number. Attach-by-URL: parse the page id, `getConfluencePage` instead of create.
+- **read_section** — `getConfluencePage(contentFormat:html)`; slice the target `<h3>` section or the feed list from the returned HTML. Cheap because one page = the whole Table.
+- **append_feed** / **write_living_state** — **read-modify-write in place:** `getConfluencePage` → splice the new feed `<li>` (or replace the section body) in the HTML → `updateConfluencePage(body, versionMessage)`; update `watermark`=new version.number. This is the op Drive could not do; Confluence does it natively.
+
+### Gmail adapter (Tier 2 — feed-native floor)
+- **bind** — `list_labels`→ find/`create_label` `g-table/<repo>`; the labeled thread is the Table. Solo = your own mailbox; shared = a Group/list address (never a shared login). Record `ref`=thread-id-or-label, `label`, `watermark`=latest message id.
+- **read_section** (the sync scan) — `search_threads(query: "label:<id> newer_than:…", pageSize 5–10)` bounded by the `watermark`; `get_thread` for new messages only. **Classify each:** human `From:` → **Ask**; known session/agent `From:` or lane label → **multistream/M29 coordination**; `no-reply@`/system → **ignore**. Advance `watermark`.
+- **append_feed** — `create_draft` a reply into the thread (a message = a feed entry). **The Gmail MCP cannot send — the human sends.** Draft-and-nod is the salience gate + human nod, native to the medium.
+- **write_living_state** — no in-place edit (can't edit sent mail): `create_draft` a fresh `STATE:` message — **latest-wins**, the newest `STATE:` is canonical living-state. Lanes/status ride Gmail **labels** (`label_thread`).
 
 ## Step 0 — Resolve the subcommand
 
@@ -40,22 +68,20 @@ Parse the argument: `start` · `sync` · `close`. No argument → if `.claude/ta
 
 ## Step 1 — `start` (bind + setup)
 
-1. **Pick the bind mode:**
-   - `start <url>` or `start <file-id>` → **attach-by-URL** to the existing Doc.
-   - `start` with no ref → **create-from-template**: instantiate the Table from `templates/table/table-template.md` (read it from the plugin cache via Glob) into a new Doc on the resolved surface.
-2. **Resolve the surface** (above). If none reachable, stop with the one-line message.
-3. **Security gate (the 🔴 data-leak risk):**
-   - The Doc must be **link-restricted, never public/world-readable.** On create, set restricted sharing; on attach, check the permission and **warn + refuse to proceed** if it is public (offer to continue only on explicit override, recorded).
-   - Never write a credential onto the Table. Never commit the token.
-4. **Write the bind record** to `.claude/table`.
-5. **Confirm:** print the Table title + link (restricted) and the living-state section names. State the read cadence: *"I'll read the Table at turn/wave boundaries and write only what counts; run `/g-table close` to distill it into the record."*
+1. **Resolve the surface** (above) → pick the adapter. If none reachable (or Drive-only), stop with the one-line message.
+2. **Pick the bind mode** and call the adapter's **`bind`** op (see the surface's row in *Adapter implementations*):
+   - `start <url-or-id>` → **attach** to the existing page/thread.
+   - `start` with no ref → **create-from-template**: `templates/table/table-template.md` (read from the plugin cache via Glob), instantiated on the surface.
+3. **Security gate (the 🔴 data-leak risk):** the Table must be **permissioned, never public/world-readable.** On create, use a restricted space/personal mailbox; on attach, check the permission and **warn + refuse** if public (continue only on explicit, recorded override). Never write a credential onto the Table or into the bind record.
+4. **Write the bind record** to `.claude/table` (surface, ref, title, `watermark`, and any surface-specific handle fields the adapter returned).
+5. **Confirm:** print the Table title + link and the living-state section names. State the read cadence: *"I'll read the Table at turn/wave boundaries and write only what counts; run `/g-table close` to distill it into the record."*
 
 ## Step 2 — `sync` (the heartbeat: read what's there, write what counts)
 
 This is what the `workflow-checkpoint` hook nudges at boundaries; it is also runnable on demand.
 
-1. **Read** the living-state sections that changed and the feed tail via `read_section` — sections/deltas, **not** the whole Doc. Surface to the user: what a collaborator (or your past self) established, open questions, and any **Asks** addressed to this session.
-2. **Write what counts** — the **salience gate.** Append to the feed (`append_feed`) or update a living-state section (`write_living_state`) **only** for things that change the state of play: a decision reached, a wave started/finished, a question answered, an ask raised. Routine tool calls, file reads, and chatter do **not** go on the Table. When unsure, don't write — the Doc swamps far faster than it starves.
+1. **Read since the watermark** via the adapter's `read_section` — only what arrived since the `watermark` in `.claude/table` (last-N as first-sync fallback), **not** the whole surface. On the mailbox surface, **classify** each new item (Gmail adapter row): human `From:` → **Ask**; known session/lane label → **multistream/M29 coordination**; system `no-reply@` → **ignore**. Surface to the user what a collaborator (or your past self) established, open questions, and any Asks. Then **advance the watermark**.
+2. **Write what counts** — the **salience gate.** `append_feed` / `write_living_state` (per the adapter) **only** for state-of-play changes: a decision reached, a wave started/finished, a question answered, an ask raised. Routine tool calls and chatter do **not** go on the Table. When unsure, don't write — it swamps far faster than it starves. (Tier-2/mailbox: the write is a *draft* the human sends — the nod is native.)
 3. **Tier-aware:** on the `light` tier the Table heartbeat is off (the hook does not nudge it). Honor that.
 
 ## Step 3 — `close` (distill into the durable record — the make-or-break)
