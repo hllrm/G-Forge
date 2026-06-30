@@ -75,3 +75,15 @@ First live bind run against the Google MCP that became reachable mid-build. Resu
 - **Rejected:** read-modify-recreate via `create_file` (a new file each write breaks the stable handle/URL and drops comments) — not acceptable for a bind handle.
 
 **Status of the live `bind` from this run:** Doc retained; bound locally via `.claude/table` (gitignored). The heartbeat fires correctly in a managed project (verified). The session-writes-the-feed half of the solo loop waits on a Docs-API MCP.
+
+### Surface capability tiers (the design model the dogfood produced)
+
+The write gap isn't Drive-specific — it generalizes. Surfaces fall into **capability tiers**, and the same 4-op contract **degrades by tier** rather than requiring per-surface skills:
+
+| Tier | Surfaces | `write_living_state` | `append_feed` | Table shape |
+|---|---|---|---|---|
+| **1 — structured, in-place** | Confluence (`updateConfluencePage` ✅ verified: page created live, write scope present), Google **Docs** API (`batchUpdate`) | native in-place section edit | native | **Full Table** — living-state sections + feed; session reads *and* writes. *Best case.* |
+| **2 — append-only exchange** | Email/Gmail (`create_draft`/send), Discord | **latest-wins snapshot** — post a fresh "state" message; newest is canonical (can't edit a sent message) | a message/post = a feed entry (native) | **Feed-native Table** — the thread *is* the feed; living-state reconstructed from the latest state-message. **Universal floor** — zero-setup, everyone has it; where non-programmers already are. |
+| **3 — read-only** | Google **Drive** MCP (as connected) | ❌ none | ❌ none | **Not viable** as a Table surface. |
+
+**Consequence for the adapter:** `bind`/`read_section`/`append_feed` are universal; only `write_living_state` varies, and its Tier-2 form (post-a-snapshot, latest-wins) is a clean degradation, not a special case. The skill is unchanged across tiers — exactly what ADR-001's surface-agnostic decision bought. **Confluence is the best-case proof; email is the floor that makes the Table reach the whole audience.**
