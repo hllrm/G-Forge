@@ -1,6 +1,6 @@
 # M33 — The Table (shared-doc interface: the human-facing communication layer)
 
-**Status:** ⬜ Not started (scoped, awaiting go)
+**Status:** 🟡 Phase A (solo) built against the adapter — live Google dogfood pending MCP-in-session · Phases B–D not started
 **Version:** ships its own minor when built
 **Depends on:** **M29** (claim/lease register) for lanes/presence in shared mode. Degrades cleanly to today's solo, git-mediated flow when no Table is configured.
 **Design note:** the multiplayer north star and surface ladder live in `g-docs/multi-session-coordination.md`. M29 is the *coordination substrate* (machine↔machine collision-avoidance); the provisional **M30–M32** arc (membership · handoff · reconciliation) is the *mechanics*. **M33 is the cooperation arc's communication *interface*** — the **harmonious cooperation layer**: the shared, human-facing surface that M30–M32 render on, where humans and their Claude sessions see the state of play, steer in plain language, and reach agreement before it hardens into the record. Because Phase A is valuable **solo** (no M29 needed), the Table can ship ahead of the rest of the arc, and it is the concrete shape the provisional M30–M32 sketch firms up into once M29 lands.
@@ -24,10 +24,10 @@ M29 uses a Google/Drive surface as a **register/log** (structured claim records:
 ## Scope / tasks
 
 ### Phase A — Solo Table (prove the heartbeat with one person)
-- [ ] **A1 — Trigger + setup.** `/g-table start|sync|close`; bind a session to a Doc (create-from-template or attach-by-URL) via the Google Docs MCP; token by env-var expansion, **never committed**.
-- [ ] **A2 — Templates.** A committed starter Doc template (living-state sections + feed) under `g-docs/templates/`; plus the **session-rules** and **end-of-session-summary** templates.
-- [ ] **A3 — Session rules.** Read-the-Table at turn/wave boundaries; write-what-counts salience gate — codified as the `/g-table` skill + the `workflow-checkpoint` hook.
-- [ ] **A4 — End-of-session distill.** `/g-table close` → distill the live Doc into the `## Active Session` handoff + ADRs + an action list, **human nod required.** This is the loop; prove it solo before any multiplayer.
+- [x] **A1 — Trigger + setup.** `/g-table start|sync|close` (`skills/g-table/SKILL.md` + `commands/g-table.md`); bind a session to a Doc (create-from-template or attach-by-URL) via the surface adapter (**ADR-001**); token by env-var, **never committed**. *Built against the adapter; live Google bind pending the MCP being reachable in-session.*
+- [x] **A2 — Templates.** Starter Doc template (living-state sections + feed) + **session-rules** + **end-of-session-summary** templates under **`templates/table/`** (plugin content, alongside `skills/`/`hooks/` — refines the spec's earlier `g-docs/templates/`, which would wrongly copy plugin assets into every consumer repo; `g-docs/` is for *generated* records).
+- [x] **A3 — Session rules.** Read-the-Table at turn/wave boundaries; write-what-counts salience gate — codified as the `/g-table` skill + the `workflow-checkpoint` hook heartbeat (tier-gated, off on `light`; null-adapter silent when no Table bound — regression-tested in `tests/test-table-degradation.sh`).
+- [x] **A4 — End-of-session distill.** `/g-table close` → distill the live Doc into the `## Active Session` handoff + ADRs + an action list, **human nod required.** Built; **the live distill-quality dogfood is the make-or-break and is still to be run** against a real Doc once the Google MCP is live in-session.
 
 ### Phase B — Shared Table (two+ human+AI pairs)
 - [ ] **B1 — Join.** A collaborator binds their session to the same Doc (**link-restricted**, permissioned — not public).

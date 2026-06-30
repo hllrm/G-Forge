@@ -14,6 +14,14 @@
 | `CHANGELOG.md` | HQ, `doc-writer` | Version history — features, fixes, breaking changes, deprecations |
 | `g-wiki/` | `/g-wiki` | Human-facing project wiki — narrative architecture + how-to. **Committed** project content (not a runtime artifact); refreshed at each milestone close. Distinct from `g-docs/` (operational records) and `/g-docs` (code-level doc hygiene). |
 
+### Working memory vs. the durable record — the Table (M33)
+
+`/g-table` can bind the session to **the Table** — a shared live Doc that is the human-facing communication layer (see `g-docs/milestones/M33-the-table.md`). The Table is **working memory, not truth**: the live surface where humans and sessions talk, plan, and decide. The files above are the **durable record** — authoritative. The Table writes through to the record only on a human nod (`/g-table close` → handoff + ADRs + todo). Nothing is "decided" until it is in the record.
+
+- **Bind record:** `.claude/table` (gitignored — never committed; holds the surface ref, never a credential).
+- **Off by default:** no `.claude/table` ⇒ every `/g-table` path is a no-op and behaviour is **byte-identical** to the git-mediated flow. The Table is opt-in, triggerable, never autonomous.
+- **Surface-agnostic** per ADR-001: the skill talks to a four-op adapter (`bind`/`read_section`/`append_feed`/`write_living_state`), never an MCP directly. Link-restricted, never public; no secrets on the Table.
+
 ### `g-docs/` is the canonical home for every G-Forge document
 
 All G-Forge-generated documents — project tracking included — live under `g-docs/`. Nothing G-Forge writes belongs at the project root except `CLAUDE.md` (Claude Code loads it there), `G-RULES.md` (`@`-referenced config), and `CHANGELOG.md`. Every skill writes into one of these canonical subpaths:
