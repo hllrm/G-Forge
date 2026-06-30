@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Memory layer reframed as storage *and* retrieval.** `g-docs/memory-taxonomy.md` previously described only *where* memory lives (the six tiers) and left the `context:` declaration inert. It now documents the layer's second half — **retrieval** — making explicit that `/g-resume` is the retriever, the durable record is the corpus, and the whole thing is RAG in shape (retrieve the relevant slice; never dump the corpus and re-poison the window). Adds a per-tier retrieval model and names the one weak seam: topic-overlap retrieval on the Architectural tier. `rules/g-rules/J-memory.md` and the README's §J row updated to match.
+
+### Added
+
+- **ADR-001 — "No vector store for memory retrieval."** Records why G-Forge keeps deterministic key+grep retrieval instead of embeddings/a vector DB (no runtime to host one; must travel to web/mobile/Slack/Actions; small high-signal corpus), with the trip-wire for revisiting it. First ADR in `g-docs/decisions/`.
+- **Proposed milestone — memory-layer retrieval upgrade (topic-keyed retrieval).** `g-docs/milestones/memory-layer-retrieval-upgrade.md` scopes closing the topic-overlap blind spot with sharper keys (topic tags + a light committed index), not embeddings. Draft, awaiting `/g-roadmap` slotting — no milestone number assigned.
+
 ## [2.2.0] — 2026-06-29
 
 ### Changed

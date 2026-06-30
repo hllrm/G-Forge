@@ -4,6 +4,44 @@ G-Forge agents operate across multiple contexts — a single session, a long-run
 
 ---
 
+## The layer has two halves: storage and retrieval
+
+A memory taxonomy that only says *where things live* is a glossary, not a system. The six tiers below are the **storage** half — they give every piece of information a lifetime, an audience, and a home. The half that makes them useful is **retrieval**: pulling the right slice of the durable record back into a clean window when a fresh session, agent, or wave needs it. In G-Forge the retriever is `/g-resume` (with narrower lookups in `/g-align`'s brief check and `/g-patterns`' retro mining). Storage without retrieval is a filing cabinet no one opens — the two halves are one layer.
+
+This is the same shape as retrieval-augmented generation (RAG): a corpus too large for the context window, queried for the relevant fragments, which are loaded into the prompt before generation. The mapping is exact —
+
+| RAG concept | G-Forge equivalent |
+|---|---|
+| Corpus / knowledge base | The durable record: retros, ADRs, the observer journal, `g-docs/todo.md`, milestone files, the `## Active Session` handoff |
+| Chunk | A distilled section — a retro's *Cold-start context*, an ADR's *Decision* — never a whole file |
+| Query | The re-entry keys: current branch slug, active milestone, first task, recently-touched files |
+| Retriever | `/g-resume` — gather candidates by key (grep/glob), judge relevance, load only what serves the first task |
+| Augmented prompt | The clean window the briefing is loaded into |
+| Embedding / vector index | **Deliberately absent** — see "Why there is no vector store" below |
+
+The discipline RAG enforces is the one G-Forge already lives by: don't stuff the whole corpus into the window — retrieve the relevant slice and nothing more. A re-hydration that dumps everything just re-poisons the context it was meant to keep clean (G-RULES §A7).
+
+---
+
+## How each tier is retrieved
+
+Retrieval differs by tier, because lifetime and audience set how the slice is found:
+
+- **Working** — never retrieved across the seam; it dies with the session by design. Promoting anything from here into a durable tier is an explicit act (a commit, an ADR, a handoff line), not a query.
+- **Task / Sprint** — retrieved by *key*: the `## Active Session` handoff and the active milestone in `g-docs/ROADMAP.md`, keyed to the current branch and first task. Exact-match lookup, not relevance search.
+- **Architectural** — retrieved by *topic overlap*: `/g-resume` greps `g-docs/decisions/` for the branch slug and recently-touched filenames; in-force ADRs surface as constraints, not re-opened questions.
+- **Institutional / Human Preference** — retrieved by *always-on inclusion*: org standards and developer preferences are small and load every session (via `@`-referenced rules and `CLAUDE.md`), so they need no query.
+
+The weak seam is **topic-overlap retrieval** (the Architectural tier): keying on the branch slug and touched filenames misses a record that is relevant by *subject* but happens to share no slug or filename — e.g. a caching ADR that never named the file you are now editing. That is the honest analogue of "no semantic search." The in-scope fix is sharper keys — topic tags on records plus a light index — **not** embeddings; it is scoped in `g-docs/milestones/memory-layer-retrieval-upgrade.md`.
+
+---
+
+## Why there is no vector store
+
+The question "should G-Forge embed the record and retrieve by vector similarity?" is settled and recorded in **ADR-001** (`g-docs/decisions/001-no-vector-store-for-memory-retrieval.md`). In short: G-Forge ships as markdown + shell with no runtime process to host an embedding model or vector index, and its enforcement must travel to web / mobile / Slack / Actions surfaces where a local store would be invisible. The durable record is also small and high-signal by design (ADRs are kept rare; retros are distilled), so deterministic key-plus-grep retrieval over it is sufficient, auditable, and free of an external dependency. The upgrade path is sharper keys, not a vector DB.
+
+---
+
 ## Tier 1 — Working
 
 **Lifetime:** Current session only. Discarded when the session ends.

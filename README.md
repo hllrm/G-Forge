@@ -200,7 +200,7 @@ G-RULES.md has ten sections, each stored as a separate `@`-referenced file in `.
 | **G — Documentation** | What must be documented, currency rule, documentation ownership model |
 | **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
 | **I — Project Tracking** | File hierarchy, commit gate infrastructure, g-docs/todo.md structure |
-| **J — Memory** | Six-tier memory layer taxonomy |
+| **J — Memory** | Six-tier memory layer taxonomy — storage tiers plus the retrieval model (`/g-resume` as the retriever; RAG in shape, no vector store — ADR-001) |
 
 ### Section F — Design Patterns
 
