@@ -51,6 +51,8 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 
 **Wave execution rule:** always use `/g-execute` for wave-based parallel dispatch.
 
+**Cross-cutting propagation rule:** When a milestone introduces a *cross-cutting primitive* — a new shared concept other skills must respect (lanes/claims, the shared Table, a new gate) — it is **not done as an isolated component**. Run `/g-blast-radius` to enumerate every skill, hook, and rule that must become aware of it, add each touchpoint to the milestone's scope, and the architecture-review gate verifies none was missed. A primitive that exists but that `/g-roadmap`, `/g-plan`, and the hooks don't respect is an island, not a feature.
+
 ### Core maintenance skills
 
 | Skill | Purpose |
