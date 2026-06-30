@@ -82,7 +82,7 @@ The write gap isn't Drive-specific — it generalizes. Surfaces fall into **capa
 
 | Tier | Surfaces | `write_living_state` | `append_feed` | Table shape |
 |---|---|---|---|---|
-| **1 — structured, in-place** | Confluence (`updateConfluencePage` ✅ verified: page created live, write scope present), Google **Docs** API (`batchUpdate`) | native in-place section edit | native | **Full Table** — living-state sections + feed; session reads *and* writes. *Best case.* |
+| **1 — structured, in-place** | Confluence (✅ **in-place write validated live** — page v1→v2 via `get`→splice→`updateConfluencePage`: feed append + section replace both landed), Google **Docs** API (`batchUpdate`) | native in-place section edit | native | **Full Table** — living-state sections + feed; session reads *and* writes. *Best case.* |
 | **2 — append-only exchange** | Email/Gmail (`create_draft`/send), Discord | **latest-wins snapshot** — post a fresh "state" message; newest is canonical (can't edit a sent message) | a message/post = a feed entry (native) | **Feed-native Table** — the thread *is* the feed; living-state reconstructed from the latest state-message. **Universal floor** — zero-setup, everyone has it; where non-programmers already are. |
 | **3 — read-only** | Google **Drive** MCP (as connected) | ❌ none | ❌ none | **Not viable** as a Table surface. |
 
