@@ -46,6 +46,15 @@ M29 uses a Google/Drive surface as a **register/log** (structured claim records:
 - **A Group/list address fixes both:** everyone stays on their own account (real `From:` = native attribution), and the Group thread is the shared feed every session reads. This is the concrete answer to the founding question — *"how do two sessions know what counts?"* → both are on the shared thread; each drafts salient deltas; the human sends; identity rides in the `From:`.
 - **Draft-and-nod is native here:** the Gmail MCP can `create_draft` but not send — the session proposes a feed entry, the human sends it. The salience gate + human nod are enforced by the medium, not bolted on.
 
+**Mailbox read model (the sync scan — from the live dogfood).** The write side is scoped above; the read side is what `/g-table sync` does each boundary, and the inbox *is* a multiplexed inbound channel:
+
+- **Bounded window, watermark delta.** A sync reads only what arrived **since the last-seen mark** (a watermark — message id/timestamp persisted in `.claude/table`), bounded by the last-N (5–10) as the fallback on first sync. Never re-scan seen items; never miss one if many landed between boundaries. (The last-5 scan returns near-instantly — proven live — so this is cheap enough to run every boundary, which is what makes the heartbeat viable. This is ADR-001's "read deltas, never the whole surface," made concrete for a mailbox.)
+- **Classify each item in the window** into three buckets:
+  - **User message** (`From:` a real person) → an **Ask** / a steer. The non-programmer path: email the agent, never touch the repo.
+  - **Multistream update** (`From:` a known session/agent identity, or a lane label) → **lanes / coordination** — the M29 register face riding the same mailbox.
+  - **System noise** (`no-reply@`, `accounts.google.com`, etc.) → **ignore.** (The live inbox was *all* such noise — the filter is not optional.)
+- **One inbox, two faces, routed not separated:** user Asks (M33) and multistream coordination (M29) share the mailbox; they're disambiguated by `From:`/label, not by separate accounts.
+
 ### Phase C — Maintenance, setup, hardening
 - [ ] **C1 — Maintenance / grooming.** A "groom the Table" routine: archive resolved items off the live Doc into the record; keep living-state small; prevent the swamp.
 - [ ] **C2 — Setup + health.** `/g-init` opt-in ("set up a Table? none|solo|shared"); `/g-doctor` advisory check (Doc reachable, template present, **not world-readable**, token not committed).
