@@ -78,6 +78,18 @@ A cross-cutting primitive (lanes, the Table) is not done as an isolated componen
 | `/g-init` · `/g-doctor` · `/g-update` | setup, health checks, keep template + config in sync |
 | `g-rules-A / -B / -I` | "read the Table," "claim before work," Table-as-record-fabric |
 
+#### The orchestration layer *on* the Table — the actual payoff (multi-session/user)
+
+Propagation isn't just "make skills Table-aware." The point is to run **G-Forge's existing orchestration** — the thing it already does well for one session — across **many sessions/users**, with the Table as the shared surface and the M29 register as the coordination substrate. Three capabilities, all **suggest-not-act** (machine runs process, human owns judgment):
+
+1. **Roadmap updates, live and shared.** Milestones/decisions shaped on the Table distill into `g-docs/ROADMAP.md` (`/g-table close` + `/g-adr`), and — the new part — a roadmap change by *one* person/session **surfaces to everyone's Table** so the plan is common knowledge, not siloed. `/g-roadmap`'s premortem + re-prioritization runs on the *shared* roadmap.
+
+2. **Cross-session/user dependency tracking — *super important*.** Today dependencies live inside one plan (`/g-plan` waves, `/g-blast-radius`). Across sessions they're invisible — the exact failure that motivated M29 (two sessions colliding on M24/M25). The Table + register make them legible: each lane/claim declares its file-set and what it **depends on**; the Table shows *"your lane is blocked by their lane,"* and `/g-status`/`/g-help` report the cross-person dependency graph. This is the spine — assignment, handoff, and reconciliation (the M30–M32 arc) all hang off knowing who-depends-on-whom.
+
+3. **Pull/push suggestions (git coordination, advised not automated).** Driven by register + Table state: *"B finished the lane you depend on → **pull** before you continue,"* *"your lane is done and three people are waiting on it → **push** so they unblock,"* *"your file-set overlaps an active claim → coordinate before you start."* Surfaced by `workflow-checkpoint` / `/g-status`; never an auto-merge (reconciliation stays human-guided per M32's non-goal).
+
+**Dependency:** these are the concrete realization of the **M30–M32 cooperation arc** (membership/assignment → handoff → reconciliation) rendered *through* the Table, on the **M29** register. They likely warrant their own milestone(s) once M29 ships — tracked here so Phase D's "done" isn't read as merely cosmetic Table-awareness. The orchestration *is* the product; the Table is just where it becomes visible.
+
 ## Done condition
 - **Solo:** `/g-table start` binds a structured Doc; the session reads it each boundary and writes only salient deltas; `/g-table close` distills to handoff + ADRs + action list on a human nod. With **no** Table configured, behavior is byte-identical to today.
 - **Shared:** two people on one Doc see each other's lanes (via the M29 register), catch up on deltas, and hand off person→person without colliding — and the Doc is never the source of truth.
