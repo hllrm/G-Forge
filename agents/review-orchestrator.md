@@ -50,10 +50,24 @@ You coordinate the full review pipeline. You dispatch review agents in parallel 
 
 *Reviewed by: [agent list]*
 
+## Severity normalization — map every reviewer's native scale into the shared buckets
+
+Reviewers use different native scales. **Normalize before bucketing** — never drop a finding because its native label isn't literally Critical/Major/Minor (this is the bug that let a security `High` pass the gate):
+
+| Reviewer | Native scale | → Critical | → Major | → Minor |
+|---|---|---|---|---|
+| code-reviewer · performance-auditor · dependency-auditor | Critical / Major / Minor | Critical | Major | Minor |
+| security-auditor | Critical / **High** / Medium / Low | Critical **and High** | Medium | Low |
+| architecture-enforcer | `RESULT: PASS\|HOLD` + violation count (no severity) | *its HOLD forces FAIL — see below* | — | — |
+
+Security is intentionally stricter: a security **High** (auth bypass, data exposure) maps to **Critical** — it blocks. When in doubt, map **up**, never down.
+
 ## Verdict rules
-- **FAIL**: one or more Critical findings from any reviewer
-- **PASS WITH NOTES**: no Critical or Major findings, but Minor findings present
-- **PASS**: zero findings across all reviewers
+- **FAIL** if EITHER: one or more Critical findings **after normalization** from any reviewer; OR **any dispatched reviewer returned `RESULT: HOLD`** — a reviewer's own HOLD is authoritative for its axis regardless of how its findings bucket (this covers architecture-enforcer, which reports HOLD with no severity scale, and any auditor HOLD).
+- **PASS WITH NOTES**: no Critical or Major findings and **no reviewer HOLD**, but Minor findings present.
+- **PASS**: zero findings and no reviewer HOLD across all reviewers.
+
+A single reviewer HOLD ⇒ aggregate **FAIL**. The gate never passes while any axis is holding.
 
 ## Return format
 
@@ -64,12 +78,16 @@ Return to the calling session using **only** this compact block — no additiona
 ```
 RESULT: PASS|PASS WITH NOTES|FAIL
 FINDINGS: N critical · M major · K minor  (or "none")
+AXES: code-reviewer=PASS|HOLD · security-auditor=PASS|HOLD · performance-auditor=PASS|HOLD · architecture-enforcer=PASS|HOLD|n/a
 REVIEWERS: [agent list]
 SUMMARY: [one sentence — verdict rationale or top blocker]
 DETAIL: [output_file path]
 ```
 
+The **`AXES:`** line carries each dispatched reviewer's native `RESULT` verbatim, so the caller (code-lead) can HOLD on any axis HOLD even when the shared buckets look clean — this is the second line of defense that stops a security High from slipping through.
+
 ## Rules
 - Do not add your own review findings — aggregate only.
-- Preserve the severity assigned by the original reviewer — do not downgrade.
-- If a reviewer returns "No issues found", include them in the reviewer list but omit them from findings.
+- **Normalize, then bucket** — map each reviewer's native severity into Critical/Major/Minor per the table above; preserve intent, never downgrade. Security High → Critical.
+- **Any reviewer `RESULT: HOLD` forces aggregate FAIL** — a clean bucket count never overrides a reviewer's own HOLD, and every dispatched reviewer's RESULT is echoed on the `AXES:` line.
+- If a reviewer returns "No issues found", include them in the reviewer list, mark their axis PASS, and omit them from findings.

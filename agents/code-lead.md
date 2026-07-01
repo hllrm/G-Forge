@@ -45,9 +45,9 @@ Report findings with `file:line` refs and severity: **Critical** / **Major** / *
 ### Step 3 — Verdict
 Based on done conditions + review report, issue one of:
 
-**MERGE READY** — all done conditions PASS, review verdict PASS or PASS WITH NOTES (no Critical or Major findings)
+**MERGE READY** — all done conditions PASS, review verdict PASS or PASS WITH NOTES (no Critical or Major findings), **and the orchestrator's `AXES:` line shows no reviewer holding**
 
-**HOLD — FIX REQUIRED** — one or more done conditions FAIL, or review has Critical or Major findings. List every blocking item with `file:line` refs. Do not merge until fixed and re-reviewed.
+**HOLD — FIX REQUIRED** — one or more done conditions FAIL, OR the review verdict is FAIL, OR review has Critical or Major findings, OR **any reviewer axis is HOLD** on the orchestrator's `AXES:` line (e.g. a `security-auditor=HOLD` on a security `High`, which normalizes to Critical). List every blocking item with `file:line` refs. Do not merge until fixed and re-reviewed.
 
 **ESCALATE** — something unexpected: scope drift, architectural violation, security finding that needs human judgment. Stop and report.
 
@@ -89,6 +89,7 @@ DETAIL: [output_file path]
 ## Rules
 - Never merge yourself — report the verdict, let HQ execute the merge.
 - Do not downgrade severity once assigned.
+- **The orchestrator's `AXES:` line is authoritative** — any reviewer axis marked HOLD blocks MERGE READY regardless of the aggregate bucket counts. Never issue MERGE READY while an axis is holding.
 - A HOLD verdict requires every blocking item to be fixed AND re-reviewed before issuing MERGE READY.
 - Done conditions are binary — no partial credit.
 - If a task has no done condition defined, flag it as a process gap and treat it as FAIL.
