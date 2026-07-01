@@ -26,9 +26,9 @@ If neither `g-docs/ROADMAP.md` nor `.claude/compact-state.md` exists, this isn't
 Gather candidates deterministically, then judge relevance — load only what serves the first task.
 
 1. **The first task's anchor.** If the handoff names `verify ADR-NNN` (or any specific ADR), load that ADR file from `g-docs/decisions/` — its **Decision**, **Consequences**, and **Assumptions That Held** sections. This is the task; it gets full weight. (Verifying it against ground truth is exactly why the previous session handed it over rather than trusting it from memory.)
-2. **The carry-over retro.** In `g-docs/retros/`, find the most recent retro whose slug matches the branch `<slug>` or the active milestone; else the single most recent retro. Load only its **Cold-start context** and **Avoid / do differently** sections — not the whole file.
+2. **The carry-over retro.** In `g-docs/retros/`, find the most recent retro whose slug matches the branch `<slug>` or the active milestone. If **none** matches, fall back to the single most recent retro **but mark it low-relevance** — the `Carry-over` briefing line gets a `(low relevance — no slug/milestone match)` tag so the fresh session weights it accordingly rather than trusting a stale, unrelated retro. Load only its **Cold-start context** and **Avoid / do differently** sections — never the whole file. If `g-docs/retros/` is empty, skip this line.
 3. **Decisions touching this work.** `grep` `g-docs/decisions/` for the branch slug and the recently-touched file basenames. From the matches, load the **Decision** line of the top 1–3 most relevant ADRs (constraints the fresh session must not re-litigate). List the rest as pointers only.
-4. **The alignment anchor.** `g-docs/project_brief.md` — the **Goals** list and the active milestone's **Scope**. One-line each. This is what the work is *for*; it keeps the fresh session from drifting (same anchor `/g-align` uses).
+4. **The alignment anchor.** `g-docs/project_brief.md` — the **Goals** list and the active milestone's **Scope**, one line each. This is what the work is *for*; it keeps the fresh session from drifting (same anchor `/g-align` uses). **If no `project_brief.md` exists**, fall back explicitly to `g-docs/ROADMAP.md` — the project intent (the `#` title + top blurb) plus the **active milestone's Goal** — and tag the briefing's `Anchored to` line `(roadmap — no brief)`. A brief is the stronger anchor, so when the fallback fires, note that `/g-brief` could create one. Never leave the briefing with no anchor.
 5. **Recent activity.** The latest `.claude/journal/*.jsonl` (last ~15 events) and `git log --oneline -5` — the texture of what just happened.
 
 Cap it: if a category has many matches, take the most relevant few and leave the rest as `(N more — see <dir>)` pointers. Re-hydration that dumps everything just re-poisons the window.
@@ -47,8 +47,8 @@ Where we are:  [1–2 lines from handoff "Active context" + recent commits]
 Decisions in force:
   · ADR-NNN — [Decision line]            [+ N more in g-docs/decisions/]
 Carry-over (do differently):
-  · [from the relevant retro's "Avoid / do differently", or "—"]
-Anchored to:   [brief goal(s) the active milestone serves]
+  · [from the relevant retro's "Avoid / do differently", or "—"]   [append "(low relevance — no slug/milestone match)" if this is a fallback retro]
+Anchored to:   [brief goal(s) the active milestone serves — or roadmap goal + "(roadmap — no brief)" if no project_brief.md]
 Recent:        [last commit + last few journal events, one line]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
