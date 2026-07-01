@@ -11,7 +11,7 @@ FAIL=0
 
 run() {
     local name="$1" input="$2" expected="$3"
-    echo "$input" | bash "$SCRIPT" 2>/dev/null
+    echo "$input" | bash "$SCRIPT" >/dev/null 2>&1
     local actual=$?
     if [ "$actual" -eq "$expected" ]; then
         echo "PASS: $name"; PASS=$((PASS+1))
@@ -55,7 +55,7 @@ stage() {
 # 1: git commit without sign-off → blocked
 run "git commit blocked without sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: add feature\""}}' \
-    1
+    2
 
 # 2: git commit with sign-off → allowed
 echo "approved" > "$SENTINEL"
@@ -77,7 +77,7 @@ run "git push not blocked" \
 # 5: git commit --amend → blocked without sign-off
 run "git commit --amend blocked without sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit --amend --no-edit"}}' \
-    1
+    2
 
 # 6: Regression — when no JSON parser works (jq absent, python3 is the Windows
 # Microsoft-Store stub, node absent) the hook must fall back to grepping the
@@ -93,7 +93,7 @@ done
 rm -f "$SENTINEL"
 echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}' \
     | PATH="$STUBDIR:$PATH" bash "$SCRIPT" >/dev/null 2>&1
-if [ $? -eq 1 ]; then
+if [ $? -eq 2 ]; then
     echo "PASS: gate enforced when no JSON parser works (raw-payload fallback)"; PASS=$((PASS+1))
 else
     echo "FAIL: gate fell OPEN with no working parser"; FAIL=$((FAIL+1))
@@ -110,7 +110,7 @@ rm -f "$SENTINEL" "$DOCS_SENTINEL"
 stage "g-docs/notes.md"
 run "doc-only commit blocked without doc sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"docs: notes\""}}' \
-    1
+    2
 
 # 8: doc-only commit allowed when the doc sentinel is present
 rm -f "$SENTINEL" "$DOCS_SENTINEL"
@@ -127,7 +127,7 @@ echo "approved" > "$SENTINEL"
 stage "README.md"
 run "doc-only commit blocked when only code sign-off present" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"docs: readme\""}}' \
-    1
+    2
 rm -f "$SENTINEL"
 
 # 10: mixed commit (code + doc) blocked when only the code sentinel is present
@@ -136,7 +136,7 @@ echo "approved" > "$SENTINEL"
 stage "hooks/thing.sh" "g-docs/notes.md"
 run "mixed commit blocked with only code sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code + docs\""}}' \
-    1
+    2
 rm -f "$SENTINEL"
 
 # 11: mixed commit blocked when only the doc sentinel is present
@@ -145,7 +145,7 @@ echo "approved" > "$DOCS_SENTINEL"
 stage "hooks/thing.sh" "g-docs/notes.md"
 run "mixed commit blocked with only doc sign-off" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code + docs\""}}' \
-    1
+    2
 rm -f "$DOCS_SENTINEL"
 
 # 12: mixed commit allowed when BOTH sentinels are present
@@ -173,8 +173,36 @@ echo "approved" > "$DOCS_SENTINEL"
 stage "hooks/thing.sh"
 run "code-only commit blocked when only doc sign-off present" \
     '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: code\""}}' \
-    1
+    2
 rm -f "$DOCS_SENTINEL"
+
+# 15: THE REGRESSION GUARD — a blocked commit must actually BLOCK, not just warn.
+# The historical bug: block paths used `exit 1`, which is a NON-blocking PreToolUse
+# error (the commit runs anyway). This asserts the two things that make it a real
+# block: (a) exit code 2, and (b) a stdout `permissionDecision":"deny"` JSON. The
+# old exit-1/no-JSON gate fails BOTH — this is the test that would have caught it.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+OUT=$(echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}' | bash "$SCRIPT" 2>/dev/null)
+CODE=$?
+if [ "$CODE" -eq 2 ] && printf '%s' "$OUT" | grep -q '"permissionDecision":"deny"'; then
+    echo "PASS: blocked commit truly blocks (exit 2 + deny JSON on stdout)"; PASS=$((PASS+1))
+else
+    echo "FAIL: block is a no-op (got exit $CODE, deny-JSON $(printf '%s' "$OUT" | grep -q deny && echo present || echo ABSENT))"; FAIL=$((FAIL+1))
+fi
+rm -f "$SENTINEL"
+
+# 16: an ALLOWED commit must NOT emit a deny decision (no false block).
+echo "approved" > "$SENTINEL"
+stage "hooks/thing.sh"
+OUT=$(echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}' | bash "$SCRIPT" 2>/dev/null)
+CODE=$?
+if [ "$CODE" -eq 0 ] && ! printf '%s' "$OUT" | grep -q 'deny'; then
+    echo "PASS: approved commit passes clean (exit 0, no deny)"; PASS=$((PASS+1))
+else
+    echo "FAIL: approved commit mis-gated (exit $CODE)"; FAIL=$((FAIL+1))
+fi
+rm -f "$SENTINEL"
 
 # Reset the index so any later cases see a clean (empty) staged set.
 stage
