@@ -200,7 +200,11 @@ Report: `✓ .claude/agents/[filename] — updated` for each agent.
 
 ## Step 6 — Update .claude/rules/ files
 
-For each file in `.claude/rules/`:
+**6a — G-rules section files (plugin-managed by definition).** For each file in `[plugin-root]/rules/g-rules/` (`A-session.md` … `J-memory.md`), overwrite the project copy at `.claude/rules/g-rules-<letter>-<name>.md` — the same mapping `/g-init` installs. Only sync sections the project already has installed (a project trimmed to a preset like A–D keeps its trim — do not add sections `/g-init` never installed there).
+
+Report: `✓ .claude/rules/g-rules-*.md — [N] rule section files updated`
+
+**6b — Architecture rules.** For each remaining file in `.claude/rules/`:
 
 1. Try to match it to a profile rules file in `[plugin-root]/profiles/*/rules/architecture.md` by reading the file content and comparing stack signatures (first heading or content keywords).
 2. If matched, replace with the current plugin version.
@@ -221,9 +225,11 @@ In **both** cases, after writing the file, verify `.claude/settings.json` contai
 
 | Hook | settings.json event(s) | invocation |
 |------|------------------------|------------|
-| `check-commit.sh` | PreToolUse (matcher `Bash`) | `check-commit.sh` |
-| `post-commit-cleanup.sh` | PostToolUse (matcher `Bash`) | `post-commit-cleanup.sh` |
-| `observe.sh` | PostToolUse (matcher `Bash`) + SessionStart | `observe.sh log` / `observe.sh session` |
+| `check-commit.sh` | PreToolUse (matcher `Bash\|PowerShell`) | `check-commit.sh` |
+| `post-commit-cleanup.sh` | PostToolUse (matcher `Bash\|PowerShell`) | `post-commit-cleanup.sh` |
+| `observe.sh` | PostToolUse (matcher `Bash\|PowerShell`) + SessionStart | `observe.sh log` / `observe.sh session` |
+
+The shell-tool matcher must be `Bash|PowerShell`, never `Bash` alone — Claude Code on Windows executes shell commands through the PowerShell tool, and a Bash-only matcher silently disables the commit gate, sentinel cleanup, and observer there (fail-open). If a project's `.claude/settings.json` still carries a bare `Bash` matcher on any of these three rows, correct it during this step and report `✓ .claude/settings.json — shell matcher widened to Bash|PowerShell`.
 | `agent-lifecycle.sh` | SubagentStart + SubagentStop | `agent-lifecycle.sh start` / `agent-lifecycle.sh stop` |
 | `pre-compact.sh` | PreCompact | `pre-compact.sh` |
 | `session-start.sh` | SessionStart | `session-start.sh` |
