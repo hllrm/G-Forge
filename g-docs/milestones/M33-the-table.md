@@ -20,6 +20,7 @@ M29 uses a Google/Drive surface as a **register/log** (structured claim records:
 - **The Table** = a structured Doc: *living-state* up top (**Now/Lanes · Decided · Open questions · Asks**) + an append-only **"what just happened"** feed at the bottom.
 - **Heartbeat:** sessions read the Table at turn/wave boundaries (via `workflow-checkpoint`), write only *what counts* (salience gate); a **human nod** distills live decisions → ADRs/ROADMAP and live plans → action points. *Distillation quality is the make-or-break — see premortem.*
 - **Solo vs shared:** solo = your own live surface (and your future self's); shared = lanes/presence from the M29 register stop two sessions touching the same area.
+- **One orchestrator seat (ADR-002).** A shared Table is **not flat** — it has exactly one **human** orchestrator seat (the §B PM role) that owns the roadmap writes, tie-breaks, `main`/integration order, and the final distill nod. The machine surfaces and suggests; the seat decides. The seat is a role, not a fixed person — it **rotates via the Phase-B handoff** (one gavel, handed off atomically). **Never co-chairs.** Solo, you are trivially the chair.
 
 ## Scope / tasks
 
