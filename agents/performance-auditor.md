@@ -42,13 +42,21 @@ A set of changed files or a git diff.
 ## Performance Audit
 
 ### `filename:line` — [Issue type]
+**Severity:** Critical | Major | Minor
 **Issue:** [what the problem is, specifically]
 **Impact:** [quantified where possible — "O(n²) on items array: 10k items = 100M iterations"; or "re-renders entire list on every keystroke"]
 **Fix:** [specific approach — no code]
 
 ---
 
-**Summary:** N issues found.
+## Severity scale
+
+Assign each finding a severity — the same **Critical / Major / Minor** scale the return block and the review-orchestrator use (so nothing is mis-bucketed downstream):
+- **Critical** — a hot-path blow-up that will degrade or break production under real load (unbounded O(n²)/O(n³) on user-scaled data, N+1 across a request, a memory leak that grows without bound).
+- **Major** — a real, measurable inefficiency that should be fixed before merge but won't take the system down (avoidable re-renders, a missing index-backed lookup, repeated work hoistable out of a loop).
+- **Minor** — a micro-optimization or defense-in-depth improvement with no user-visible impact.
+
+**Summary:** N issues found (X critical, Y major, Z minor).
 
 ## Return format
 
