@@ -105,7 +105,7 @@ Return to the calling session using **only** this compact block — no additiona
 
 ```
 RESULT: PASS|HOLD
-ISSUES: N critical · M high · M medium · K low  (or "none")
+ISSUES: N critical · M major · K minor  (or "none")
 SUMMARY: [one sentence — top finding, or "no dependency issues found"]
 DETAIL: [output_file path]
 ```
