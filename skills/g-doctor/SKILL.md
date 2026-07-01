@@ -160,21 +160,21 @@ find . -type d \( -name decisions -o -name retros -o -name forecasts -o -name te
     `git mv ROADMAP.md g-docs/ROADMAP.md` · `git mv milestones g-docs/milestones` (etc.)
   → Offer to run the moves now. After moving, update any references with `/g-update`, and confirm nothing still points at the old root path.
 
-**21. Table security** (advisory — only when a Table is bound)
-Runs only if `.claude/table` exists (the M33 Table bind record). Guards the two failure modes from ADR-001's premortem: a leaked credential and a world-readable Doc.
+**21. Roundtable security** (advisory — only when a Roundtable is bound)
+Runs only if `.claude/roundtable` exists (the M33 Roundtable bind record). Guards the two failure modes from ADR-001's premortem: a leaked credential and a world-readable Doc.
 ```bash
-[ -f .claude/table ] || echo "no Table bound — skip"
+[ -f .claude/roundtable ] || echo "no Roundtable bound — skip"
 # (a) bind record + credentials must be gitignored, never committed
-git check-ignore -q .claude/table 2>/dev/null && echo "ignored ✓" || echo "TRACKED ✗"
-git ls-files --error-unmatch .claude/table >/dev/null 2>&1 && echo "COMMITTED ✗"
+git check-ignore -q .claude/roundtable 2>/dev/null && echo "ignored ✓" || echo "TRACKED ✗"
+git ls-files --error-unmatch .claude/roundtable >/dev/null 2>&1 && echo "COMMITTED ✗"
 # (b) a token-looking line must never be in the bind record (token belongs in env)
-grep -qiE '^(token|secret|password|api[_-]?key)=' .claude/table 2>/dev/null && echo "SECRET-IN-BIND ✗"
+grep -qiE '^(token|secret|password|api[_-]?key)=' .claude/roundtable 2>/dev/null && echo "SECRET-IN-BIND ✗"
 ```
-- Pass: ✓ Table security — bind record gitignored, no credential in it (confirm the Doc is link-restricted, not public)
-- Advisory (bind record tracked/committed): ⚠ `.claude/table` is tracked — the bound surface ref (and any creds near it) could be pushed
-  → Add `.claude/` to `.gitignore` (it should already be — see Check 19) and `git rm --cached .claude/table`.
-- Advisory (secret in bind record): 🔴 A credential is stored in `.claude/table` — move it to an environment variable and remove the line. Never commit a token.
-- Advisory (always, reminder): the bound Doc must be **link-restricted, never public** — `/g-table` enforces this at bind, but confirm sharing hasn't been widened since.
+- Pass: ✓ Roundtable security — bind record gitignored, no credential in it (confirm the Doc is link-restricted, not public)
+- Advisory (bind record tracked/committed): ⚠ `.claude/roundtable` is tracked — the bound surface ref (and any creds near it) could be pushed
+  → Add `.claude/` to `.gitignore` (it should already be — see Check 19) and `git rm --cached .claude/roundtable`.
+- Advisory (secret in bind record): 🔴 A credential is stored in `.claude/roundtable` — move it to an environment variable and remove the line. Never commit a token.
+- Advisory (always, reminder): the bound Doc must be **link-restricted, never public** — `/g-roundtable` enforces this at bind, but confirm sharing hasn't been widened since.
 
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook, rules, and document-layout infrastructure only.
 
