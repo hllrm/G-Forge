@@ -24,6 +24,7 @@ The provisional **M30–M32** sketch (membership → handoff → reconciliation)
   - **push** — your lane is done and others depend on it → push so they unblock.
   - **coordinate** — your file-set overlaps an active claim, or a dependency **cycle** is forming → talk before you collide.
 - **Surfaced** via `workflow-checkpoint` (at boundaries), `/g-status`/`/g-help` (the graph on demand), and the Table (shared visibility).
+- **Suggestions route to the orchestrator seat (ADR-002).** Anything touching shared state — integration order, "who pulls/pushes what into `main`", breaking a dependency cycle — is *surfaced* to the one human orchestrator seat, who decides. The seat **owns `main`** (this is the concrete answer to M32/M34's "who owns `main`"). Peers get advisories for their own lanes; cross-lane/integration calls are the seat's. Never co-chairs; the seat rotates by the M33 Phase-B handoff.
 
 ## Scope / phases
 
