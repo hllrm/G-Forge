@@ -1,12 +1,12 @@
-# 🪑 The Table — [Project Name]
+# 🪑 The Roundtable — [Project Name]
 
-> The live communication layer. **Working memory, not truth** — the repo (ROADMAP, ADRs, decisions) is authoritative. Nothing here is "decided" until it's distilled into the record on a human nod (`/g-table close`).
+> The live communication layer. **Working memory, not truth** — the repo (ROADMAP, ADRs, decisions) is authoritative. Nothing here is "decided" until it's distilled into the record on a human nod (`/g-roundtable close`).
 > **Restricted, never public.** No credentials, secrets, or tokens on this Doc.
 
 ---
 
 ## Living state
-*(small by design — resolved items get archived to the feed by `/g-table close`)*
+*(small by design — resolved items get archived to the feed by `/g-roundtable close`)*
 
 ### Now / Lanes
 *Who (person + session) is working on what, right now. In shared mode, lanes come from the M29 register so two sessions don't collide.*
