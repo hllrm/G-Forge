@@ -1,7 +1,26 @@
 #!/bin/bash
 # G-Forge commit gate — PreToolUse hook.
-# Blocks git commit if .claude/g-forge-approved does not exist.
+# Blocks git commit if the required review sentinel does not exist.
 # Input: Claude Code PreToolUse JSON on stdin.
+#
+# Enforcement contract (this is load-bearing — a plain `exit 1` does NOT block):
+#   A PreToolUse hook blocks the tool ONLY via `exit 2` or a stdout JSON
+#   `permissionDecision:"deny"`. Any other non-zero exit (incl. 1) is a
+#   *non-blocking* error — the message is shown but the commit still runs. So
+#   every block path here goes through deny(), which emits the deny JSON on
+#   stdout (rich reason to the model), the reason on stderr (for the CLI user),
+#   and exits 2 (the universal blocker). Never use `exit 1` to block.
+
+# deny <reason> — block the commit. Belt-and-suspenders across Claude Code
+# versions: stdout JSON deny + stderr reason + exit 2. Reasons are fixed,
+# quote/backslash-free strings, so the inline JSON needs no escaping.
+deny() {
+    local reason="$1"
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"G-Forge: %s"}}\n' "$reason"
+    printf 'G-Forge: %s\n' "$reason" >&2
+    printf 'G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)\n' >&2
+    exit 2
+}
 
 # Extract the tool command from a PreToolUse JSON payload.
 # Never trust a lone interpreter whose failure we've silenced: probe each
@@ -108,30 +127,20 @@ EOF
 
     if [ "$CLASS" = "doc" ]; then
         if [ ! -f ".claude/g-forge-docs-approved" ]; then
-            echo "G-Forge: No doc-review sign-off. Run /g-doc-review and wait for its verdict before committing documentation." >&2
-            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
-            exit 1
+            deny "No doc-review sign-off. Run /g-doc-review and wait for its verdict before committing documentation."
         fi
     elif [ "$CLASS" = "mixed" ]; then
         if [ ! -f ".claude/g-forge-approved" ] && [ ! -f ".claude/g-forge-docs-approved" ]; then
-            echo "G-Forge: Mixed commit (code + docs) needs both sign-offs. Run /g-review (code) and /g-doc-review (docs) before committing." >&2
-            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
-            exit 1
+            deny "Mixed commit (code + docs) needs both sign-offs. Run /g-review (code) and /g-doc-review (docs) before committing."
         fi
         if [ ! -f ".claude/g-forge-approved" ]; then
-            echo "G-Forge: Mixed commit missing code sign-off. Run /g-review and wait for MERGE READY before committing." >&2
-            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
-            exit 1
+            deny "Mixed commit missing code sign-off. Run /g-review and wait for MERGE READY before committing."
         fi
         if [ ! -f ".claude/g-forge-docs-approved" ]; then
-            echo "G-Forge: Mixed commit missing doc sign-off. Run /g-doc-review and wait for its verdict before committing." >&2
-            echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
-            exit 1
+            deny "Mixed commit missing doc sign-off. Run /g-doc-review and wait for its verdict before committing."
         fi
     elif [ ! -f ".claude/g-forge-approved" ]; then
-        echo "G-Forge: No code-lead sign-off. Run /g-review and wait for MERGE READY before committing." >&2
-        echo "G-Forge: (To disable the gate for this project, run /g-tier light — opt-out mode.)" >&2
-        exit 1
+        deny "No code-lead sign-off. Run /g-review and wait for MERGE READY before committing."
     fi
     # Advisory: warn when committing directly to main with approval
     BRANCH=$(git branch --show-current 2>/dev/null)

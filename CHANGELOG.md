@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **The commit gate now actually blocks (critical).** `hooks/check-commit.sh` used `exit 1` on every block path — but a Claude Code PreToolUse hook only blocks the tool on `exit 2` or a stdout `permissionDecision:"deny"` decision; `exit 1` is a *non-blocking* error, so the `git commit` proceeded anyway. The gate — the plugin's central promise — was a warning that let the commit through, and the unit test encoded `exit 1` as the "blocked" contract, so the suite never caught it. Every block path now goes through a `deny()` helper that emits the deny JSON on stdout **and** exits 2 (belt-and-suspenders across hook-semantics versions), with the reason on stderr for the CLI. `tests/test-check-commit.sh` now asserts real blocking (exit 2 + deny JSON) and adds a regression guard that fails on the old `exit 1`/no-JSON behaviour. Thanks to Francesco Di Ruscio (alveria-forge) for the report. *(Bug B — review-pipeline security fail-open — and Bug C — auditor return-scale mismatches — tracked separately.)*
+
 ## [2.2.0] — 2026-06-29
 
 ### Changed
