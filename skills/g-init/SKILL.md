@@ -286,7 +286,7 @@ Preserve any hooks the developer added that are not G-Forge scripts — merge in
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",
@@ -298,7 +298,7 @@ Preserve any hooks the developer added that are not G-Forge scripts — merge in
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",

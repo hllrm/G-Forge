@@ -204,6 +204,23 @@ else
 fi
 rm -f "$SENTINEL"
 
+# 17: PowerShell-tool payload — on Windows, Claude Code runs shell commands
+# through the PowerShell tool, so the hook must gate its payloads identically
+# to Bash ones (the matcher-level fix widens registration to Bash|PowerShell;
+# this pins that the script itself is tool-agnostic on the payload).
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+run "PowerShell-tool git commit blocked without sign-off" \
+    '{"tool_name":"PowerShell","tool_input":{"command":"git commit -m \"feat: from windows\""}}' \
+    2
+
+# 18: PowerShell-tool payload with sign-off → allowed
+echo "approved" > "$SENTINEL"
+run "PowerShell-tool git commit allowed with sign-off" \
+    '{"tool_name":"PowerShell","tool_input":{"command":"git commit -m \"feat: from windows\""}}' \
+    0
+rm -f "$SENTINEL"
+
 # Reset the index so any later cases see a clean (empty) staged set.
 stage
 
