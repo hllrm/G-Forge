@@ -68,13 +68,13 @@ else
     echo "  Review: not yet approved — run /g-review before merging"
 fi
 
-# Table heartbeat (M33) — when a Table is bound (.claude/table present), nudge a
-# boundary read/write. The null adapter (no .claude/table) keeps this silent, so
-# the no-Table path is byte-identical to before. The light tier already exited
+# Roundtable heartbeat (M33) — when a Roundtable is bound (.claude/roundtable present), nudge a
+# boundary read/write. The null adapter (no .claude/roundtable) keeps this silent, so
+# the no-Roundtable path is byte-identical to before. The light tier already exited
 # above, so the heartbeat is off there too.
-if [ -f ".claude/table" ]; then
-    _table_title=$(sed -n 's/^title=//p' .claude/table 2>/dev/null | head -1)
-    echo "  🪑 Table bound${_table_title:+: $_table_title} — /g-table sync at this boundary (read deltas, write only salient state)"
+if [ -f ".claude/roundtable" ]; then
+    _table_title=$(sed -n 's/^title=//p' .claude/roundtable 2>/dev/null | head -1)
+    echo "  🪑 Roundtable bound${_table_title:+: $_table_title} — /g-roundtable sync at this boundary (read deltas, write only salient state)"
 fi
 
 if [ -f ".claude/tier3-active" ]; then
