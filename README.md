@@ -104,7 +104,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 /plugin install g-forge
 ```
 
-All **19** G-Forge agents, **37** skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
+All **19** G-Forge agents, **38** skills, 48 stack profiles, 7 combo profiles, and 1 supplementary profile (frontend-data-flow) become available globally across all your projects.
 
 #### Desktop app, VS Code, JetBrains
 

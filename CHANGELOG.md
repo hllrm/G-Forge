@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Commit gate no longer fail-open on Windows.** Hook registration used `"matcher": "Bash"` only, but Claude Code on Windows executes shell commands through the PowerShell tool — so the commit gate, sentinel cleanup, and observer never fired there. The `/g-init` scaffold and `/g-update` realign table now register the shell hooks with `Bash|PowerShell`, and `tests/test-check-commit.sh` pins that `check-commit.sh` gates PowerShell-shaped payloads identically to Bash ones (tests 17–18).
+- **`/g-update` now syncs the G-rules section files.** Step 6 only realigned architecture rules; the ten plugin-managed `g-rules-*.md` section files installed by `/g-init` were never refreshed, so rule fixes did not propagate to downstream projects. New Step 6a overwrites the installed sections from `rules/g-rules/` (respecting a project's trimmed preset).
+- **Skill count corrected to 38** in README and the marketplace description (`/g-roundtable` landed after the count was last written).
+
 ## [2.2.1] — 2026-07-01
 
 ### Fixed
