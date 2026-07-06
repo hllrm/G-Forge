@@ -9,8 +9,8 @@
 HANDOFF — g-forge | branch: main | main @ v2.2.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Done this pass:   · **Released v2.2.1** (alveria-forge fixes #25/#26 versioned; full gate cycle self-hosted). · **Root-stray cleanup:** M1–M15 milestone files → `g-docs/milestones/` (only surviving record of M6–M15 drift); legacy brief + todo → `g-docs/archive/root-legacy/`; M27 retro committed. · **Full 3-agent audit** (structure / enforcement / consistency — ~49 findings triaged into M-audit-2026-07). **Headline: two stacked fail-opens found LIVE** — (1) hook matchers were `Bash`-only, so on Windows (PowerShell tool) the gate/cleanup/observer never fired; (2) installed `.claude/hooks/` copies had drifted pre-M27 (Bug A still active locally, doc sentinel never cleared) and nothing could detect it. · **Quick wins merged (`4158ffa`, W0 of M-audit):** matchers → `Bash\|PowerShell` in g-init/g-update + tests 17–18; /g-update Step 6a now syncs the 10 g-rules sections; count → 38. Local hooks realigned + gate loop proven live (deny unsigned → deny same-call smuggle → pass earned → auto-clear). **Downstream projects must run /g-update.** · **Roadmap resequenced (approved):** M-audit-2026-07 (v2.2.2) inserted first; **M35 Memory Forge** (v2.4.0 — linked/layered memory, real `context:` loader, graph-walk /g-resume, opt-in Obsidian) slotted after M29, before M33-B, so shared-state milestones build on the memory substrate. **Bug A (critical):** the commit gate was a NO-OP — `check-commit.sh` used `exit 1` on block paths, but PreToolUse only blocks on `exit 2`/JSON deny, so commits ran anyway (the headline differentiator, broken through v2.2.0, invisible because the test asserted exit 1). Now: `deny()` → deny JSON on stdout + exit 2; test asserts real blocking. **Bug B (high):** review pipeline failed open — a security `High` mapped to no orchestrator bucket → PASS → MERGE READY. Now: orchestrator normalizes (security High→Critical) + any-axis-HOLD⇒FAIL + `AXES:` line honored by code-lead. **Bug C:** auditor return-scales aligned to bodies. New `tests/test-review-severity.sh` (9) pins the contract. **The enforcement layer actually enforces now.** · **M33 — the Roundtable** BUILT (Phase A) + dual-surface validated LIVE (Confluence in-place v1→v2 · Gmail floor draft-and-nod · Drive eliminated). · **ADR-001** (surface adapter + tiers) · **ADR-002** (one HUMAN orchestrator seat, never co-chairs, owns `main`). · **M34 scoped** (cross-session dependency tracking + pull/push, suggest-not-act). · Table→Roundtable rename; cross-cutting propagation rule (g-rules-B + /g-roadmap/g-plan); `/g-resume` polish; project_brief.md created. (10 PRs merged: #17–#26.) · **M29 spec refined + de-risked (master seat, on `claude/g-resume-dogfood-0vu50d`):** A4 step-one **confirmed LIVE** — the official Gmail MCP exposes labels as a mutable register field (`list_labels`/`create_label`/`label_thread`/`unlabel_*`) → build commits to the **Gmail-labels variant** (Drive-doc fallback); two gaps pinned to design — no-CAS (A1 tiebreak+re-read is load-bearing) · shared-account identity (holder/session id lives *in* the claim payload, per A2). Fixed M29 premortem inconsistency ("ship Discord first" → ship official Google first; Discord is community/unofficial, never the reference). · **ADR-003 — Cowork is NOT a G-Forge host** (evaluated on GA): Cowork doesn't fire `.claude/` hooks (#63360/#40495), so the commit gate + enforcement are inert there → CLI/web/Actions stay primary, CLI not deprecated. Cowork-as-future-shared-*surface* (M29/M33 backend) survives; re-probe when Cowork honors hooks.
-Next up:          · **M-audit-2026-07 Wave 1 (P0 enforcement integrity)** — /g-doctor installed-copy drift check (resolved: required, not advisory), commit-detection hardening, sentinel lifecycle design (items 8–10 spike/ADR first), hook test coverage. Then ship v2.2.2. **`/g-plan` in progress on Wave 1's mechanical items (#5/#6/#7/#11):** task-decomposer produced 17 tasks; wave-planner not yet run; paused mid-plan (see below). · **Then M29 Phase A — the register.** Start FRESH. A4's mutable-field question answered (Gmail labels ✓); Phase A proves: is convention (tiebreak + re-read, no CAS) enough? A1 schema → A2 identity/lease → A3 adapter → A4 Gmail-labels adapter over remote MCP, then the two-session collision test. · Then M35 Memory Forge (v2.4.0) → M33 B–D (v2.5.0) → M34 → M30–32. · M26 (deferred) · M25 (compute-gated).
-Active context:   · main @ v2.2.1 + quick-wins merge (`4158ffa`); v2.2.2 ships when M-audit W1 closes. Arc sequence: **M-audit-2026-07 → M29 → M35 → M33 B–D → M34 → M30–M32.** M-audit 🔄 (W0 done, W1 next — items 8–10 need spike/ADR before code); M29 + M34 ⬜ specs in g-docs/milestones/; M35 spec written this pass. Cleanup queue unchanged: Confluence page 109314050 + Drive doc + stale `g-table` Gmail labels — delete or keep as fixtures. Windows note: hook matchers + installed-copy drift were fail-open here — see memory `windows-hook-gotchas`. **New finding #19 (this pass):** every skill's description is hand-authored in up to 3 places (`commands/<name>.md`, `skills/<name>/SKILL.md`, `commands/g-forge.md`'s subcommand line) and has drifted repo-wide (confirmed: g-adr, g-retro, g-review, g-audit, g-plan, g-execute) — a real behavioral disagreement on g-adr, not just wording. Proposed fix (retire standalone command shims, SKILL.md sole source) escalated to `/g-adr` but **paused**: unconfirmed whether two files = two visible entries, a duplicate registration, or Claude Code's inherent short-alias+`plugin:name` pair for one registration regardless of file count — the last reading would mean the fix doesn't reduce visible entries at all. Verifying against a live install in `hllrm/G-Cash` (pulled locally by the developer) before resuming `/g-adr` Step 2. Re-enter with /g-resume.
+Next up:          · **M-audit-2026-07 Wave 1 (P0 enforcement integrity)** — /g-doctor installed-copy drift check (resolved: required, not advisory), commit-detection hardening, sentinel lifecycle design (items 8–10 spike/ADR first), hook test coverage. Then ship v2.2.2. **`/g-plan` in progress on Wave 1's mechanical items (#5/#6/#7/#11):** task-decomposer produced 17 tasks; wave-planner not yet run; paused mid-plan (see below). · **Then M29 Phase A — the register.** Start FRESH. A4's mutable-field question answered (Gmail labels ✓); Phase A proves: is convention (tiebreak + re-read, no CAS) enough? A1 schema → A2 identity/lease → A3 adapter → A4 Gmail-labels adapter over remote MCP, then the two-session collision test. · Then M35 Memory Forge (v2.4.0) → **M37 salience propagation (v2.5.0)** → M33 B–D (v2.6.0) → M34 → M30–32; then **M38 G-Report (v2.7.0) → M39 G-tweak (v2.8.0)**. **M36 salience approach/ADR** slots early, parallel-friendly, gates M37. · M26 (deferred) · M25 (compute-gated).
+Active context:   · main @ v2.2.1 + quick-wins merge (`4158ffa`); v2.2.2 ships when M-audit W1 closes. Arc sequence: **M-audit-2026-07 → M29 → M35 → M37 (salience propagation) → M33 B–D → M34 → M30–M32; then self-improvement track: M38 (G-Report) → M39 (G-tweak). M36 (salience approach/ADR) slots early, parallel-friendly, gates M37.** M-audit 🔄 (W0 done, W1 next — items 8–10 need spike/ADR before code); M29 + M34 ⬜ specs in g-docs/milestones/; M35 spec written this pass. Cleanup queue unchanged: Confluence page 109314050 + Drive doc + stale `g-table` Gmail labels — delete or keep as fixtures. Windows note: hook matchers + installed-copy drift were fail-open here — see memory `windows-hook-gotchas`. **New finding #19 (this pass):** every skill's description is hand-authored in up to 3 places (`commands/<name>.md`, `skills/<name>/SKILL.md`, `commands/g-forge.md`'s subcommand line) and has drifted repo-wide (confirmed: g-adr, g-retro, g-review, g-audit, g-plan, g-execute) — a real behavioral disagreement on g-adr, not just wording. Proposed fix (retire standalone command shims, SKILL.md sole source) escalated to `/g-adr` but **paused**: unconfirmed whether two files = two visible entries, a duplicate registration, or Claude Code's inherent short-alias+`plugin:name` pair for one registration regardless of file count — the last reading would mean the fix doesn't reduce visible entries at all. Verifying against a live install in `hllrm/G-Cash` (pulled locally by the developer) before resuming `/g-adr` Step 2. Re-enter with /g-resume.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -519,6 +519,81 @@ plainly with the reason — don't paper over it.
 
 ---
 
+### M36 — Salience Layer: Approach (priority / severity / impact / relevance)
+**Status:** ⬜ Not started
+**Version:** design/decision (ADR outcome — no standalone bump; the M37 build carries the minor)
+**Goal:** Decide the approach for a **system-wide salience model** — how G-Forge scores **priority / severity / impact / relevance** — so every planning and governance skill reasons about "how much does this matter" instead of hand-waving it. This is the *whole layer* (roadmaps, plans, review, forecast, patterns, the arc's salience gates, G-tweak's de-gate safety), not an ADR- or G-tweak-scoped feature.
+**Scope:**
+- ADR (via `/g-adr`) defining the model: the four dimensions, how each is derived, and a **deterministic, documented rubric** — the model *proposes*, the human overrides, it **never auto-acts** on a score.
+- First-consumer contract anchored to concrete consumers (`/g-roadmap` prioritization, `/g-plan`, the M33-B/M34 salience gates) — not designed in a vacuum.
+- Positioning vs existing scoring (`/g-forecast` risk %, `/g-telemetry` reliability, `/g-review` adaptive intensity, `/g-patterns` frequency buckets): define how salience absorbs, defers to, or complements each so M37 integrates rather than duplicates.
+
+**Depends on:** M-audit-2026-07 (enforcement integrity must be sound before layering a cross-cutting substrate). Independent of M29 — design-only, can run in parallel. Gates M37.
+
+**Premortem:**
+- *Analysis paralysis on a "grand unified" model* (med) → timebox to an approach decision + first-consumer contract; the model can evolve.
+- *Deciding in a vacuum* (med) → anchor to the named consumers, not abstraction.
+
+---
+
+### M37 — Salience Layer: Propagation
+**Status:** ⬜ Not started
+**Version:** v2.5.0 (minor — the salience substrate + its cross-system wiring)
+**Goal:** Implement the M36 salience model and **weave it across the system** so priority/severity/impact/relevance is one shared layer, not per-skill guesswork.
+**Scope (phased — do not require all consumers in one milestone):**
+- Model implementation + highest-value consumers first: `/g-roadmap` (milestone prioritization), `/g-plan` (task/wave priority), and the arc's salience gates (M33-B digests, M34 suggestion salience).
+- Then propagate to the rest: `/g-forecast`, `/g-review`, `/g-patterns`, `/g-adr`.
+- **Cross-cutting propagation (G-RULES §B):** run `/g-blast-radius` to enumerate every skill/hook/rule that must become salience-aware; fold each touchpoint into scope; **done condition is incomplete until the architecture-review completeness gate confirms none was missed.**
+- Rubric is deterministic and documented; salience **proposes**, the human overrides — never auto-acts.
+
+**Depends on:** M36 (the approach decision). Inserted **before M33-B** so the arc consumes one real model instead of hand-rolling gates.
+
+**Premortem:**
+- *Boiling the ocean* (high) → phase it (model + 2–3 consumers first); propagate the rest after.
+- *Forgotten-consumer / island risk* (high) → the §B blast-radius + architecture-review completeness gate is the mitigation, not optional.
+- *Collision with existing scoring* (med) → M36's ADR defines the boundaries; M37 integrates, not duplicates.
+- *Subjective-score drift* (med) → documented rubric; propose-not-act.
+
+---
+
+### M38 — G-Report (outbound incident/feedback reporter)
+**Status:** ⬜ Not started
+**Version:** v2.7.0 (minor — new skill)
+**Goal:** Prepare **scrubbed, project-agnostic `.md` incident/feedback reports** destined for the G-Forge author — the outbound surface G-tweak calls, also invocable standalone.
+**Scope:**
+- Report template(s); project-agnostic scrub mode for sensitive data.
+- **Local-`.md`-first floor:** the guaranteed job is to *prepare* the report; the human sends it. **No automation on any user data.**
+- Opt-in, consent-gated send (Gmail draft-and-nod / GitHub issue on `hllrm/G-Forge`) reusing existing MCP surfaces + ADR-001 draft-and-nod discipline; degrade gracefully (prepared `.md`, you send it) when no MCP is configured.
+- `/g-doctor` leak check — no secrets/tokens/absolute paths in the report.
+- Boundary vs the inward reporters (`/g-retro`, `/g-telemetry`, `/g-patterns`): G-Report is strictly **outbound-to-author, incident/feedback only.**
+
+**Depends on:** — (leaf).
+
+**Premortem:**
+- *Privacy / exfiltration* (high) → local-first floor + consent-gated send + scrub default + `/g-doctor` check.
+- *Transport MCP absent on a surface* (med) → degrade to "prepared `.md`, you send it"; never block.
+
+---
+
+### M39 — G-tweak (periodic self-feedback + safe self-tune)
+**Status:** ⬜ Not started
+**Version:** v2.8.0 (minor — new skill; Phase A ships it, B/C fold in as they land)
+**Goal:** Every N milestones, **offer (never enforce)** an interview on how G-Forge is serving the user — what's working (to *protect*) and what's friction (gating / overplanning / bottlenecks / poor performance) — then optionally self-tune and/or report out.
+**Scope (phased):**
+- **Phase A — Interview core:** offered every N (3–5, configurable) milestones; asks **both poles**; on decline it self-schedules (resurface in X milestones) or deactivates; **deactivation is flagged by `/g-doctor`** — allowed, never silent. Depends on nothing.
+- **Phase B — Report-out:** action-(b) **calls G-Report** (M38).
+- **Phase C — Safe self-tune:** action-(a) proposes local tweaks, **structurally barred from the commit gate / enforcement sentinels**; uses the M37 salience layer to distinguish needless bureaucracy from load-bearing enforcement; every tweak approve-before-write.
+- **No automation on any user data**, ever.
+
+**Depends on:** M38 (Phase B), M37 (Phase C). Phase A is standalone.
+
+**Premortem:**
+- *De-gating drift erodes the differentiator* (high) → action-(a) barred from enforcement; gated on M37; approve-before-write.
+- *Reintroduces the interview M19 removed* (med) → offered-not-enforced + self-schedule/deactivate; framed as meta-feedback, distinct from session retro.
+- *Silent deactivation* (low, mitigated) → `/g-doctor` flags it.
+
+---
+
 ## Backlog
 
 ### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
@@ -544,7 +619,7 @@ A brainstormed approach — coordinate through an always-available, instantly-vi
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
        → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
-       → v2.3.0 (M29 — multiplayer phase one) → v2.4.0+ (multiplayer arc: **M33 — the Roundtable** [Phase A standalone, already built] → **M34 — cross-session dependency tracking + pull/push orchestration**, the arc's spine, spike-gated on M29; M30–M32 mechanics reconcile against M34) · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
+       → v2.2.2 (M-audit-2026-07 — Forge Integrity) → v2.3.0 (M29 — multiplayer phase one) → v2.4.0 (M35 — Memory Forge) → **v2.5.0 (M37 — Salience Layer propagation; M36 approach/ADR is design-only, gates M37, slots early)** → **v2.6.0 (M33 B–D — the Roundtable)** → M34 (cross-session dependency tracking + pull/push orchestration, arc spine) → M30–M32 mechanics reconcile against M34 → **v2.7.0 (M38 — G-Report)** → **v2.8.0 (M39 — G-tweak)** · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
