@@ -63,7 +63,7 @@ CMD=$(extract_cmd "$INPUT")
 # still contains "command":"git commit …". Fails toward enforcing the gate.
 [ -z "$CMD" ] && CMD="$INPUT"
 
-if echo "$CMD" | grep -q "git commit"; then
+if printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]-])git([[:space:]]+-[cC][[:space:]]*[^[:space:]]+)*[[:space:]]+commit([[:space:]]|$)'; then
     # Integration tier check — `light` disables the commit gate entirely.
     # Validate the value against the known tier set; unknown/garbage values
     # fall through safely to the gate path (default = enforcement).
@@ -91,6 +91,82 @@ if echo "$CMD" | grep -q "git commit"; then
     # Unmatched paths default to CODE (the stricter gate) so a misclassification
     # never weakens enforcement.
     STAGED=$(git diff --cached --name-only 2>/dev/null)
+    # `git commit -a`/`--all` auto-stages every modified TRACKED file at commit
+    # time — the index at the moment this hook runs (pre-commit) does not yet
+    # reflect that. Without this, a code file left unstaged rides along under
+    # a doc-only (or under-scoped) sentinel. Detect -a/--all as a standalone
+    # word on the commit command (also matches combined short flags like -am,
+    # -avm — a single '-' cluster containing 'a', not part of a '--' long
+    # option) and, when present, widen the classifier's input to the UNION of
+    # staged paths and modified-but-unstaged tracked paths (git diff
+    # --name-only) — the exact set -a would fold into the index. Absent
+    # -a/--all, behavior is unchanged (staged set only).
+    if printf '%s' "$CMD" | grep -qE '(^|[[:space:]])(-[a-zA-Z]*a[a-zA-Z]*|--all)([[:space:]]|$)'; then
+        UNSTAGED=$(git diff --name-only 2>/dev/null)
+        STAGED=$(printf '%s\n%s\n' "$STAGED" "$UNSTAGED" | sort -u)
+    fi
+    # Explicit pathspec arguments — `git commit <pathspec>...` or
+    # `git commit -- <pathspec>...` commits the NAMED paths (plus whatever of
+    # them is already staged), independent of the rest of the index. Without
+    # this, `git commit -m "fix" hooks/thing.sh` against an empty (or
+    # doc-only) index would misclassify a code commit as doc/none. Isolate
+    # the substring of CMD after the `commit` keyword, tokenize it, and walk
+    # the tokens:
+    #   - after a literal `--` token, every remaining token is a pathspec.
+    #   - before `--`, a token starting with `-` is a flag: skip it, and if
+    #     it is one of the known value-taking flags (-m/--message,
+    #     -c/-C/--reuse-message/--reedit-message, -F/--file, -A/--author,
+    #     --date, --template, --fixup, --squash, --trailer), also skip the
+    #     NEXT token (its value — e.g. the `-m "msg"` message text is not a
+    #     pathspec). `--opt=value` forms are self-contained (no extra token
+    #     to skip).
+    #   - any other token is a positional pathspec candidate.
+    # Full git-alias resolution is out of scope. Absent any positional
+    # pathspec, behavior is unchanged (staged/union set only).
+    PATHSPECS=""
+    _after_commit=$(printf '%s' "$CMD" | sed -E 's/^.*[[:space:]]commit([[:space:]]|$)//')
+    if [ -n "$_after_commit" ]; then
+        _tokens=()
+        # Tokenize WITHOUT eval — eval re-parses the string as shell code and would
+        # execute command substitutions/backticks embedded in the commit command
+        # (even when the gate ultimately DENIES the commit). xargs does shell-style
+        # quote-and-whitespace splitting but never evaluates $(...), backticks, or
+        # variables, so a crafted `-m "$(...)"` message is treated as inert text.
+        while IFS= read -r _tok_line; do
+            _tokens+=("$_tok_line")
+        done < <(printf '%s' "$_after_commit" | xargs -n1 2>/dev/null)
+        _seen_dashdash=0
+        _skip_next=0
+        for _tok in "${_tokens[@]}"; do
+            if [ "$_skip_next" -eq 1 ]; then
+                _skip_next=0
+                continue
+            fi
+            if [ "$_seen_dashdash" -eq 0 ]; then
+                if [ "$_tok" = "--" ]; then
+                    _seen_dashdash=1
+                    continue
+                fi
+                case "$_tok" in
+                    -m|--message|-c|--reuse-message|-C|--reedit-message|-F|--file|-A|--author|--date|--template|--fixup|--squash|--trailer)
+                        _skip_next=1
+                        continue
+                        ;;
+                    --message=*|--reuse-message=*|--reedit-message=*|--file=*|--author=*|--date=*|--template=*|--fixup=*|--squash=*|--trailer=*)
+                        continue
+                        ;;
+                    -*)
+                        continue
+                        ;;
+                esac
+            fi
+            PATHSPECS="$PATHSPECS
+$_tok"
+        done
+    fi
+    if [ -n "$(printf '%s' "$PATHSPECS" | tr -d '[:space:]')" ]; then
+        STAGED=$(printf '%s\n%s\n' "$STAGED" "$PATHSPECS" | sort -u)
+    fi
     HAS_CODE=0
     HAS_DOC=0
     while IFS= read -r _f; do
