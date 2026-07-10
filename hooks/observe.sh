@@ -76,8 +76,14 @@ CMD=$(extract_cmd "$INPUT")
 [ -z "$CMD" ] && exit 0
 
 # Journal only meaningful workflow events — not every `ls` and `cat`.
+# Commit detection is hardened ahead of the case: a glob pattern can't express
+# tolerance for `-C <path>` / `-c key=value` global flags between `git` and
+# `commit`, so probe with the same regex the sibling hooks use before the case.
+if printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]-])git([[:space:]]+-[cC][[:space:]]*[^[:space:]]+)*[[:space:]]+commit([[:space:]]|$)'; then
+    append "commit" "$CMD"
+    exit 0
+fi
 case "$CMD" in
-    *"git commit"*)                          append "commit"      "$CMD" ;;
     *"git push"*)                            append "push"        "$CMD" ;;
     *"git merge"*)                           append "merge"       "$CMD" ;;
     *"git checkout -b"*|*"git switch -c"*)   append "branch"      "$CMD" ;;

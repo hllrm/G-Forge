@@ -41,7 +41,7 @@ CMD=$(extract_cmd "$INPUT")
 # No parser yielded a command (missing/stubbed) → grep the raw payload.
 [ -z "$CMD" ] && CMD="$INPUT"
 
-if echo "$CMD" | grep -q "git commit"; then
+if printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]-])git([[:space:]]+-[cC][[:space:]]*[^[:space:]]+)*[[:space:]]+commit([[:space:]]|$)'; then
     rm -f ".claude/g-forge-approved"
     rm -f ".claude/g-forge-docs-approved"
 fi
