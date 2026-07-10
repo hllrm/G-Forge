@@ -1,0 +1,117 @@
+#!/bin/bash
+# Unit tests for hooks/post-commit-cleanup.sh (PostToolUse hook).
+# Verifies: review-approval sentinels (.claude/g-forge-approved,
+# .claude/g-forge-docs-approved) are removed after a git commit.
+# Runs entirely inside a throwaway fixture dir so the suite never mutates
+# the repo's own .claude/ state.
+
+SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/post-commit-cleanup.sh"
+SENTINEL_CODE=".claude/g-forge-approved"
+SENTINEL_DOCS=".claude/g-forge-docs-approved"
+PASS=0
+FAIL=0
+
+# run <name> <input-json>
+# Invokes the hook with the given PostToolUse JSON payload and verifies that
+# both sentinels are removed.
+run() {
+    local name="$1" input="$2"
+
+    # Create fresh sentinel files before each test
+    touch "$SENTINEL_CODE"
+    touch "$SENTINEL_DOCS"
+
+    # Feed the payload to the hook (exit code irrelevant; side effects matter)
+    printf '%s' "$input" | bash "$SCRIPT" >/dev/null 2>&1
+
+    # Check if BOTH sentinels were removed
+    if [ ! -f "$SENTINEL_CODE" ] && [ ! -f "$SENTINEL_DOCS" ]; then
+        echo "PASS: $name"; PASS=$((PASS+1))
+    else
+        local code_status="exists" docs_status="exists"
+        [ ! -f "$SENTINEL_CODE" ] && code_status="removed"
+        [ ! -f "$SENTINEL_DOCS" ] && docs_status="removed"
+        echo "FAIL: $name (g-forge-approved=$code_status, g-forge-docs-approved=$docs_status)"; FAIL=$((FAIL+1))
+    fi
+}
+
+# run_no_cleanup <name> <input-json>
+# Invokes the hook with the given JSON payload and verifies that sentinels
+# are NOT removed (for non-commit commands or lack of guard file).
+run_no_cleanup() {
+    local name="$1" input="$2"
+
+    # Create fresh sentinel files before each test
+    touch "$SENTINEL_CODE"
+    touch "$SENTINEL_DOCS"
+
+    # Feed the payload to the hook
+    printf '%s' "$input" | bash "$SCRIPT" >/dev/null 2>&1
+
+    # Check if BOTH sentinels were NOT removed
+    if [ -f "$SENTINEL_CODE" ] && [ -f "$SENTINEL_DOCS" ]; then
+        echo "PASS: $name"; PASS=$((PASS+1))
+    else
+        local code_status="exists" docs_status="exists"
+        [ ! -f "$SENTINEL_CODE" ] && code_status="removed"
+        [ ! -f "$SENTINEL_DOCS" ] && docs_status="removed"
+        echo "FAIL: $name (g-forge-approved=$code_status, g-forge-docs-approved=$docs_status)"; FAIL=$((FAIL+1))
+    fi
+}
+
+# Isolate all .claude state in a temp fixture — the hook resolves .claude
+# relative to CWD, so running here keeps the real project untouched.
+WORKDIR="$(mktemp -d)"
+cd "$WORKDIR" || { echo "FAIL: could not enter fixture dir"; exit 1; }
+mkdir -p .claude
+# The hook self-guards to G-Forge-managed projects (presence of
+# .claude/integration-tier). Mark this fixture as one so the guard is active.
+printf 'full\n' > .claude/integration-tier
+
+# Make the fixture a real git repo
+git init -q 2>/dev/null
+git config user.email "test@g-forge.local" 2>/dev/null
+git config user.name "g-forge-test" 2>/dev/null
+
+# ── Wave 1 Hardening Tests (#6) ──────────────────────────────────────────
+
+# 1: git -C <path> commit → removes both sentinels (hardening #6)
+run "git -C /some/path commit removes both sentinels" \
+    '{"tool_name":"Bash","tool_input":{"command":"git -C /some/path commit -m \"x\""}}'
+
+# 2: git -c key=value commit → removes both sentinels (hardening #6)
+run "git -c user.name=x commit removes both sentinels" \
+    '{"tool_name":"Bash","tool_input":{"command":"git -c user.name=test commit -m \"x\""}}'
+
+# 3: Plain git commit → removes both sentinels (baseline, should continue working)
+run "git commit removes both sentinels" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}'
+
+# 4: npm test (non-commit command) → sentinels remain
+run_no_cleanup "non-commit command leaves sentinels intact" \
+    '{"tool_name":"Bash","tool_input":{"command":"npm test"}}'
+
+# ── Guard Behavior Test ──────────────────────────────────────────────────
+
+# 5: Outside a G-Forge project (no .claude/integration-tier) → hook is inert
+cd "$WORKDIR" || exit 1
+rm -f .claude/integration-tier
+touch "$SENTINEL_CODE"
+touch "$SENTINEL_DOCS"
+printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"x\""}}'  \
+    | bash "$SCRIPT" >/dev/null 2>&1
+if [ -f "$SENTINEL_CODE" ] && [ -f "$SENTINEL_DOCS" ]; then
+    echo "PASS: hook is inert outside G-Forge projects (sentinels remain)"; PASS=$((PASS+1))
+else
+    echo "FAIL: hook fired outside G-Forge project guard"; FAIL=$((FAIL+1))
+fi
+
+# Restore the guard for remaining tests
+printf 'full\n' > .claude/integration-tier
+
+# Clean up the fixture
+cd / && rm -rf "$WORKDIR"
+
+echo ""
+echo "Results: $PASS passed, $FAIL failed"
+[ "$FAIL" -eq 0 ] || exit 1

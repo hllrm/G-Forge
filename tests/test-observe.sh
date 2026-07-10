@@ -42,6 +42,9 @@ check "go test → test"                 "test"        "$(kind_of 'go test ./...
 check "rm -rf → destructive"           "destructive" "$(kind_of 'rm -rf build')"
 check "ls (noise) → skipped"           ""            "$(kind_of 'ls -la')"
 check "cat (noise) → skipped"          ""            "$(kind_of 'cat file.txt')"
+# Hardening #6 — commit detection tolerates -C/-c global flags before `commit`.
+check "git -C path commit → commit"    "commit"      "$(kind_of 'git -C /some/path commit -m x')"
+check "git -c config commit → commit"  "commit"      "$(kind_of 'git -c user.name=x commit -m x')"
 
 # Stub safety: shadow every JSON parser (jq/python3/node) with exit-1 stubs
 # prepended to the real PATH, so no parser yields a command. The raw-payload
