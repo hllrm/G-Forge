@@ -221,6 +221,77 @@ run "PowerShell-tool git commit allowed with sign-off" \
     0
 rm -f "$SENTINEL"
 
+# 19: Regression — `git -C <path> commit` is now caught (commit #6 hardening).
+# Previously, this would bypass the gate. Verify it is now blocked when no sentinel.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+run "git -C path commit blocked without sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git -C /tmp/subdir commit -m \"feat: from subdir\""}}' \
+    2
+
+# 20: Regression — `git -c key=value commit` is now caught (commit #6 hardening).
+# Previously, this would bypass the gate. Verify it is now blocked when no sentinel.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+run "git -c config commit blocked without sign-off" \
+    '{"tool_name":"Bash","tool_input":{"command":"git -c user.name=testuser commit -m \"feat: with config\""}}' \
+    2
+
+# 21: Regression — #7 `-a`/`--all` fix: `git commit -a` must consider
+# modified-but-unstaged tracked files (not just the staged set). Scenario:
+# a code file (hooks/thing.sh) exists and is modified but NOT staged, only
+# the DOC sentinel is present. `git commit -a` should auto-stage the code
+# file via the -a flag, then classify the commit as mixed or code, and block
+# because the code sentinel is missing. Before fix #7, this would wrongly pass
+# as doc-only because the classifier only looked at the staged set.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$DOCS_SENTINEL"
+# Create and track a code file, then modify it (without staging)
+mkdir -p hooks
+printf 'x\n' > hooks/thing.sh
+git add hooks/thing.sh >/dev/null 2>&1
+git commit -q -m "initial: track code file" 2>/dev/null
+printf 'y\n' > hooks/thing.sh
+# Unstage everything from prior cases (but keep tracked files tracked)
+git reset -q 2>/dev/null
+# Stage only a doc file; the code file is modified but unstaged
+mkdir -p g-docs
+printf 'x\n' > g-docs/notes.md
+git add g-docs/notes.md >/dev/null 2>&1
+run "git commit -a with unstaged code blocked when only doc sentinel present" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -a -m \"fix: code + docs\""}}' \
+    2
+rm -f "$DOCS_SENTINEL"
+
+# 22: Regression — #7 explicit-pathspec fix: when `git commit <pathspec>` is used,
+# the pathspec argument names code paths that the classifier must include in the
+# file-set classification, even if the staged index alone is doc-only. Scenario:
+# only the DOC sentinel is present (no CODE sentinel), hooks/thing.sh exists as
+# a tracked file, only a doc file is staged, and `git commit hooks/thing.sh -m "fix"`
+# is executed. The pathspec pulls hooks/thing.sh (code) into the classification,
+# making it mixed (code + doc), so it should block due to missing CODE sentinel.
+# Before fix #7, this would wrongly pass as doc-only because the classifier
+# ignored the explicit pathspec and only inspected the staged set.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+echo "approved" > "$DOCS_SENTINEL"
+# Ensure hooks/thing.sh is tracked (commit to history to make it tracked)
+mkdir -p hooks
+printf 'x\n' > hooks/thing.sh
+git add hooks/thing.sh >/dev/null 2>&1
+git commit -q -m "case 22: track code file" 2>/dev/null
+# Use git reset -q to unstage but keep files tracked (not git rm -r --cached)
+git reset -q 2>/dev/null
+# Stage only a doc file; code file is tracked but unstaged
+mkdir -p g-docs
+printf 'x\n' > g-docs/notes.md
+git add g-docs/notes.md >/dev/null 2>&1
+# Run commit with explicit pathspec naming the code file — should block because
+# the pathspec adds a code file to the staged-set union during classification
+run "git commit with explicit code pathspec blocked when only doc sentinel present" \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit hooks/thing.sh -m \"fix: code via pathspec\""}}' \
+    2
+rm -f "$DOCS_SENTINEL"
+
 # Reset the index so any later cases see a clean (empty) staged set.
 stage
 

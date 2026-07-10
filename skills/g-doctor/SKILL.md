@@ -1,11 +1,11 @@
 ---
 name: g-doctor
-description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel. Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
+description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel, and no installed-copy drift (hashes the installed hooks against plugin source to catch silently stale copies). Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
 ---
 
 Announce: "Using g-doctor to check project health."
 
-Run all 20 checks below against the current working directory, then output the report in the exact format specified. Checks 1–15 are required (✓/✗). Checks 16–20 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total.
+Run all 22 checks below against the current working directory, then output the report in the exact format specified. Checks 1–16 are required (✓/✗). Checks 17–21 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total. Check 22 (Roundtable security) is advisory/conditional — it only runs when a Roundtable is bound.
 
 ## Checks
 
@@ -111,25 +111,43 @@ G-Forge hooks must be registered in exactly ONE place — `.claude/settings.json
 - Fail (manifest + project): ✗ [script] registered by BOTH the plugin manifest and settings.json — double-fires every session
   → Update the plugin (`/g-update`, or reinstall) so the manifest registers no hooks; `.claude/settings.json` is the single registrar.
 
-**16. CLAUDE.md architecture rules format** (advisory)
+**16. Installed-copy drift**
+The plugin source (`hooks/`) is the canonical copy of each hook script; `/g-init` and `/g-update` copy it into `.claude/hooks/`. If the installed copy drifts from the canonical source (e.g. a manual edit, or an update that didn't get re-synced), the project silently runs stale hook logic. For each of the 7 canonical hook scripts (`check-commit.sh`, `workflow-checkpoint.sh`, `post-commit-cleanup.sh`, `pre-compact.sh`, `session-start.sh`, `observe.sh`, `agent-lifecycle.sh`) in `hooks/` (plugin source), hash-compare against its installed counterpart in `.claude/hooks/`. Use a portable hash cascade — try `sha256sum`, fall back to `shasum -a 256`, fall back to `cksum`:
+```bash
+hash_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    cksum "$1" | awk '{print $1, $2}'
+  fi
+}
+```
+- Pass (per file): installed copy exists AND its hash matches the canonical source in `hooks/`.
+- Pass (overall): ✓ Installed hooks match plugin source (no drift)
+- Fail (per file): ✗ [script] installed copy differs from plugin source (drift)
+  → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
+
+**17. CLAUDE.md architecture rules format** (advisory)
 Read `CLAUDE.md`. For each `<!-- G-Forge [stack] Architecture Rules` block, count the non-empty lines between the opening and closing markers. If any block has more than 3 lines of content, it is using the legacy inline format.
 - Pass: ✓ CLAUDE.md architecture rules compact (@reference format)
 - Advisory: ⚠ CLAUDE.md has [N] inline architecture block(s) — legacy format
   → Run `/g-update` to extract inline rules to `.claude/rules/` and compact CLAUDE.md automatically.
 
-**17. CLAUDE.md total size** (advisory)
+**18. CLAUDE.md total size** (advisory)
 Count the total lines in `CLAUDE.md`.
 - Pass (≤150 lines): ✓ CLAUDE.md compact ([N] lines)
 - Advisory (>150 lines): ⚠ CLAUDE.md is [N] lines — may contain inline rules content
   → Run `/g-update` to migrate inline rules to `.claude/rules/` files.
 
-**18. No leftover legacy `g-team` plugin** (advisory)
+**19. No leftover legacy `g-team` plugin** (advisory)
 G-Forge was formerly named `g-team`; the rename created a new plugin rather than replacing the old one, so a leftover `g-team` install duplicates every `/g-*` command. Check `~/.claude/plugins/cache/g-team` and any `"g-team"` entry in `~/.claude/plugins/config.json`.
 - Pass (absent): ✓ No legacy g-team plugin — commands are g-forge only
 - Advisory (present): ⚠ Legacy g-team plugin still installed — every /g-* command is duplicated
   → Remove it via `/plugin` → Installed → g-team → Uninstall (then re-run `/g-update`).
 
-**19. `.gitignore` vets G-Forge artifacts** (advisory)
+**20. `.gitignore` vets G-Forge artifacts** (advisory)
 The `.gitignore` is the boundary between the project record (tracked) and runtime/dev artifacts (ignored). `/g-init` writes it; this check confirms it still holds. Read `.gitignore`.
 - It must **ignore** the runtime artifacts: the commit-gate sentinels (`.claude/g-forge-approved`, `.claude/g-forge-docs-approved`), the observer journal (`.claude/journal/`), and the regenerable agent output (`g-docs/agent-output/`).
 - It must **not ignore** anything tracked-by-design: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, `g-docs/decisions/`, `g-docs/retros/`, or `g-wiki/`. (Watch for over-broad bare patterns — e.g. a literal `todo.md` or `milestones/` line will wrongly ignore the `g-docs/` copies.)
@@ -141,7 +159,7 @@ The `.gitignore` is the boundary between the project record (tracked) and runtim
 - Advisory (tracked path ignored): ⚠ .gitignore ignores [path] — project record won't be committed
   → Remove or scope the over-broad pattern so the `g-docs/` project record stays tracked.
 
-**20. No stray G-Forge documents** (advisory)
+**21. No stray G-Forge documents** (advisory)
 Every G-Forge document belongs under `g-docs/` (project record) or `g-wiki/` (human-facing). This check finds strays that drifted elsewhere — usually tracking files left at the project root from before the `g-docs/` migration, or ADR/retro folders created in the wrong place. Look for:
 - `ROADMAP.md`, `todo.md`, `todo-done.md`, or `project_brief.md` at the **project root** (canonical home is `g-docs/`).
 - A `milestones/` directory at the **project root** (canonical home is `g-docs/milestones/`).
@@ -160,7 +178,7 @@ find . -type d \( -name decisions -o -name retros -o -name forecasts -o -name te
     `git mv ROADMAP.md g-docs/ROADMAP.md` · `git mv milestones g-docs/milestones` (etc.)
   → Offer to run the moves now. After moving, update any references with `/g-update`, and confirm nothing still points at the old root path.
 
-**21. Roundtable security** (advisory — only when a Roundtable is bound)
+**22. Roundtable security** (advisory — only when a Roundtable is bound)
 Runs only if `.claude/roundtable` exists (the M33 Roundtable bind record). Guards the two failure modes from ADR-001's premortem: a leaked credential and a world-readable Doc.
 ```bash
 [ -f .claude/roundtable ] || echo "no Roundtable bound — skip"
@@ -213,10 +231,10 @@ G-Forge Doctor ─────────────────────�
     [→ fix instruction if failed]
   [✓/✗ line for check 15]
     [→ fix instruction if failed]
+  [✓/✗ line for check 16]
+    [→ fix instruction if failed]
 
   Advisory
-  [✓/⚠ line for check 16]
-    [→ fix instruction if advisory]
   [✓/⚠ line for check 17]
     [→ fix instruction if advisory]
   [✓/⚠ line for check 18]
@@ -225,13 +243,17 @@ G-Forge Doctor ─────────────────────�
     [→ fix instruction if advisory]
   [✓/⚠ line for check 20]
     [→ fix instruction if advisory]
+  [✓/⚠ line for check 21]
+    [→ fix instruction if advisory]
+  [✓/⚠ line for check 22]
+    [→ fix instruction if advisory]
 ────────────────────────────────────────────────
-[N/15 required checks passed]
+[N/16 required checks passed]
 ```
 
 Fix instructions are indented with four spaces and prefixed with `→ `, and appear only on failing or advisory checks.
 
 After the summary count line, add one blank line, then:
-- If all 15 required checks passed and no advisories: `All checks passed. Project is healthy.`
-- If all 15 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact and the document layout clean.`
+- If all 16 required checks passed and no advisories: `All checks passed. Project is healthy.`
+- If all 16 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact and the document layout clean.`
 - If any required check failed: `Fix the issues above, then re-run /g-doctor.`
