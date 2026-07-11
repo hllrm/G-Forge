@@ -597,6 +597,42 @@ plainly with the reason — don't paper over it.
 
 ---
 
+### M40 — Reference Convention (recognize-and-vet external material)
+**Status:** ⬜ Not started
+**Version:** v2.9.0 (minor — new recognized folder class + classifier arm + doctor advisory + intake questions + optional ADR field)
+**Goal:** Name the one committed-content class the taxonomy can't see — human-curated external material a project builds *against* but never *from* (pinned corpora, design handoffs, spec copies) — stop the commit gate mis-gating it, and let `/g-doctor` vet its provenance discipline. **Recognize-and-vet, never own-and-generate.**
+
+**Origin:** the `reference/` convention already runs in the wild in `keyline` (root `reference/`, `SNAPSHOT.md`/`NOTE.md` provenance notes) and was independently reinvented — divergently — in `omnibook` (same corpus, squatting inside `g-docs/`). Two projects, two placements → no rule exists. Full evidence + options in the reference-folder report (advisory, Francesco / CryusFrey, 2026-07-11).
+
+**Scope (waved):**
+- **Wave 1 — Gate safety** (the load-bearing fix; independently shippable):
+  - `hooks/check-commit.sh`: new **REFERENCE** classifier class (not DOC — a frozen snapshot has no code-it-describes), **exempt-with-advisory** and **marker-gated** — a `reference/*` path is exempt only if its top-level bundle carries a `SNAPSHOT.md`/`NOTE.md`; unmarked paths fall through to CODE, real code under `reference/` still gates.
+  - `rules/g-rules/I-project-tracking.md`: one taxonomy row — root `reference/` = **external + human-ported + frozen** (all three or it doesn't go in), git-tracked, **never machine-written**.
+  - `skills/g-init/SKILL.md` Step 5a + `.gitignore`: "never ignore `reference/`".
+  - Tests: marked reference-only commit passes without a code sentinel; unmarked `reference/` path still gates; code-extension file under `reference/` still gates.
+- **Wave 2 — Visibility & non-contamination:**
+  - `skills/g-doctor/SKILL.md` advisory: every top-level bundle carries a note; flag code-extension files under `reference/`; **flag reference-like bundles squatting inside `g-docs/`** (turns omnibook's state into a detectable finding).
+  - Scope guard: one "skip `reference/` unless explicitly pointed at it" line in `/g-audit`, `/g-optimize`, `/g-refactor`, and Explore-style deep reads (stops scanners reporting SOLID violations in frozen material — the machine-write corruption vector).
+  - Intake: one question in `g-onboard` + `g-kickoff` — *"Any specs, design handoffs, or reference corpora this project builds against?"*
+- **Wave 3 — Provenance link:**
+  - `skills/g-adr/SKILL.md`: optional `Derives from:` field (path to a `reference/` artifact + snapshot edition) + one back-link confirmation step — closes the ADR↔snapshot loop that already broke once in keyline.
+  - `SNAPSHOT.md`/`NOTE.md` template blurb: a **License / permission-to-commit** line (Chromium `README.chromium` precedent) + the **external+human-ported+frozen** inclusion test.
+
+**Explicitly out of scope:** scaffolding an empty `reference/` into every project, a `/g-reference` skill, delta-check machinery, and any default read or write of `reference/` by any skill or agent (YAGNI — keyline ran the whole pattern with zero plugin support).
+
+**Depends on:** M-audit-2026-07 (v2.2.2) — shares `check-commit.sh` + `g-doctor`; land after the enforcement-integrity fixes, not concurrent. Otherwise independent of the memory/salience/multiplayer arc.
+
+**Sequencing note:** slotted at the tail (v2.9.0) to avoid renumbering the planned M29→M39 lane. **Wave 1 is a pull-forward candidate** — the reference-only mis-gate is a live enforcement fail-open, thematically M-audit's own territory, and could ship as a `v2.2.x` patch ahead of the arc if the developer wants the gate honest sooner.
+
+**Premortem:**
+- *Gate softening leaks* (med) → REFERENCE exemption becomes a code-smuggling path. Mitigation in scope: marker-gated exemption (unmarked → CODE) + doctor flags code-extension files under `reference/`.
+- *Taxonomy scope creep* (med — the named failure mode) → one class implies a doctor check implies g-update handling implies docs. Mitigation: hard-scope to the three waves; Phase-4 primitive stays backlog; no scaffold/skill; re-confirm at each wave close that nothing crept.
+- *Name collision on onboarded repos* (low) → `reference/` is a common dir with unrelated semantics. Mitigation: doctor check is **opt-in by marker** (bundle note present, or CLAUDE.md declares the convention); g-onboard asks, never assumes.
+
+**Cross-cutting propagation (G-RULES §B):** the REFERENCE classifier class is a shared primitive the gate, doctor, intake, and scanning skills must all respect — that is why Wave 2's scope-guard line and doctor check are folded *into* this milestone, not left as follow-ups. Run `/g-blast-radius` at Wave 1 close to confirm no reader (skill, hook, or rule) was missed.
+
+---
+
 ## Backlog
 
 ### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
@@ -616,13 +652,18 @@ A brainstormed approach — coordinate through an always-available, instantly-vi
 
 ---
 
+### Candidate — Unified Provenance Primitive (decide, don't build)
+Two independent inventions describe the same shape: **a pinned external source + a provenance note + the rule that change lives in the decision layer, not a silent swap.** M40's `reference/` `SNAPSHOT.md` (source pin + deriving-ADR + delta-not-swap rule) and the alveria-forge fork's `al-docs/UPSTREAM.md` (pinned upstream commit + PORTED/DROPPED/DIVERGED ledger + on-release review checklist) each reinvented it — one for external corpora, one for upstream lineage. Worth an ADR to **name the primitive once** so both share a template, instead of solving provenance twice. **YAGNI on tooling** — no skill, no scaffold; the decision is whether it's one named g-forge concept. Gated behind M40 shipping (it needs one concrete instance in-tree first).
+
+---
+
 ## Version Plan
 
 ```
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
        → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
-       → v2.2.2 (M-audit-2026-07 — Forge Integrity) → v2.3.0 (M29 — multiplayer phase one) → v2.4.0 (M35 — Memory Forge) → **v2.5.0 (M37 — Salience Layer propagation; M36 approach/ADR is design-only, gates M37, slots early)** → **v2.6.0 (M33 B–D — the Roundtable)** → M34 (cross-session dependency tracking + pull/push orchestration, arc spine) → M30–M32 mechanics reconcile against M34 → **v2.7.0 (M38 — G-Report)** → **v2.8.0 (M39 — G-tweak)** · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
+       → v2.2.2 (M-audit-2026-07 — Forge Integrity) → v2.3.0 (M29 — multiplayer phase one) → v2.4.0 (M35 — Memory Forge) → **v2.5.0 (M37 — Salience Layer propagation; M36 approach/ADR is design-only, gates M37, slots early)** → **v2.6.0 (M33 B–D — the Roundtable)** → M34 (cross-session dependency tracking + pull/push orchestration, arc spine) → M30–M32 mechanics reconcile against M34 → **v2.7.0 (M38 — G-Report)** → **v2.8.0 (M39 — G-tweak)** → **v2.9.0 (M40 — Reference Convention; Wave 1 pull-forward candidate to a v2.2.x patch)** · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
