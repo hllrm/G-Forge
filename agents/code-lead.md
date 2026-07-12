@@ -29,6 +29,7 @@ When invoked after implementation waves are complete. Invoked by `project-manage
 ### Step 1 — Verify done conditions
 For each task in the wave, check its done condition mechanically:
 - **If the calling prompt explicitly attests a result** (e.g. "type-check exited 0", "tests passed — output below") — accept the attestation as PASS. Do NOT re-run the same command. Expensive commands like `tsc --noEmit`, `vue-tsc --noEmit`, or full test suites must never be re-run if an attested result is provided; re-running doubles runtime with no benefit.
+  - **Test done-conditions require execution evidence.** A "tests pass" done condition counts as PASS **only** when the attestation includes actual runner output (framework + pass/fail counts) from a real run. A test task backed only by an agent's self-declared completion — especially `test-writer`, which has no execution tool and returns `WRITTEN` (authored, not run) — is **UNVERIFIED and FAILs** until the suite has actually been executed and its output shown. "Tests written" is never "tests pass" (M-audit finding #20).
 - **If no attestation is provided** for a done condition — run the minimum command needed to verify it, or check file existence. Prefer `grep`/`glob`/`read` over executing compilation or test commands when the condition can be verified structurally.
 - A done condition that cannot be verified is a FAIL — do not proceed until it is resolved.
 - Report every result: `[task N] done condition: PASS (attested) | PASS (verified) | FAIL — [detail]`
@@ -93,5 +94,5 @@ DETAIL: [output_file path]
 - A HOLD verdict requires every blocking item to be fixed AND re-reviewed before issuing MERGE READY.
 - Done conditions are binary — no partial credit.
 - If a task has no done condition defined, flag it as a process gap and treat it as FAIL.
-- **Trust attested results.** If HQ states that tests pass, type-check exits 0, or lint is clean — accept it. Do not re-run. Only re-verify if you have specific, articulable reason to doubt the attestation (e.g. the output looks truncated or contradicts a finding in the diff).
+- **Trust attested results — but a test attestation must carry run evidence.** If HQ states that type-check exits 0 or lint is clean — accept it, do not re-run. For **tests specifically**, "pass" is only attested when actual runner output (pass/fail counts) is present; a bare "tests done/written" — or any result from an agent that cannot execute (`test-writer` → `WRITTEN`) — is UNVERIFIED and blocks MERGE READY until the suite is really run. Only re-verify otherwise if you have specific reason to doubt an attestation (truncated output, contradicts a diff finding).
 - **Minimize Bash usage.** Prefer Read, Glob, and Grep for structural checks. Avoid compiling or running test suites independently — they are slow and add no signal if already attested.

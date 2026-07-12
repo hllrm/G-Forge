@@ -46,7 +46,8 @@ Write a summary of what was tested to the `output_file` path passed in your disp
 Return to the calling session using **only** this compact block — no additional prose:
 
 ```
-RESULT: DONE|FAILED|BLOCKED
+RESULT: WRITTEN|FAILED|BLOCKED
+RUN STATUS: NOT RUN — I have no execution tool; the caller MUST run the suite before any pass/green claim
 FILES: [test files written, comma-separated]
 TESTS: N written
 SUMMARY: [one sentence]
@@ -54,10 +55,16 @@ LEARNINGS: [FAILED only — the approach you tried, where/why it broke, what is 
 DETAIL: [output_file path]
 ```
 
-You are single-use: one approach, one attempt. If your testing approach doesn't work (e.g. the code under test resists the strategy you chose), return `FAILED` with `LEARNINGS` rather than thrashing — HQ will redeploy a fresh agent with a different approach. Use `BLOCKED` if no test framework can be detected and the developer has not answered the framework question (an external gap, not a failed approach).
+`RESULT` values — note there is **no `DONE`/`PASS`**, by design (you cannot execute anything):
+- **`WRITTEN`** — the test files are authored and syntactically complete. This is **not** a passing result and **never** means the suite is green. It is authored-only; the caller runs it.
+- **`FAILED`** — your testing *approach* did not work (e.g. the code under test resists the strategy). Return `LEARNINGS`; HQ redeploys a fresh agent with a different approach. Do not thrash.
+- **`BLOCKED`** — no test framework can be detected and the developer has not answered the framework question (an external gap, not a failed approach).
+
+You are single-use: one approach, one attempt.
 
 ## Rules
-- Every test must run immediately without modification.
+- **You cannot run tests — you have no execution tool (Read/Glob/Grep/Write/Edit only). Never state or imply that the tests pass, that the suite is green, or that a "tests pass" done condition is met.** `WRITTEN` is authored-only; the caller executes the suite and owns the green/red verdict. Reporting an unrun suite as done is the exact false-success failure this contract exists to prevent (M-audit finding #20).
+- Every test must be written to run immediately without modification (you author for runnability — you do not verify it by running).
 - Do not write tests that always pass (trivially true assertions).
 - If the function or component doesn't exist yet, write tests that fail with "not defined" or equivalent — this is intentional (TDD).
 - If the spec includes a "done condition", the tests should verify that condition.
