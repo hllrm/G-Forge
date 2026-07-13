@@ -638,6 +638,38 @@ plainly with the reason — don't paper over it.
 
 ---
 
+### M41 — /g-release (gated, consistent release cutter)
+**Status:** ⬜ Not started
+**Version:** v2.10.0 (minor — new command + skill; `/g-doctor` gains a version-consistency check)
+**Goal:** Make cutting a release a **single gated step** instead of a manual, multi-file, error-prone ritual. Distribution is straight off `main` (no tags, no CI) — the version field in `plugin.json` **is** the "latest available" signal that `/g-update` and the daily `workflow-checkpoint.sh` check advertise to every installed project — so a wrong or premature bump ships immediately. `/g-release` owns that bump with preconditions and consistency.
+
+**Origin:** observed pain, not hypothetical. Six releases in ~2 weeks (2.0.0→2.2.1), each hand-editing the version in **three places** (`plugin.json`, `marketplace.json`, README counts) + cutting CHANGELOG `[Unreleased]`→dated + (always skipped) tagging. On 2026-07-12 a v2.2.2 bump was made mid-milestone and had to be reverted precisely because nothing gated "is this a coherent, complete release?" — the exact failure `/g-release` prevents.
+
+**Scope (waved):**
+- **Wave 1 — Consistency + gate:**
+  - Verify preconditions before any bump: active milestone is ✅ closed (no open 🔄), full test suite green on a **real run** (evidence pasted — ties into finding #20), commit gate self-hosted clean, no orphaned `[Unreleased]` entries without a target. Refuse on a partial milestone.
+  - Bump the version in **every** place at once (`plugin.json`, `marketplace.json`, README counts if agent/skill/profile totals changed) — single source, no drift.
+  - Add a `/g-doctor` **version-consistency check**: all manifest version fields agree; README counts match the actual `agents/`+`skills/`+`profiles/` inventory.
+- **Wave 2 — CHANGELOG + tag:**
+  - Cut CHANGELOG `[Unreleased]` → a dated `## [x.y.z] — YYYY-MM-DD` section; leave a fresh empty `[Unreleased]`.
+  - Create the annotated git tag `v{x.y.z}` (the tagging gap that forces the alveria adopter to pin raw commit SHAs in `al-docs/UPSTREAM.md`).
+  - Optional: open a GitHub Release from the CHANGELOG section.
+
+**Explicitly out of scope:** publishing pipelines/CI, signing, changelog *generation* from commits (the CHANGELOG stays hand-curated, Keep-a-Changelog), auto-deciding the semver bump (the developer states major/minor/patch; `/g-release` enforces consistency, not the decision).
+
+**Depends on:** — (independent; composes with `/g-roadmap`'s milestone close and finding #20's "green run with evidence").
+
+**Sequencing note:** tailed at v2.10.0 to avoid renumbering the arc, but a **strong pull-forward candidate** — it directly prevents the mid-milestone-bump slip that just happened, and every release until it lands repeats the manual ritual.
+
+**Premortem:**
+- *Becomes a rubber stamp* (med) → if the preconditions are advisory not blocking, it just automates a bad bump. Mitigation: milestone-closed + green-run are hard gates; refuse, don't warn.
+- *Version drift across files reappears* (low) → the `/g-doctor` consistency check is the standing backstop even when someone bumps by hand.
+- *Tag/manifest divergence* (low) → tag is cut from the same run that writes the manifest; never a separate step.
+
+**Cross-cutting propagation (G-RULES §B):** the version number is a shared primitive read by `/g-update`, `workflow-checkpoint.sh` (daily update nudge), `/g-doctor`, and the manifests — `/g-release` must be the single writer, and the `/g-doctor` check the single verifier. Run `/g-blast-radius` at Wave 1 close.
+
+---
+
 ## Backlog
 
 ### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
@@ -668,7 +700,7 @@ Two independent inventions describe the same shape: **a pinned external source +
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
        → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
-       → v2.2.2 (M-audit-2026-07 — Forge Integrity) → v2.3.0 (M29 — multiplayer phase one) → v2.4.0 (M35 — Memory Forge) → **v2.5.0 (M37 — Salience Layer propagation; M36 approach/ADR is design-only, gates M37, slots early)** → **v2.6.0 (M33 B–D — the Roundtable)** → M34 (cross-session dependency tracking + pull/push orchestration, arc spine) → M30–M32 mechanics reconcile against M34 → **v2.7.0 (M38 — G-Report)** → **v2.8.0 (M39 — G-tweak)** → **v2.9.0 (M40 — Reference Convention; Wave 1 pull-forward candidate to a v2.2.x patch)** · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
+       → v2.2.2 (M-audit-2026-07 — Forge Integrity) → v2.3.0 (M29 — multiplayer phase one) → v2.4.0 (M35 — Memory Forge) → **v2.5.0 (M37 — Salience Layer propagation; M36 approach/ADR is design-only, gates M37, slots early)** → **v2.6.0 (M33 B–D — the Roundtable)** → M34 (cross-session dependency tracking + pull/push orchestration, arc spine) → M30–M32 mechanics reconcile against M34 → **v2.7.0 (M38 — G-Report)** → **v2.8.0 (M39 — G-tweak)** → **v2.9.0 (M40 — Reference Convention; Wave 1 pull-forward candidate to a v2.2.x patch)** → **v2.10.0 (M41 — /g-release; strong pull-forward candidate)** · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
