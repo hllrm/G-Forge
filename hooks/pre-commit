@@ -102,8 +102,14 @@ gf_parse_stamp() {
     STAMP_TS=${STAMP_TS%% *}
     STAMP_HEAD=${line#*commit_sentinel_head=}
     STAMP_HEAD=${STAMP_HEAD%% *}
+    # commit_sentinel_worktree is the TERMINAL field on the stamp line (see
+    # the fixed field order documented above gf_parse_stamp) — read it to
+    # end-of-line rather than truncating at the first space. Worktree paths
+    # legitimately contain spaces (common on Windows, e.g. `C:/Users/Some
+    # Name/repo`); the first two fields (ts, head) are still safely
+    # space-truncated above because those values never contain spaces. Any
+    # future field appended AFTER worktree would force revisiting this.
     STAMP_WORKTREE=${line#*commit_sentinel_worktree=}
-    STAMP_WORKTREE=${STAMP_WORKTREE%% *}
     STAMP_WORKTREE=${STAMP_WORKTREE%$'\r'}
     return 0
 }
