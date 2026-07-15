@@ -59,12 +59,17 @@ Before reviewing any code, verify the test suite passes.
 
 ## Step 2 — Gather the diff
 
-Run:
+The primary target is the tree the sentinel will bind to at commit time — the staged set unioned with unstaged-but-tracked modifications, the same union `hooks/check-commit.sh`'s `-a`/`--all` handling already computes:
 ```
-git diff main...HEAD
+git diff --staged
 ```
+unioned with:
+```
+git diff --name-only
+```
+Combine both into the diff under review — this is what `git write-tree` will hash if the developer commits as-is (including via `git commit -a`), so reviewing it here is what makes the Step 6 sentinel binding coherent (ADR-004).
 
-If output is empty, run: `git diff --staged`
+If that union is empty, fall back to `git diff main...HEAD` — this covers resuming review on a branch that already carries committed-but-unreviewed history (e.g. an interrupted multi-commit session). This fallback role is unchanged from before; only the priority is inverted.
 
 If both are empty, ask the developer: "What branch or commit range should I review?"
 
@@ -132,7 +137,12 @@ Present code-lead's verdict to the developer verbatim.
 
 **If verdict is MERGE READY:**
 - Create `.claude/` directory if it does not exist
-- Write `.claude/g-forge-approved` with content: `approved`
+- Compute the sentinel stamp (binds the sentinel to the exact reviewed tree — ADR-004):
+  - `commit_sentinel_ts`: `git write-tree` of the currently-staged index (the tree just reviewed in Step 2)
+  - `commit_sentinel_head`: `git rev-parse HEAD`
+  - `commit_sentinel_worktree`: `git rev-parse --show-toplevel`
+- Write `.claude/g-forge-approved` with content: `commit_sentinel_ts=<write-tree output> commit_sentinel_head=<rev-parse HEAD output> commit_sentinel_worktree=<show-toplevel output>` (one line, space-separated `key=value` fields, exact field names — do not rename them)
+- If this review covered doc/mixed changes and `.claude/g-forge-docs-approved` is also being written (see doc-review flows), write the identical stamp format there too, using the same tree+HEAD pair — on a mixed commit both sentinels bind to the one tree being committed.
 - Tell the developer: "MERGE READY. Commit gate unlocked — you can now run git commit and merge."
 - Ask once: "Would you like a PR description? (yes/no)" — if yes, dispatch `pr-writer` with the full diff from Step 2 and the done conditions from Step 3. Present the PR description. If no, continue silently.
 
