@@ -10,6 +10,21 @@
 #   every block path here goes through deny(), which emits the deny JSON on
 #   stdout (rich reason to the model), the reason on stderr (for the CLI user),
 #   and exits 2 (the universal blocker). Never use `exit 1` to block.
+#
+# Sources shared lib helpers so commit detection, pathspec extraction, and
+# file-set classification agree with the ADR-004 native pre-commit hook
+# instead of drifting apart across two hand-edited implementations
+# (M-audit finding #21 / BUG-2). Resolved relative to this script's own
+# location so the installed copy (.claude/hooks/check-commit.sh, with libs
+# under .claude/hooks/lib/) finds its libs the same way the repo source
+# (hooks/check-commit.sh, hooks/lib/) does.
+_GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/classify-changeset.sh
+. "$_GF_HOOK_DIR/lib/classify-changeset.sh"
+# shellcheck source=lib/commit-detect.sh
+. "$_GF_HOOK_DIR/lib/commit-detect.sh"
+# shellcheck source=lib/worktree-resolve.sh
+. "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
 
 # deny <reason> — block the commit. Belt-and-suspenders across Claude Code
 # versions: stdout JSON deny + stderr reason + exit 2. Reasons are fixed,
@@ -25,7 +40,12 @@ deny() {
 # Extract the tool command from a PreToolUse JSON payload.
 # Never trust a lone interpreter whose failure we've silenced: probe each
 # parser before use (the Windows Microsoft-Store `python3` stub fails the
-# probe), and fall back to the caller's raw-payload grep if none works.
+# probe). If none work, fall back to a portable sed extraction of the
+# "command" field's raw string value — is_git_commit() (hooks/lib/
+# commit-detect.sh) tokenizes its input with `xargs -n1`, which chokes on a
+# whole unparsed JSON blob (unbalanced/embedded quotes), so this tier hands
+# it a clean-enough command string instead of the full payload. If even that
+# finds nothing, the caller falls back to the raw payload as a last resort.
 # Fails safe toward gating — see tests/test-check-commit.sh.
 extract_cmd() {
     local payload="$1" cmd=""
@@ -47,29 +67,76 @@ except Exception:
 let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s);process.stdout.write((d.tool_input&&d.tool_input.command)||d.command||'');}catch(e){}});
 " 2>/dev/null)
     fi
+    if [ -z "$cmd" ]; then
+        cmd=$(printf '%s' "$payload" | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(\([^"\\]\|\\.\)*\)".*/\1/p')
+    fi
     printf '%s' "$cmd"
 }
 
 INPUT=$(cat)
 
+CMD=$(extract_cmd "$INPUT")
+# extract_cmd() itself already falls back to a portable sed extraction when
+# every JSON parser is missing/stubbed; this is the final safety net for the
+# pathological case where even that yields nothing — use the raw payload so
+# is_git_commit()'s tokenizer has *something* to walk. Fails toward enforcing
+# the gate.
+[ -z "$CMD" ] && CMD="$INPUT"
+
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the gate inert everywhere
 # else, so it never blocks commits in a project that doesn't use G-Forge — and so
 # multiple registration sources can never make it misfire.
-[ -f ".claude/integration-tier" ] || exit 0
+#
+# ADR-005 — worktree primary-state resolution: a linked git worktree has no
+# local .claude/ of its own (gitignored, so it's simply absent in a fresh
+# worktree). Before treating that as "not a G-Forge project", try resolving
+# the PRIMARY working tree's .claude/ via the shared lib
+# (hooks/lib/worktree-resolve.sh) and use it if the primary is itself a
+# gated project — a worktree of a gated project inherits the gate instead of
+# silently no-op'ing. GF_CLAUDE_DIR is the resolved base for every .claude/
+# read below (tier + both sentinel existence-checks); it defaults to the
+# local "." tree, which keeps the primary-tree / non-worktree path
+# byte-identical to before this change. This is path resolution only — no
+# per-worktree sentinel keying here (a separate follow-up per ADR-005).
+GF_CLAUDE_DIR=".claude"
+if [ ! -f "$GF_CLAUDE_DIR/integration-tier" ]; then
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        _primary_claude_dir=$(gf_resolve_primary_claude_dir)
+        if [ -n "$_primary_claude_dir" ] && [ -f "$_primary_claude_dir/integration-tier" ]; then
+            # Primary resolved AND is itself a gated project — inherit its
+            # state for the rest of this run.
+            GF_CLAUDE_DIR="$_primary_claude_dir"
+        elif [ -n "$_primary_claude_dir" ]; then
+            # Primary resolved cleanly but never ran /g-init either — neither
+            # tree is gated. Not ambiguous, just genuinely ungated: inert.
+            exit 0
+        else
+            # Inside a real git work tree, but gf_resolve_primary_claude_dir
+            # printed nothing — its documented signal for ANY failure,
+            # including genuine ambiguity (nested worktree,
+            # --separate-git-dir, submodule, ADR-005's fail-toward-deny
+            # case), not merely "no primary". Escalate to deny ONLY for a
+            # CONFIRMED git commit — an unrelated command in an ambiguous
+            # worktree must stay inert rather than block unrelated work.
+            if is_git_commit "$CMD"; then
+                deny "Could not resolve this worktree's primary G-Forge state (ambiguous or unreachable git-common-dir). Resolve the worktree layout, or run /g-init in the primary working tree, before committing here."
+            fi
+            exit 0
+        fi
+    else
+        # Not inside a git work tree at all — definitely not a G-Forge project.
+        exit 0
+    fi
+fi
 
-CMD=$(extract_cmd "$INPUT")
-# No parser yielded a command (missing/stubbed) → grep the raw payload, which
-# still contains "command":"git commit …". Fails toward enforcing the gate.
-[ -z "$CMD" ] && CMD="$INPUT"
-
-if printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]-])git([[:space:]]+-[cC][[:space:]]*[^[:space:]]+)*[[:space:]]+commit([[:space:]]|$)'; then
+if is_git_commit "$CMD"; then
     # Integration tier check — `light` disables the commit gate entirely.
     # Validate the value against the known tier set; unknown/garbage values
     # fall through safely to the gate path (default = enforcement).
     TIER="full"
-    if [ -f ".claude/integration-tier" ]; then
-        _raw=$(tr -d '[:space:]' < .claude/integration-tier 2>/dev/null)
+    if [ -f "$GF_CLAUDE_DIR/integration-tier" ]; then
+        _raw=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
         case "$_raw" in
             full|balanced|light) TIER="$_raw" ;;
         esac
@@ -109,83 +176,20 @@ if printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]-])git([[:space:]]+-[cC][[:space
     # `git commit -- <pathspec>...` commits the NAMED paths (plus whatever of
     # them is already staged), independent of the rest of the index. Without
     # this, `git commit -m "fix" hooks/thing.sh` against an empty (or
-    # doc-only) index would misclassify a code commit as doc/none. Isolate
-    # the substring of CMD after the `commit` keyword, tokenize it, and walk
-    # the tokens:
-    #   - after a literal `--` token, every remaining token is a pathspec.
-    #   - before `--`, a token starting with `-` is a flag: skip it, and if
-    #     it is one of the known value-taking flags (-m/--message,
-    #     -c/-C/--reuse-message/--reedit-message, -F/--file, -A/--author,
-    #     --date, --template, --fixup, --squash, --trailer), also skip the
-    #     NEXT token (its value — e.g. the `-m "msg"` message text is not a
-    #     pathspec). `--opt=value` forms are self-contained (no extra token
-    #     to skip).
-    #   - any other token is a positional pathspec candidate.
-    # Full git-alias resolution is out of scope. Absent any positional
+    # doc-only) index would misclassify a code commit as doc/none. Extraction
+    # (argv walk after the `commit` subcommand, flag/value-skip rules, `--`
+    # handling) lives in the shared lib (hooks/lib/commit-detect.sh) so this
+    # hook and the ADR-004 native pre-commit hook agree byte-for-byte — see
+    # that file's header for the full rule table. Absent any positional
     # pathspec, behavior is unchanged (staged/union set only).
-    PATHSPECS=""
-    _after_commit=$(printf '%s' "$CMD" | sed -E 's/^.*[[:space:]]commit([[:space:]]|$)//')
-    if [ -n "$_after_commit" ]; then
-        _tokens=()
-        # Tokenize WITHOUT eval — eval re-parses the string as shell code and would
-        # execute command substitutions/backticks embedded in the commit command
-        # (even when the gate ultimately DENIES the commit). xargs does shell-style
-        # quote-and-whitespace splitting but never evaluates $(...), backticks, or
-        # variables, so a crafted `-m "$(...)"` message is treated as inert text.
-        while IFS= read -r _tok_line; do
-            _tokens+=("$_tok_line")
-        done < <(printf '%s' "$_after_commit" | xargs -n1 2>/dev/null)
-        _seen_dashdash=0
-        _skip_next=0
-        for _tok in "${_tokens[@]}"; do
-            if [ "$_skip_next" -eq 1 ]; then
-                _skip_next=0
-                continue
-            fi
-            if [ "$_seen_dashdash" -eq 0 ]; then
-                if [ "$_tok" = "--" ]; then
-                    _seen_dashdash=1
-                    continue
-                fi
-                case "$_tok" in
-                    -m|--message|-c|--reuse-message|-C|--reedit-message|-F|--file|-A|--author|--date|--template|--fixup|--squash|--trailer)
-                        _skip_next=1
-                        continue
-                        ;;
-                    --message=*|--reuse-message=*|--reedit-message=*|--file=*|--author=*|--date=*|--template=*|--fixup=*|--squash=*|--trailer=*)
-                        continue
-                        ;;
-                    -*)
-                        continue
-                        ;;
-                esac
-            fi
-            PATHSPECS="$PATHSPECS
-$_tok"
-        done
-    fi
+    PATHSPECS=$(extract_pathspecs "$CMD")
     if [ -n "$(printf '%s' "$PATHSPECS" | tr -d '[:space:]')" ]; then
         STAGED=$(printf '%s\n%s\n' "$STAGED" "$PATHSPECS" | sort -u)
     fi
-    HAS_CODE=0
-    HAS_DOC=0
-    while IFS= read -r _f; do
-        [ -z "$_f" ] && continue
-        case "$_f" in
-            # DOC paths — narrative documentation surface (M27: "doc-only
-            # changes — wiki, README, ADRs"). Documentation directories first.
-            g-docs/*|g-wiki/*|docs/*) HAS_DOC=1 ;;
-            # Root-level documentation files (README*, CHANGELOG*, LICENSE*) and
-            # any root-level *.md (no slash in the path = repo root) treated as docs.
-            README*|CHANGELOG*|LICENSE*) HAS_DOC=1 ;;
-            *.md) case "$_f" in */*) HAS_CODE=1 ;; *) HAS_DOC=1 ;; esac ;;
-            # CODE paths — plugin executable/instruction surface. .claude/rules/
-            # is instruction surface (code); anything under it gates as code.
-            hooks/*|skills/*|agents/*|commands/*|profiles/*|tests/*|.claude-plugin/*|.claude/rules/*) HAS_CODE=1 ;;
-            # When in doubt, treat as CODE — the code gate is the stricter one.
-            *) HAS_CODE=1 ;;
-        esac
-    done <<EOF
+    # Classification bucket rules live in the shared lib (hooks/lib/classify-changeset.sh)
+    # so this hook and the ADR-004 native pre-commit hook agree byte-for-byte —
+    # see that file's header for the bucket table. Sets HAS_CODE/HAS_DOC.
+    gf_classify_changeset <<EOF
 $STAGED
 EOF
 
@@ -202,20 +206,20 @@ EOF
     fi
 
     if [ "$CLASS" = "doc" ]; then
-        if [ ! -f ".claude/g-forge-docs-approved" ]; then
+        if [ ! -f "$GF_CLAUDE_DIR/g-forge-docs-approved" ]; then
             deny "No doc-review sign-off. Run /g-doc-review and wait for its verdict before committing documentation."
         fi
     elif [ "$CLASS" = "mixed" ]; then
-        if [ ! -f ".claude/g-forge-approved" ] && [ ! -f ".claude/g-forge-docs-approved" ]; then
+        if [ ! -f "$GF_CLAUDE_DIR/g-forge-approved" ] && [ ! -f "$GF_CLAUDE_DIR/g-forge-docs-approved" ]; then
             deny "Mixed commit (code + docs) needs both sign-offs. Run /g-review (code) and /g-doc-review (docs) before committing."
         fi
-        if [ ! -f ".claude/g-forge-approved" ]; then
+        if [ ! -f "$GF_CLAUDE_DIR/g-forge-approved" ]; then
             deny "Mixed commit missing code sign-off. Run /g-review and wait for MERGE READY before committing."
         fi
-        if [ ! -f ".claude/g-forge-docs-approved" ]; then
+        if [ ! -f "$GF_CLAUDE_DIR/g-forge-docs-approved" ]; then
             deny "Mixed commit missing doc sign-off. Run /g-doc-review and wait for its verdict before committing."
         fi
-    elif [ ! -f ".claude/g-forge-approved" ]; then
+    elif [ ! -f "$GF_CLAUDE_DIR/g-forge-approved" ]; then
         deny "No code-lead sign-off. Run /g-review and wait for MERGE READY before committing."
     fi
     # Advisory: warn when committing directly to main with approval

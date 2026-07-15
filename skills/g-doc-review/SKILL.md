@@ -15,13 +15,19 @@ Identify the set of files under review.
 **If a path argument was provided** (e.g. `/g-doc-review src/services`):
 - Restrict the review to files under that path. Skip the git detection below.
 
-**If no argument was provided**, detect the changed set from git:
+**If no argument was provided**, detect the changed set from git. The primary target is the tree the sentinel will bind to at commit time — the staged set unioned with unstaged-but-tracked modifications, the same union `hooks/check-commit.sh`'s `-a`/`--all` handling already computes:
 ```
-git diff --name-only main...HEAD
+git diff --name-only --staged
 ```
-- If that output is empty, run: `git diff --name-only --staged`
-- If both are empty, run: `git diff --name-only` (unstaged working-tree changes)
-- If all three are empty, ask the developer: "No changes detected. What branch, commit range, or path should I review for documentation currency?" — wait for the answer.
+unioned with:
+```
+git diff --name-only
+```
+Combine both into the changed set under review — this is what `git write-tree` will hash if the developer commits as-is (including via `git commit -a`), so reviewing it here is what makes the Step 4 sentinel binding coherent (ADR-004).
+
+If that union is empty, fall back to `git diff --name-only main...HEAD` — this covers resuming review on a branch that already carries committed-but-unreviewed history (e.g. an interrupted multi-commit session). This fallback role is unchanged from before; only the priority is inverted.
+
+If both are empty, ask the developer: "No changes detected. What branch, commit range, or path should I review for documentation currency?" — wait for the answer.
 
 From the changed set, separate:
 - **Doc surfaces** — files carrying documentation: source files with exported/public symbols, module headers, `README*.md`, `CHANGELOG.md`, `g-docs/env-vars.md`, `g-docs/decisions/*.md`, OpenAPI specs (`openapi.yaml`/`openapi.json`/`swagger.json`).

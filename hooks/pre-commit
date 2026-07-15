@@ -1,0 +1,292 @@
+#!/bin/bash
+# hooks/pre-commit — G-Forge commit gate, native git pre-commit hook (ADR-004).
+#
+# ADR-004 makes THIS file — not the PreToolUse hook (hooks/check-commit.sh)
+# — the AUTHORITATIVE enforcement site for the commit gate. PreToolUse fires
+# before git stages anything, so it cannot see what `git commit -a`/`-p`/
+# interactive selections actually add to the index — it hashes the wrong
+# tree. This hook fires natively from `git commit` itself, AFTER the index
+# already reflects everything about to be committed (including raw-terminal
+# commits PreToolUse never sees at all), so it is the only place
+# `git write-tree` sees the true to-be-committed tree. PreToolUse is
+# retained only for its rich, model-facing deny message on the common case.
+#
+# Exit contract (read before editing — this is the OPPOSITE of
+# check-commit.sh's PreToolUse contract):
+#   A native git `pre-commit` hook blocks the commit on ANY non-zero exit
+#   status. There is no "exit 2 to deny, exit 1 is merely advisory" split
+#   here — that split is specific to Claude Code's PreToolUse
+#   hookSpecificOutput protocol and does not apply to a real git hook.
+#   `exit 1` after printing the reason to stderr is the correct and
+#   sufficient way to deny a commit in this file. Every deny path below
+#   goes through deny(), which prints "G-Forge: <reason>" to stderr and
+#   exits 1.
+#
+# This hook receives NO stdin JSON and no PreToolUse-style tool-call
+# payload — a native git hook is invoked with no such input. Do not add
+# jq/payload parsing, extract_cmd()-style command extraction, or any of
+# check-commit.sh's CMD-sniffing logic here; none of it applies. Because
+# this hook fires strictly AFTER staging is finalized, it also does not
+# need check-commit.sh's `-a`/pathspec-widening heuristics — `git diff
+# --cached --name-only` here already IS the final staged set (ADR-004).
+#
+# Later sub-milestone note: this source file is installed into
+# `.git/hooks/pre-commit` by a later increment. This file is NOT installed
+# or registered anywhere by this change — the source file living here under
+# `hooks/` is the whole deliverable of this increment.
+
+# deny <reason> — block the commit: print "G-Forge: <reason>" to stderr and
+# exit 1 (see exit contract above — any non-zero exit blocks a git hook).
+deny() {
+    printf 'G-Forge: %s\n' "$1" >&2
+    exit 1
+}
+
+# Resolve shared lib helpers relative to this script's own location, so the
+# eventually-installed copy (.git/hooks/pre-commit, libs alongside it) finds
+# them the same way this repo-source copy (hooks/pre-commit, hooks/lib/)
+# does — same convention hooks/check-commit.sh uses (M-audit finding #21 /
+# BUG-2: one sourced classifier/resolver, never a second hand-copied one).
+_GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/worktree-resolve.sh
+. "$_GF_HOOK_DIR/lib/worktree-resolve.sh" || deny "internal error — could not load hooks/lib/worktree-resolve.sh"
+# shellcheck source=lib/classify-changeset.sh
+. "$_GF_HOOK_DIR/lib/classify-changeset.sh" || deny "internal error — could not load hooks/lib/classify-changeset.sh"
+
+# gf_parse_stamp <file> — parse the one-line sentinel stamp /g-review writes
+# (skills/g-review/SKILL.md Step 6): a single line of space-separated
+# key=value fields —
+#   commit_sentinel_ts=<write-tree hash> commit_sentinel_head=<HEAD sha> commit_sentinel_worktree=<toplevel path>
+# Field names copied byte-for-byte from the skill; do not rename/reorder.
+#
+# NOTE on the `_ts` name: despite the suffix, `commit_sentinel_ts` does NOT
+# carry a timestamp — per SKILL.md Step 6 it carries `git write-tree` of the
+# reviewed index (ADR-004's content-binding hash). Verified directly against
+# the skill text before implementing this parser; the field is compared
+# against this hook's own `git write-tree` output below, never against a
+# clock.
+#
+# Sets globals STAMP_TS / STAMP_HEAD / STAMP_WORKTREE (any may legitimately
+# be an empty string — e.g. STAMP_HEAD on a first-commit-time stamp, where
+# `git rev-parse HEAD` had nothing to resolve). Returns 1, leaving the
+# globals blanked, on: missing file, multi-line/unparseable content, or any
+# of the three required fields absent — all "invalid", never guessed past.
+gf_parse_stamp() {
+    local file="$1" line
+    STAMP_TS=""
+    STAMP_HEAD=""
+    STAMP_WORKTREE=""
+    [ -f "$file" ] || return 1
+    line=$(cat -- "$file" 2>/dev/null) || return 1
+    # Strip one trailing CR (CRLF-authored sentinel) before further parsing.
+    line=${line%$'\r'}
+    # Must be a single line — embedded newlines mean the file is not the
+    # one-line format the skill writes; treat as unparseable rather than
+    # guess which line is authoritative.
+    case "$line" in
+        *$'\n'*) return 1 ;;
+    esac
+    case "$line" in
+        *commit_sentinel_ts=*) ;;
+        *) return 1 ;;
+    esac
+    case "$line" in
+        *commit_sentinel_head=*) ;;
+        *) return 1 ;;
+    esac
+    case "$line" in
+        *commit_sentinel_worktree=*) ;;
+        *) return 1 ;;
+    esac
+    STAMP_TS=${line#*commit_sentinel_ts=}
+    STAMP_TS=${STAMP_TS%% *}
+    STAMP_HEAD=${line#*commit_sentinel_head=}
+    STAMP_HEAD=${STAMP_HEAD%% *}
+    STAMP_WORKTREE=${line#*commit_sentinel_worktree=}
+    STAMP_WORKTREE=${STAMP_WORKTREE%% *}
+    STAMP_WORKTREE=${STAMP_WORKTREE%$'\r'}
+    return 0
+}
+
+# gf_validate_sentinel <file> <label> — validate one sentinel against the
+# current TREE / HEAD_SHA / WORKTREE_KEY (ADR-004 content-binding +
+# ADR-005 per-worktree keying). On success returns 0. On failure sets
+# REASON to a specific, human-readable cause and returns 1 — callers name
+# WHICH sentinel failed and why (required for the mixed-class case).
+#
+# Validity requires ALL THREE:
+#   commit_sentinel_ts       == $TREE       (content-binding — ADR-004)
+#   commit_sentinel_head     == $HEAD_SHA   (staleness — ADR-004; plain
+#                                             string equality also correctly
+#                                             handles the first-commit case,
+#                                             where both sides are the empty
+#                                             string — the ONLY situation in
+#                                             which an empty HEAD_SHA is a
+#                                             valid match; a mismatched or
+#                                             one-side-empty HEAD is denied
+#                                             like any other inequality —
+#                                             never a "no HEAD => pass" hole)
+#   commit_sentinel_worktree == $WORKTREE_KEY (ADR-005 per-worktree keying)
+gf_validate_sentinel() {
+    local file="$1" label="$2"
+    if ! gf_parse_stamp "$file"; then
+        REASON="no valid $label sign-off (missing or unparseable sentinel)"
+        return 1
+    fi
+    if [ "$STAMP_TS" != "$TREE" ]; then
+        REASON="$label sign-off is stale — reviewed tree does not match the tree being committed"
+        return 1
+    fi
+    if [ "$STAMP_HEAD" != "$HEAD_SHA" ]; then
+        REASON="$label sign-off is stale — HEAD has moved since review"
+        return 1
+    fi
+    if [ "$STAMP_WORKTREE" != "$WORKTREE_KEY" ]; then
+        REASON="$label sign-off was recorded in a different worktree"
+        return 1
+    fi
+    return 0
+}
+
+# --- Increment 6: project/tier guard + ADR-005 governing-.claude/ resolution ---
+#
+# "Local first, else primary" — a linked worktree's own .claude/ is
+# gitignored and normally absent (ADR-005 background), so an absent local
+# integration-tier does not by itself mean "not a G-Forge project": it may
+# mean "this IS a G-Forge project, gated via its primary working tree."
+# Resolve local first (the common, non-worktree case — no extra git calls);
+# only fall back to primary resolution when local is silent.
+GOVERNING_CLAUDE_DIR=""
+if [ -f ".claude/integration-tier" ]; then
+    GOVERNING_CLAUDE_DIR=".claude"
+else
+    _primary_claude_dir=$(gf_resolve_primary_claude_dir)
+    _resolve_rc=$?
+    if [ "$_resolve_rc" -ne 0 ] || [ -z "$_primary_claude_dir" ]; then
+        # gf_resolve_primary_claude_dir's contract (hooks/lib/worktree-resolve.sh)
+        # is to surface ambiguity, never guess past it (nested worktree,
+        # --separate-git-dir, submodule, unparseable --git-common-dir, ...).
+        # We are unmistakably inside a git repo attempting a real commit —
+        # ADR-005: fail toward deny rather than silently no-op a possibly
+        # gated project.
+        deny "could not resolve this worktree's G-Forge project state (ambiguous git worktree/common-dir resolution) — refusing to guess whether the commit gate applies"
+    fi
+    if [ -f "$_primary_claude_dir/integration-tier" ]; then
+        GOVERNING_CLAUDE_DIR="$_primary_claude_dir"
+    else
+        # Primary resolved cleanly and is not a G-Forge project either —
+        # genuinely non-gated. Stay inert (ADR-005: inert-in-non-G-Forge
+        # guarantee preserved for free).
+        exit 0
+    fi
+fi
+
+TIER="full"
+_raw=$(tr -d '[:space:]' < "$GOVERNING_CLAUDE_DIR/integration-tier" 2>/dev/null)
+case "$_raw" in
+    full|balanced|light) TIER="$_raw" ;;
+esac
+if [ "$TIER" = "light" ]; then
+    # Light mode — gate is off. Exit 0 without touching sentinels.
+    exit 0
+fi
+
+# Per-worktree sentinel key (ADR-005) — resolved once the guard has decided
+# this is a gated project, alongside GOVERNING_CLAUDE_DIR above.
+WORKTREE_KEY=$(gf_worktree_key) || deny "could not resolve this worktree's identity (git rev-parse --show-toplevel failed) — refusing to guess the commit gate's worktree binding"
+[ -n "$WORKTREE_KEY" ] || deny "could not resolve this worktree's identity (empty toplevel) — refusing to guess the commit gate's worktree binding"
+
+# --- Increment 7: write-tree derivation + changeset classification ---
+#
+# `git write-tree` on the staged index in a pre-commit hook is git's own
+# canonical, reproducible identifier of what is about to be committed
+# (ADR-004). An unmerged/conflicted index makes write-tree fail — that is
+# exactly the state that must deny, not silently pass.
+TREE=$(git write-tree 2>/dev/null) || deny "git write-tree failed (unmerged/conflicted index?) — cannot verify the commit gate against an indeterminate tree"
+[ -n "$TREE" ] || deny "git write-tree returned nothing — cannot verify the commit gate against an indeterminate tree"
+
+STAGED=$(git diff --cached --name-only 2>/dev/null)
+# Classify via the shared lib (hooks/lib/classify-changeset.sh) — never a
+# second hand-copied bucket case-statement (M-audit finding #21 / BUG-2).
+# Call convention per the lib's header: heredoc/redirection, not a pipe, so
+# HAS_CODE/HAS_DOC land in THIS shell rather than a subshell.
+gf_classify_changeset <<EOF
+$STAGED
+EOF
+
+if [ "$HAS_CODE" -eq 1 ] && [ "$HAS_DOC" -eq 1 ]; then
+    CLASS="mixed"
+elif [ "$HAS_DOC" -eq 1 ]; then
+    CLASS="doc"
+elif [ "$HAS_CODE" -eq 1 ]; then
+    CLASS="code"
+else
+    # Empty staged set / no parseable paths — fall through to the code gate,
+    # the historical fail-safe default (matches check-commit.sh's "none").
+    CLASS="code"
+fi
+
+# --- Increment 8: HEAD resolution + sentinel stamp parsing ---
+#
+# No HEAD (first commit / empty repo) is legitimate state, not an error
+# condition — do not deny here on that alone. It only becomes a deny once
+# compared against a mismatched stamp in increment 9's validation.
+#
+# NOT `HEAD_SHA=$(git rev-parse HEAD 2>/dev/null)`: on an empty repo git
+# rev-parse HEAD prints the literal 4 characters "HEAD" to STDOUT (echoing
+# back its own unresolved argument) alongside a "fatal: ambiguous
+# argument" on stderr — `2>/dev/null` only hides the stderr line, so a
+# naive capture silently yields the STRING "HEAD", not empty, defeating
+# the plan's stated first-commit contract ("/g-review's stamp renders an
+# empty commit_sentinel_head on a first commit; the gate requires exact
+# match of the (also-empty) current HEAD"). Verify resolvability first
+# (`--verify -q` is silent on failure) and force a true empty string when
+# HEAD does not yet exist, so the empty-vs-empty comparison in increment 9
+# is genuine on both sides rather than an accidental "HEAD" == "HEAD" text
+# match.
+if git rev-parse --verify -q HEAD >/dev/null 2>&1; then
+    HEAD_SHA=$(git rev-parse HEAD 2>/dev/null)
+else
+    HEAD_SHA=""
+fi
+
+# Required sentinel(s) by CLASS, resolved under the same governing .claude/
+# dir the guard above settled on (local vs. primary — ADR-005). Each
+# sentinel path is the same regardless of worktree; per-worktree scoping is
+# enforced by comparing the stamp's own commit_sentinel_worktree field
+# against WORKTREE_KEY in gf_validate_sentinel, not by a separate per-tree
+# subpath — this is what the lib's gf_worktree_key() / the skill's
+# commit_sentinel_worktree field both key off of.
+CODE_SENTINEL="$GOVERNING_CLAUDE_DIR/g-forge-approved"
+DOC_SENTINEL="$GOVERNING_CLAUDE_DIR/g-forge-docs-approved"
+
+# --- Increment 9: deny/consume decision logic ---
+case "$CLASS" in
+    code)
+        gf_validate_sentinel "$CODE_SENTINEL" "code-lead" || deny "$REASON. Run /g-review and wait for MERGE READY before committing."
+        rm -f -- "$CODE_SENTINEL"
+        ;;
+    doc)
+        gf_validate_sentinel "$DOC_SENTINEL" "doc" || deny "$REASON. Run /g-doc-review and wait for its verdict before committing."
+        rm -f -- "$DOC_SENTINEL"
+        ;;
+    mixed)
+        _code_ok=1
+        _doc_ok=1
+        gf_validate_sentinel "$CODE_SENTINEL" "code-lead" || { _code_ok=0; _code_reason="$REASON"; }
+        gf_validate_sentinel "$DOC_SENTINEL" "doc" || { _doc_ok=0; _doc_reason="$REASON"; }
+        if [ "$_code_ok" -eq 0 ] && [ "$_doc_ok" -eq 0 ]; then
+            deny "mixed commit (code + docs) missing both sign-offs — code: $_code_reason; doc: $_doc_reason. Run /g-review (code) and /g-doc-review (docs) before committing."
+        elif [ "$_code_ok" -eq 0 ]; then
+            deny "mixed commit missing code sign-off — $_code_reason. Run /g-review and wait for MERGE READY before committing."
+        elif [ "$_doc_ok" -eq 0 ]; then
+            deny "mixed commit missing doc sign-off — $_doc_reason. Run /g-doc-review and wait for its verdict before committing."
+        fi
+        # Full success on a mixed commit — consume BOTH sentinels together.
+        # Never consume just one on a partial failure (handled above by
+        # denying before reaching this line).
+        rm -f -- "$CODE_SENTINEL" "$DOC_SENTINEL"
+        ;;
+esac
+
+exit 0
