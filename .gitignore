@@ -2,8 +2,22 @@
 Thumbs.db
 *.local
 .env
-.claude/
+# NOTE: `.claude/*` (not `.claude/`) is deliberate — a bare directory
+# exclude blocks git from descending into it at all, which makes the
+# negation carve-out below a no-op (a known git gitignore limitation:
+# you cannot re-include paths under an excluded *directory*, only under
+# excluded *contents*). `.claude/*` ignores the same set of top-level
+# entries but still lets negated sub-patterns re-include specific paths.
+.claude/*
 .worktrees/
+
+# Repo-local dev agent (NEVER packaged/shipped — see g-dev/README.md and
+# .claude/agents/g-forge-dev.md's own header). Everything else under
+# .claude/ stays ignored (it's this machine's installed copy of the
+# plugin dogfooding itself); this is the sole carve-out.
+!.claude/agents/
+.claude/agents/*
+!.claude/agents/g-forge-dev.md
 
 # G-Forge operational artifacts — regenerable, not project record (not plugin content).
 # Tracking now lives under g-docs/ and IS committed (g-docs/ROADMAP.md, g-docs/todo.md,
