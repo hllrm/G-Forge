@@ -51,7 +51,12 @@ Present doc-reviewer's findings to the developer verbatim, grouped BLOCKING / WA
 
 **If verdict is DOCS READY:**
 - Create the `.claude/` directory if it does not exist.
-- Write `.claude/g-forge-docs-approved` with content: `approved`
+- Compute the sentinel stamp (binds the sentinel to the exact reviewed tree — ADR-004, same format `/g-review` uses for the code sentinel):
+  - `commit_sentinel_ts`: `git write-tree` of the currently-staged index (the tree just reviewed in Step 1/2)
+  - `commit_sentinel_head`: `git rev-parse HEAD`
+  - `commit_sentinel_worktree`: `git rev-parse --show-toplevel`
+- Write `.claude/g-forge-docs-approved` with content: `commit_sentinel_ts=<write-tree output> commit_sentinel_head=<rev-parse HEAD output> commit_sentinel_worktree=<show-toplevel output>` (one line, space-separated `key=value` fields, exact field names — do not rename them)
+- If this review covered code/mixed changes and `.claude/g-forge-approved` is also being written (see `/g-review`), the two sentinels should carry the identical stamp — both bind to the one tree being committed.
 - Tell the developer: "DOCS READY. Documentation gate open — the doc/mixed-commit gate is satisfied for these changes."
 - If any WARNING findings were reported, list them as advisory follow-ups and note: "These do not block. Run `/g-docs <path>` or dispatch `doc-writer` to close them."
 

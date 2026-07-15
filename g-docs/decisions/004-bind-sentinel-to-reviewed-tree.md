@@ -59,6 +59,16 @@ Bind the sentinel to the exact reviewed tree, and make the **native git `pre-com
 - **The tree the sentinel stamps is the tree the next commit gates.** Holds only once the review-flow follow-up is resolved (main...HEAD vs staged).
 - **The raw-terminal committer is the leak, not a determined bypass; the gate is a discipline aid, not a security boundary.** Honest for accidents; the ADR and docs must not oversell it.
 
+## Resolution — review-flow alignment (2026-07-14)
+
+The open follow-up ("`/g-review` reviews `git diff main...HEAD` while the sentinel gates the *next staged* commit — resolve before coding") is closed. Verified live on this repo: `/g-execute` never commits mid-wave (HQ commits once, after MERGE READY), so at review time there is normally **nothing** on `main...HEAD` yet — the whole wave's work is sitting staged/unstaged, and `skills/g-review/SKILL.md`'s existing `--staged` line was already the common-case fallback, not the edge case.
+
+**Decision:** flip `/g-review`'s primary review target to the staged tree — `git diff --staged` unioned with unstaged-but-tracked modifications (the same union `check-commit.sh`'s `-a`/`--all` handling already computes), matching exactly what `git write-tree` will hash at commit time. `/g-review` stamps the sentinel with the `write-tree` hash of *that* reviewed tree plus HEAD sha. `main...HEAD` is retained only as a fallback for the edge case of resuming review on a branch that already carries committed-but-unreviewed history (e.g. an interrupted multi-commit session) — same fallback role it plays today, priority inverted.
+
+This makes the reviewed tree and the gated tree the same tree by construction, rather than by accident — the sentinel's `write-tree` binding (this ADR's core mechanism) only holds if the two ever compute over the same input.
+
+**Scope for implementation:** one change to `skills/g-review/SKILL.md`'s diff-target step (swap primary/fallback order + widen the primary target to the `-a`-union); no change to `check-commit.sh`'s classifier logic. Pin with a fail-before/pass-after test: reviewing a wave with only staged+unstaged changes (no prior commit on the branch) currently produces an empty `main...HEAD` diff — after the fix it must produce the real diff.
+
 ## Constraints That Drove This Decision
 
 - Portable POSIX shell, no new runtime deps beyond git and the existing jq→python3→node cascade → forces `git write-tree`/`git rev-parse` over any crypto.
