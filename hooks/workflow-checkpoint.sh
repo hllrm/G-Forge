@@ -9,11 +9,57 @@ if [ ! -t 0 ]; then
     : "${_STDIN_PAYLOAD:=}"
 fi
 
+# Sources shared lib helpers so this hook's project guard and review-sentinel
+# read agree with the ADR-004/005 commit gate (hooks/check-commit.sh,
+# hooks/pre-commit) on how to find the governing .claude/, instead of
+# drifting apart across two hand-edited implementations (M-audit finding
+# #21 / BUG-2 pattern). Resolved relative to this script's own location so
+# the installed copy (.claude/hooks/workflow-checkpoint.sh, with libs under
+# .claude/hooks/lib/) finds its libs the same way the repo source
+# (hooks/workflow-checkpoint.sh, hooks/lib/) does.
+_GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/worktree-resolve.sh
+. "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the checkpoint inert
 # everywhere else, so it never prints in a non-G-Forge project and so multiple
 # registration sources never cause it to misfire.
-[ -f ".claude/integration-tier" ] || exit 0
+#
+# ADR-005 — worktree primary-state resolution: a linked git worktree has no
+# local .claude/ of its own (gitignored, so it's simply absent in a fresh
+# worktree). Before treating that as "not a G-Forge project", try resolving
+# the PRIMARY working tree's .claude/ via the shared lib
+# (hooks/lib/worktree-resolve.sh) and use it if the primary is itself a
+# gated project — a worktree of a gated project inherits the checkpoint
+# instead of silently staying inert. GF_CLAUDE_DIR is the resolved base for
+# every .claude/ read below (tier + the review sentinel); it defaults to the
+# local "." tree, which keeps the primary-tree / non-worktree path
+# byte-identical to before this change. This hook is NON-GATING — it never
+# blocks anything — so any resolution failure or ambiguity exits 0 silently
+# instead of escalating (contrast hooks/check-commit.sh, which denies on
+# ambiguity for a confirmed commit — there is nothing analogous to deny
+# here).
+GF_CLAUDE_DIR=".claude"
+if [ ! -f "$GF_CLAUDE_DIR/integration-tier" ]; then
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        _primary_claude_dir=$(gf_resolve_primary_claude_dir)
+        if [ -n "$_primary_claude_dir" ] && [ -f "$_primary_claude_dir/integration-tier" ]; then
+            # Primary resolved AND is itself a gated project — inherit its
+            # state for the rest of this run.
+            GF_CLAUDE_DIR="$_primary_claude_dir"
+        else
+            # Either the primary resolved cleanly but never ran /g-init
+            # (genuinely ungated), or gf_resolve_primary_claude_dir printed
+            # nothing (any failure/ambiguity, its documented fail signal).
+            # Non-gating hook: both cases just stay silent.
+            exit 0
+        fi
+    else
+        # Not inside a git work tree at all — definitely not a G-Forge project.
+        exit 0
+    fi
+fi
 
 # Helper: emit a non-negative integer, defaulting to 0 on empty / non-numeric input.
 to_int() {
@@ -28,8 +74,8 @@ to_int() {
 # Integration tier — `full` (default) emits everything; `balanced` skips the
 # auto-trigger advisory; `light` emits only Branch + Tier.
 TIER="full"
-if [ -f ".claude/integration-tier" ]; then
-    _t=$(tr -d '[:space:]' < .claude/integration-tier 2>/dev/null)
+if [ -f "$GF_CLAUDE_DIR/integration-tier" ]; then
+    _t=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
     case "$_t" in
         full|balanced|light) TIER="$_t" ;;
     esac
@@ -40,8 +86,46 @@ if [ -f "g-docs/ROADMAP.md" ]; then
     ACTIVE_CONTEXT=$(grep -m1 'Active context:' g-docs/ROADMAP.md | sed 's/.*Active context:[[:space:]]*//')
 fi
 
+# Review sentinel — resolved under the same GF_CLAUDE_DIR as the project
+# guard above (ADR-005), so a linked worktree's "Review:" line reflects the
+# primary tree's sentinel instead of reporting "not yet approved" merely
+# because it has no local .claude/ of its own.
+#
+# The gate (hooks/pre-commit, ADR-004/005) binds each sentinel to the exact
+# worktree it was reviewed in via a `commit_sentinel_worktree=<toplevel>`
+# field, because GF_CLAUDE_DIR can resolve to a primary .claude/ SHARED by
+# every worktree of this repo — a sentinel written by /g-review in one tree
+# would otherwise read as "approved" in a sibling tree it never reviewed.
+# Mirror that per-worktree binding here (not the tree/HEAD staleness check
+# the gate also performs — this line is advisory status, not enforcement)
+# so the reported status is true for the CURRENT worktree, matching the
+# gate's own scheme.
 REVIEW_APPROVED=false
-[ -f ".claude/g-forge-approved" ] && REVIEW_APPROVED=true
+_gf_sentinel="$GF_CLAUDE_DIR/g-forge-approved"
+if [ -f "$_gf_sentinel" ]; then
+    _gf_sentinel_line=$(cat -- "$_gf_sentinel" 2>/dev/null)
+    case "$_gf_sentinel_line" in
+        *commit_sentinel_worktree=*)
+            _gf_sentinel_worktree=${_gf_sentinel_line#*commit_sentinel_worktree=}
+            _gf_sentinel_worktree=${_gf_sentinel_worktree%$'\r'}
+            _gf_current_worktree=$(gf_worktree_key)
+            # Empty current-worktree resolution means gf_worktree_key()
+            # itself failed (not a git failure this hook can meaningfully
+            # gate on — it's advisory only): fall back to the pre-ADR-004
+            # existence signal rather than under-report.
+            if [ -z "$_gf_current_worktree" ] || [ "$_gf_sentinel_worktree" = "$_gf_current_worktree" ]; then
+                REVIEW_APPROVED=true
+            fi
+            ;;
+        *)
+            # No worktree field — a bare/legacy sentinel (pre-ADR-004 format
+            # or a hand-created fixture). Not worktree-bound either way, so
+            # presence alone is the same signal it always was: keeps the
+            # primary-tree / non-worktree path byte-identical to before.
+            REVIEW_APPROVED=true
+            ;;
+    esac
+fi
 
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 

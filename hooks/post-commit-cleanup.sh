@@ -3,6 +3,20 @@
 # Clears .claude/g-forge-approved after a successful git commit.
 # Input: Claude Code PostToolUse JSON on stdin.
 
+# Sources shared lib helpers so commit detection and worktree resolution
+# agree with the ADR-004 native pre-commit hook and the check-commit.sh
+# PreToolUse gate instead of drifting apart across hand-edited
+# implementations (M-audit finding #21 / BUG-2). Resolved relative to this
+# script's own location so the installed copy
+# (.claude/hooks/post-commit-cleanup.sh, with libs under .claude/hooks/lib/)
+# finds its libs the same way the repo source
+# (hooks/post-commit-cleanup.sh, hooks/lib/) does.
+_GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/commit-detect.sh
+. "$_GF_HOOK_DIR/lib/commit-detect.sh"
+# shellcheck source=lib/worktree-resolve.sh
+. "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+
 # Extract the tool command from a PostToolUse JSON payload.
 # Never trust a lone interpreter whose failure we've silenced: probe each
 # parser before use (the Windows Microsoft-Store `python3` stub fails the
@@ -35,13 +49,52 @@ INPUT=$(cat)
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
 # else, so multiple registration sources never cause it to misfire.
-[ -f ".claude/integration-tier" ] || exit 0
+#
+# ADR-005 — worktree primary-state resolution: a linked git worktree has no
+# local .claude/ of its own (gitignored, so it's simply absent in a fresh
+# worktree). Before treating that as "not a G-Forge project", try resolving
+# the PRIMARY working tree's .claude/ via the shared lib
+# (hooks/lib/worktree-resolve.sh) and use it if the primary is itself a
+# gated project — a worktree of a gated project gets its sentinels cleared
+# through the primary's .claude/, the same directory check-commit.sh's gate
+# and hooks/pre-commit read/consume for this worktree (mirrors
+# check-commit.sh's GF_CLAUDE_DIR resolution, hooks/check-commit.sh
+# ~lines 102-131). GF_CLAUDE_DIR is the resolved base for both sentinel
+# paths below; it defaults to the local "." tree, which keeps the
+# primary-tree / non-worktree path byte-identical to before this change.
+#
+# This hook is NON-GATING (unlike check-commit.sh's deny() path): any
+# resolution failure or ambiguity here — gf_resolve_primary_claude_dir
+# returning nothing, or a primary that resolved but was itself never
+# gated — just exits 0, clearing nothing. It never blocks and never
+# guesses which sentinel to clear.
+GF_CLAUDE_DIR=".claude"
+if [ ! -f "$GF_CLAUDE_DIR/integration-tier" ]; then
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        _primary_claude_dir=$(gf_resolve_primary_claude_dir)
+        if [ -n "$_primary_claude_dir" ] && [ -f "$_primary_claude_dir/integration-tier" ]; then
+            # Primary resolved AND is itself a gated project — inherit its
+            # state for the rest of this run.
+            GF_CLAUDE_DIR="$_primary_claude_dir"
+        else
+            # Either gf_resolve_primary_claude_dir found nothing (any
+            # failure/ambiguity — nested worktree, --separate-git-dir,
+            # submodule) or it resolved cleanly but the primary was never
+            # gated either. Either way stay inert: NON-GATING means never
+            # guess which sentinel to clear.
+            exit 0
+        fi
+    else
+        # Not inside a git work tree at all — definitely not a G-Forge project.
+        exit 0
+    fi
+fi
 
 CMD=$(extract_cmd "$INPUT")
 # No parser yielded a command (missing/stubbed) → grep the raw payload.
 [ -z "$CMD" ] && CMD="$INPUT"
 
-if printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]-])git([[:space:]]+-[cC][[:space:]]*[^[:space:]]+)*[[:space:]]+commit([[:space:]]|$)'; then
-    rm -f ".claude/g-forge-approved"
-    rm -f ".claude/g-forge-docs-approved"
+if is_git_commit "$CMD"; then
+    rm -f "$GF_CLAUDE_DIR/g-forge-approved"
+    rm -f "$GF_CLAUDE_DIR/g-forge-docs-approved"
 fi

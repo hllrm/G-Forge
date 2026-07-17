@@ -6,10 +6,36 @@
 # Consume stdin to avoid broken pipe (PreCompact may or may not send JSON)
 cat > /dev/null 2>&1
 
+# Sources the shared worktree-resolution lib so the project guard below can
+# resolve a linked worktree's PRIMARY .claude/ the same way check-commit.sh
+# does (ADR-005). Resolved relative to this script's own location so the
+# installed copy (.claude/hooks/pre-compact.sh, with libs under
+# .claude/hooks/lib/) finds its libs the same way the repo source
+# (hooks/pre-compact.sh, hooks/lib/) does.
+_GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/worktree-resolve.sh
+. "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
 # else, so multiple registration sources never cause it to misfire.
-[ -f ".claude/integration-tier" ] || exit 0
+#
+# ADR-005 — worktree primary-state resolution: a linked git worktree has no
+# local .claude/ of its own (gitignored, so it's simply absent in a fresh
+# worktree). Before treating that as "not a G-Forge project", try resolving
+# the PRIMARY working tree's .claude/ via the shared lib
+# (hooks/lib/worktree-resolve.sh) and use it, purely to decide whether this
+# hook should activate — a worktree of a gated project inherits activation
+# instead of silently no-op'ing. This hook is NON-GATING (it must never
+# block or deny), so any resolution failure or ambiguity just falls through
+# to a silent `exit 0` below, never an escalation. All state below (this
+# hook's writes) still targets the LOCAL .claude/, unchanged.
+if [ ! -f ".claude/integration-tier" ]; then
+    _gf_primary_claude_dir=$(gf_resolve_primary_claude_dir)
+    if [ -z "$_gf_primary_claude_dir" ] || [ ! -f "$_gf_primary_claude_dir/integration-tier" ]; then
+        exit 0
+    fi
+fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
 

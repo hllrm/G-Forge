@@ -9,10 +9,32 @@ if [ ! -t 0 ]; then
     : "${_STDIN_PAYLOAD:=}"
 fi
 
+# Sources shared lib helpers so worktree resolution agrees with the ADR-004/005
+# native pre-commit hook instead of drifting apart across hand-edited
+# implementations. Resolved relative to this script's own location so the
+# installed copy (.claude/hooks/session-start.sh, with libs under
+# .claude/hooks/lib/) finds its libs the same way the repo source
+# (hooks/session-start.sh, hooks/lib/) does.
+_GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/worktree-resolve.sh
+. "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
 # else, so multiple registration sources never cause it to misfire.
-[ -f ".claude/integration-tier" ] || exit 0
+#
+# Local-first-else-primary (ADR-005): if this worktree has its own
+# .claude/integration-tier, behave exactly as before. Otherwise (a linked
+# worktree with no local .claude/ of its own) resolve the PRIMARY working
+# tree's .claude/ dir via the shared lib and check its integration-tier
+# instead. Any resolution failure or empty result is treated as "not a
+# G-Forge project" and exits silently — this guard is NON-GATING and must
+# never block a session start.
+if [ ! -f ".claude/integration-tier" ]; then
+    _GF_PRIMARY_CLAUDE_DIR=$(gf_resolve_primary_claude_dir) || exit 0
+    [ -n "$_GF_PRIMARY_CLAUDE_DIR" ] || exit 0
+    [ -f "$_GF_PRIMARY_CLAUDE_DIR/integration-tier" ] || exit 0
+fi
 
 # SessionStart carries a `source`: startup | resume | clear | compact.
 # A `compact` start is NOT a fresh session — it's the same session continuing
