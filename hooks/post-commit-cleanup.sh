@@ -20,7 +20,9 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Extract the tool command from a PostToolUse JSON payload.
 # Never trust a lone interpreter whose failure we've silenced: probe each
 # parser before use (the Windows Microsoft-Store `python3` stub fails the
-# probe), and fall back to the caller's raw-payload grep if none works.
+# probe). If none work, fall back to a portable sed extraction of the
+# "command" field's raw string value. If even that finds nothing, the
+# caller falls back to the raw payload as a last resort.
 extract_cmd() {
     local payload="$1" cmd=""
     if command -v jq >/dev/null 2>&1; then
@@ -40,6 +42,9 @@ except Exception:
         cmd=$(printf '%s' "$payload" | node -e "
 let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s);process.stdout.write((d.tool_input&&d.tool_input.command)||d.command||'');}catch(e){}});
 " 2>/dev/null)
+    fi
+    if [ -z "$cmd" ]; then
+        cmd=$(printf '%s' "$payload" | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(\([^"\\]\|\\.\)*\)".*/\1/p')
     fi
     printf '%s' "$cmd"
 }

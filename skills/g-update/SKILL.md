@@ -1,6 +1,6 @@
 ---
 name: g-update
-description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect and implementer agents, all installed architecture rules, and all seven G-Forge hooks. Safe — only touches content between G-Forge markers.
+description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect and implementer agents, all installed architecture rules, all G-Forge hooks and their shared hooks/lib/ scripts, and the native git pre-commit gate. Safe — only touches content between G-Forge markers.
 ---
 
 **Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
@@ -216,12 +216,12 @@ Report: `✓ .claude/rules/[filename] — updated` for each updated file.
 
 ## Step 7 — Update hook scripts
 
-The canonical hook bodies live in `[plugin-root]/hooks/` (the same files `/g-init` copies). `.claude/settings.json` is the **single** registrar — the plugin manifest (`hooks/hooks.json`) registers no hooks, so there is never a manifest-vs-project duplicate. For each of the seven G-Forge-managed hooks in the table below, realign `.claude/hooks/<file>` to the plugin source:
+The canonical hook bodies live in `[plugin-root]/hooks/` (the same files `/g-init` copies). `.claude/settings.json` is the **single** registrar — the plugin manifest (`hooks/hooks.json`) registers no hooks, so there is never a manifest-vs-project duplicate. For each of the G-Forge-managed hooks and shared `lib/` scripts in the table below, realign `.claude/hooks/<file>` to the plugin source:
 
 - **File exists:** Replace its contents with `[plugin-root]/hooks/<file>`. Report: `✓ .claude/hooks/<file> — updated`.
-- **File does not exist:** Create it (along with `.claude/hooks/` if needed) from the plugin source, AND register its hook entry in `.claude/settings.json` for every event it uses, if not already present. Report: `✓ .claude/hooks/<file> — created and registered`.
+- **File does not exist:** Create it (along with `.claude/hooks/` — and `.claude/hooks/lib/` too, when it does not yet exist — if needed) from the plugin source, AND register its hook entry in `.claude/settings.json` for every event it uses, if not already present. Report: `✓ .claude/hooks/<file> — created and registered`.
 
-In **both** cases, after writing the file, verify `.claude/settings.json` contains a registration for every event the hook uses; if any is missing, add it with the merge-not-overwrite pattern (read the current JSON, insert under the event key, write back without touching other keys) and report `✓ .claude/settings.json — <Event> hook verified`.
+In **both** cases, after writing the file, verify `.claude/settings.json` contains a registration for every event the hook uses; if any is missing, add it with the merge-not-overwrite pattern (read the current JSON, insert under the event key, write back without touching other keys) and report `✓ .claude/settings.json — <Event> hook verified`. The three `lib/` scripts below have no `settings.json` event of their own — they are `source`d by the top-level hooks at runtime, never invoked directly — so for them this step is realign-content-only; skip the registration-verification clause.
 
 | Hook | settings.json event(s) | invocation |
 |------|------------------------|------------|
@@ -234,6 +234,11 @@ The shell-tool matcher must be `Bash|PowerShell`, never `Bash` alone — Claude 
 | `pre-compact.sh` | PreCompact | `pre-compact.sh` |
 | `session-start.sh` | SessionStart | `session-start.sh` |
 | `workflow-checkpoint.sh` | UserPromptSubmit | `workflow-checkpoint.sh` |
+| `lib/commit-detect.sh` | — (sourced, not registered) | sourced by check-commit.sh, observe.sh, post-commit-cleanup.sh — never invoked directly |
+| `lib/worktree-resolve.sh` | — (sourced, not registered) | sourced by all seven top-level hooks — never invoked directly |
+| `lib/classify-changeset.sh` | — (sourced, not registered) | sourced by check-commit.sh — never invoked directly |
+
+The `lib/` rows realign to `.claude/hooks/lib/<filename>` (create `.claude/hooks/lib/` first if it does not exist) — same file-exists/file-does-not-exist branching as above, minus the settings.json step.
 
 Use the exact registration JSON in `[plugin-root]/skills/g-init/SKILL.md` Step 7 as the template for any entry you add.
 
@@ -248,6 +253,25 @@ Report `✓ .claude/settings.json — removed [N] duplicate hook registration(s)
 
 ---
 
+## Step 7a — Realign the native pre-commit gate
+
+The commit gate's authoritative enforcement site (ADR-004) is a **native git hook**, `[plugin-root]/hooks/pre-commit` — it is installed straight into the consumer repo's real git hooks directory, never into `.claude/hooks/`. `.claude/hooks/` only ever holds Claude-Code-invoked scripts (the ones registered in `.claude/settings.json` above); a native git hook is invoked by `git` itself and `.claude/settings.json` has no say over it, so it needs its own realignment pass here.
+
+1. **Resolve the real git hooks directory** — do not assume `.git/hooks/`. Run:
+   ```bash
+   git rev-parse --git-path hooks
+   ```
+   This resolves correctly even when the project has a custom `core.hooksPath` configured, or when the working tree is a linked worktree (where `.git` is a file, not a directory). Call the result `<hooks-dir>`.
+
+2. **Detect what's currently at `<hooks-dir>/pre-commit`:**
+   - **Absent:** safe to install. Copy `[plugin-root]/hooks/pre-commit` to `<hooks-dir>/pre-commit` and make it executable (`chmod +x`, best effort). Report: `✓ <hooks-dir>/pre-commit — installed (canonical from plugin cache)`.
+   - **Present and G-Forge-managed:** read the first few lines of the existing file. If they contain the literal string `G-Forge commit gate`, it is a G-Forge-installed hook — safe to realign. Overwrite it with `[plugin-root]/hooks/pre-commit` and re-verify it is executable. Report: `✓ <hooks-dir>/pre-commit — realigned`.
+   - **Present and NOT G-Forge-managed:** the first lines do not contain `G-Forge commit gate` — this is a hook the developer (or another tool) wrote. **Never overwrite it.** Leave it untouched and report: `⚠ <hooks-dir>/pre-commit — left untouched (not G-Forge-managed); G-Forge's commit gate is not enforced here. Back it up and remove it, then re-run /g-update, if you want the gate installed natively.`
+
+3. `pre-commit` needs **no** `.claude/settings.json` registration — git invokes it natively on every `git commit`, the same way it invokes any other native git hook. Do not add an entry for it anywhere in `.claude/settings.json`; doing so would be a no-op at best and a confusing duplicate at worst.
+
+---
+
 ## Step 8 — Report
 
 ```
@@ -259,6 +283,8 @@ g-forge update complete ✓
   ✓ .claude/agents/vue-architect.md — realigned
   ✓ .claude/hooks/check-commit.sh — realigned
   ✓ .claude/hooks/workflow-checkpoint.sh — realigned
+  ✓ .claude/hooks/lib/*.sh — realigned
+  ✓ <git-hooks-dir>/pre-commit — realigned | skipped (user hook preserved)
   [skipped] .claude/rules/my-custom-rules.md — not G-Forge managed
 
 All G-Forge-managed content is now at plugin version [read version from plugin-root/.claude-plugin/plugin.json].

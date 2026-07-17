@@ -91,6 +91,35 @@ run "git commit removes both sentinels" \
 run_no_cleanup "non-commit command leaves sentinels intact" \
     '{"tool_name":"Bash","tool_input":{"command":"npm test"}}'
 
+# ── Sed-tier fallback parity (W1.4) ───────────────────────────────────────
+# When jq/python3/node are all unavailable, extract_cmd() must fall back to
+# the same portable sed extraction hooks/check-commit.sh uses (its 4th tier)
+# instead of leaving the caller to fall through to the raw JSON payload —
+# which is NOT reliably shell-tokenizable by is_git_commit()'s xargs -n1 walk
+# (mixed quoted/unquoted JSON syntax with no separating whitespace collapses
+# into one non-"git" token). Shadow all three parsers with exit-1 stubs
+# *prepended* to the real PATH (same convention as tests/test-check-commit.sh)
+# and confirm a clean (unescaped) commit command is still extracted and
+# detected.
+STUBDIR="$(mktemp -d)"
+for p in jq python3 node; do
+    printf '#!/bin/sh\nexit 1\n' > "$STUBDIR/$p"
+    chmod +x "$STUBDIR/$p"
+done
+touch "$SENTINEL_CODE"
+touch "$SENTINEL_DOCS"
+printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git commit -m test-sed-tier"}}' \
+    | PATH="$STUBDIR:$PATH" bash "$SCRIPT" >/dev/null 2>&1
+if [ ! -f "$SENTINEL_CODE" ] && [ ! -f "$SENTINEL_DOCS" ]; then
+    echo "PASS: sed-tier fallback extracts command and clears sentinels when jq/python3/node are unavailable"; PASS=$((PASS+1))
+else
+    SED_CODE_STATUS="exists"; SED_DOCS_STATUS="exists"
+    [ ! -f "$SENTINEL_CODE" ] && SED_CODE_STATUS="removed"
+    [ ! -f "$SENTINEL_DOCS" ] && SED_DOCS_STATUS="removed"
+    echo "FAIL: sed-tier fallback did not clear sentinels (g-forge-approved=$SED_CODE_STATUS, g-forge-docs-approved=$SED_DOCS_STATUS)"; FAIL=$((FAIL+1))
+fi
+rm -rf "$STUBDIR"
+
 # ── Guard Behavior Test ──────────────────────────────────────────────────
 
 # 5: Outside a G-Forge project (no .claude/integration-tier) → hook is inert

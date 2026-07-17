@@ -129,6 +129,23 @@ hash_file() {
 - Fail (per file): ✗ [script] installed copy differs from plugin source (drift)
   → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
 
+This check also covers two related canonical-vs-installed surfaces that hook drift can hide in — the shared `hooks/lib/` scripts, and the native git `pre-commit` hook:
+
+- **`hooks/lib/` drift.** For each of the 3 canonical lib scripts (`commit-detect.sh`, `worktree-resolve.sh`, `classify-changeset.sh`) in `hooks/lib/` (plugin source), check for an installed counterpart at `.claude/hooks/lib/<file>` and hash-compare using the same `hash_file` cascade above.
+  - Pass (per file): installed lib file exists AND its hash matches the canonical source in `hooks/lib/`.
+  - Fail (missing): ✗ hooks/lib/[file] missing from installed copy (drift)
+    → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
+  - Fail (hash mismatch, file present): ✗ hooks/lib/[file] installed copy differs from plugin source (drift)
+    → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
+
+- **Native `pre-commit` git hook drift.** Resolve the installed git hooks directory with `git rev-parse --git-path hooks` (do not assume `.git/hooks` — it can be relocated, e.g. worktrees) and look for `<hooks-dir>/pre-commit`. Before comparing, check whether it is a G-Forge-managed pre-commit: read its first few lines for the literal marker `G-Forge commit gate`.
+  - Pass: `<hooks-dir>/pre-commit` exists, carries the `G-Forge commit gate` marker, AND its hash matches the canonical `hooks/pre-commit` (same `hash_file` cascade).
+  - Fail (missing): ✗ pre-commit missing from installed git hooks dir (drift)
+    → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
+  - Fail (G-Forge pre-commit present but hash differs): ✗ pre-commit installed copy differs from plugin source (drift)
+    → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
+  - Advisory, not a failure (marker absent — a foreign, non-G-Forge pre-commit occupies the slot; the /g-init·/g-update clobber guard preserves it rather than overwriting it): ⚠ foreign pre-commit present (gate not installed — advisory, run /g-update to see options)
+
 **17. CLAUDE.md architecture rules format** (advisory)
 Read `CLAUDE.md`. For each `<!-- G-Forge [stack] Architecture Rules` block, count the non-empty lines between the opening and closing markers. If any block has more than 3 lines of content, it is using the legacy inline format.
 - Pass: ✓ CLAUDE.md architecture rules compact (@reference format)

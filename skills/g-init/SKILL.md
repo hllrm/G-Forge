@@ -1,6 +1,6 @@
 ---
 name: g-init
-description: The single G-Forge front door — run once after installing the plugin. Detects what's here and routes to /g-onboard (existing codebase) or /g-kickoff (new project) for the brief, scaffolds CLAUDE.md (compact G-rules), g-docs/ROADMAP.md (with the Active Session handoff), g-docs/milestones/, g-docs/todo.md, and the seven commit/workflow hooks, then runs /g-specialize for the stack — leaving you ready to /g-plan.
+description: The single G-Forge front door — run once after installing the plugin. Detects what's here and routes to /g-onboard (existing codebase) or /g-kickoff (new project) for the brief, scaffolds CLAUDE.md (compact G-rules), g-docs/ROADMAP.md (with the Active Session handoff), g-docs/milestones/, g-docs/todo.md, the commit/workflow hooks (plus their shared lib/ scripts) and the native pre-commit gate, then runs /g-specialize for the stack — leaving you ready to /g-plan.
 ---
 
 **Announce:** "Using g-init to set up G-Forge."
@@ -219,11 +219,13 @@ Create `.claude/hooks/` directory if it does not exist.
 
 **Mark the project as G-Forge-managed first.** Every hook self-guards on `.claude/integration-tier` and stays inert without it (this is what keeps the global plugin from gating commits in non-G-Forge repos). So before wiring any hooks, if `.claude/integration-tier` does not already exist, write `full` to it now — Step 7a refines it from the developer's answer. This guarantees the marker exists the moment the hooks are registered, even if onboarding (Step 7a) is interrupted.
 
-All seven hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
+All hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
 
 Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`. Call this `<plugin-hooks>`.
 
-For each of the following seven hook files, copy from `<plugin-hooks>/<filename>` to `.claude/hooks/<filename>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
+Create `.claude/hooks/lib/` too: `mkdir -p .claude/hooks/lib/` — the three shared libraries below live there, and every top-level hook now sources from that path at runtime, so skipping it produces a broken install.
+
+For each of the following files, copy from `<plugin-hooks>/<relative-path>` to `.claude/hooks/<relative-path>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
 
 | Hook | Source | Destination |
 |------|--------|-------------|
@@ -234,8 +236,11 @@ For each of the following seven hook files, copy from `<plugin-hooks>/<filename>
 | `pre-compact.sh` | `<plugin-hooks>/pre-compact.sh` | `.claude/hooks/pre-compact.sh` |
 | `session-start.sh` | `<plugin-hooks>/session-start.sh` | `.claude/hooks/session-start.sh` |
 | `workflow-checkpoint.sh` | `<plugin-hooks>/workflow-checkpoint.sh` | `.claude/hooks/workflow-checkpoint.sh` |
+| `lib/commit-detect.sh` | `<plugin-hooks>/lib/commit-detect.sh` | `.claude/hooks/lib/commit-detect.sh` |
+| `lib/worktree-resolve.sh` | `<plugin-hooks>/lib/worktree-resolve.sh` | `.claude/hooks/lib/worktree-resolve.sh` |
+| `lib/classify-changeset.sh` | `<plugin-hooks>/lib/classify-changeset.sh` | `.claude/hooks/lib/classify-changeset.sh` |
 
-After copying each file, ensure it is executable: `chmod +x .claude/hooks/<filename>` (best effort — on Windows, file mode bits may not apply but Claude Code still runs the script via bash).
+After copying each top-level hook file, ensure it is executable: `chmod +x .claude/hooks/<filename>` (best effort — on Windows, file mode bits may not apply but Claude Code still runs the script via bash). The three `lib/` files do not need this — they are `source`d by the top-level hooks, never executed directly, so the executable bit is optional for them.
 
 The commit gate now has **two sentinels**: `post-commit-cleanup.sh` deletes both `.claude/g-forge-approved` (the code-review gate, written by `/g-review` on MERGE READY) and `.claude/g-forge-docs-approved` (the doc-review gate, written by `/g-doc-review` on DOCS READY) after every successful commit, so both gates reset together.
 
@@ -248,12 +253,40 @@ Report:
   ✓ .claude/hooks/pre-compact.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/session-start.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/workflow-checkpoint.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/lib/commit-detect.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/lib/worktree-resolve.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/lib/classify-changeset.sh — installed (canonical from plugin cache)
 ```
 
-If the plugin cache does not contain any of the seven scripts, stop and report:
+If the plugin cache does not contain any of the ten files above (the top-level hooks plus the `lib/` scripts), stop and report:
 ```
-✗ Plugin cache missing hook file: <plugin-hooks>/<filename>
+✗ Plugin cache missing hook file: <plugin-hooks>/<relative-path>
   Reinstall the plugin: /plugin install g-forge
+```
+
+## Step 6a — Install the native pre-commit gate
+
+ADR-004 makes the native git `pre-commit` hook (`<plugin-hooks>/pre-commit`) — not the PreToolUse `check-commit.sh` hook installed in Step 6 — the authoritative enforcement site for the commit gate: it fires after `git commit` has already staged the true to-be-committed tree, so it sees things PreToolUse cannot (e.g. `git commit -a`/`-p`, raw-terminal commits). It has never been installed by `/g-init` until now.
+
+1. Resolve the real git hooks directory — do not assume `.git/hooks`: run `git rev-parse --git-path hooks` and use its output as `<git-hooks-dir>`. This honors `core.hooksPath` overrides and, in a linked worktree, correctly resolves to the primary checkout's shared hooks directory rather than a per-worktree path.
+
+2. Check what's at `<git-hooks-dir>/pre-commit`:
+   - **Absent** — copy `<plugin-hooks>/pre-commit` to `<git-hooks-dir>/pre-commit`, then `chmod +x` it (best effort, same as Step 6).
+   - **Present and G-Forge-managed** — read its first lines; if they contain the literal string `G-Forge commit gate` (the canonical `hooks/pre-commit`'s own line-2 header), it is a previous G-Forge install. Overwrite it with `<plugin-hooks>/pre-commit` and `chmod +x` it, same as a fresh install.
+   - **Present and NOT G-Forge-managed** — a developer- or another-tool-installed `pre-commit` already exists. **Leave it untouched — never overwrite a foreign hook.** Surface a warning naming the path instead:
+     ```
+     ⚠ .git/hooks/pre-commit already exists and is not G-Forge-managed — left untouched.
+       G-Forge's commit gate is enforced at the PreToolUse layer only (.claude/hooks/check-commit.sh).
+       To let G-Forge also enforce natively, back up and remove the existing hook, then re-run /g-init.
+     ```
+
+Report:
+```
+  ✓ <git-hooks-dir>/pre-commit — installed (canonical from plugin cache)
+```
+or, if left untouched:
+```
+  ⚠ <git-hooks-dir>/pre-commit — not overwritten (existing non-G-Forge hook preserved)
 ```
 
 ## Step 7 — Register hooks in .claude/settings.json
@@ -422,7 +455,8 @@ G-Forge ready ✓
   ✓ g-docs/milestones/M1.md — created (or already existed)
   ✓ g-docs/todo.md — created (or already existed)
   ✓ .gitignore — project artifacts excluded, project record tracked
-  ✓ .claude/hooks/ — 7 hooks installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint)
+  ✓ .claude/hooks/ — 7 hooks + 3 lib/ scripts installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint, lib/commit-detect, lib/worktree-resolve, lib/classify-changeset)
+  ✓ pre-commit — installed | not overwritten (existing hook preserved)
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]
   ✓ .claude/integration-tier — [chosen tier]
