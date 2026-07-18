@@ -1,0 +1,130 @@
+#!/bin/bash
+# Unit tests for hooks/lib/commit-detect.sh
+# Tests the git-commit detection and pathspec extraction APIs.
+# Encodes HQ-verified ground-truth table (2026-07-17, git-bash bash 5.2.37, GNU xargs 4.10.0).
+# No temp repos — all tests call shell functions on fixed strings only.
+
+LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/commit-detect.sh"
+source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
+
+PASS=0
+FAIL=0
+
+# test_detected <name> <cmd> — assert is_git_commit returns 0
+test_detected() {
+    local name="$1" cmd="$2"
+    if is_git_commit "$cmd"; then
+        echo "PASS: $name"
+        PASS=$((PASS+1))
+    else
+        echo "FAIL: $name (expected detected, but was not)"
+        FAIL=$((FAIL+1))
+    fi
+}
+
+# test_not_detected <name> <cmd> — assert is_git_commit returns nonzero
+test_not_detected() {
+    local name="$1" cmd="$2"
+    if ! is_git_commit "$cmd"; then
+        echo "PASS: $name"
+        PASS=$((PASS+1))
+    else
+        echo "FAIL: $name (expected not detected, but was)"
+        FAIL=$((FAIL+1))
+    fi
+}
+
+# test_pathspecs <name> <cmd> <expected> — assert extract_pathspecs output matches
+test_pathspecs() {
+    local name="$1" cmd="$2" expected="$3"
+    local actual
+    actual=$(extract_pathspecs "$cmd")
+    if [ "$actual" = "$expected" ]; then
+        echo "PASS: $name"
+        PASS=$((PASS+1))
+    else
+        echo "FAIL: $name (expected pathspecs: $(printf '%q' "$expected"), got: $(printf '%q' "$actual"))"
+        FAIL=$((FAIL+1))
+    fi
+}
+
+# ── Group P — pins, assert DETECTED, all pass today ────────────────────────────
+
+test_detected "P: git commit -m x" "git commit -m x"
+test_detected "P: git commit" "git commit"
+test_detected "P: git -C /some/path commit -m x" "git -C /some/path commit -m x"
+test_detected "P: git -c user.name=x commit" "git -c user.name=x commit"
+test_detected "P: /usr/bin/git commit -m x" "/usr/bin/git commit -m x"
+test_detected "P: FOO=bar git commit -m x (multi-char env var name)" "FOO=bar git commit -m x"
+test_detected "P: FOO=bar BAZ2=q git commit (two multi-char prefixes)" "FOO=bar BAZ2=q git commit"
+test_detected "P: env git commit -m x (bare env prefix)" "env git commit -m x"
+# Partial tokenization on malformed input: unmatched double quote — GNU xargs emits partial tokens BEFORE erroring → DETECTED
+# This is the fail-toward-deny direction and is CORRECT per HQ probe 2026-07-17.
+test_detected "P: git commit -m \"unclosed (unmatched double quote, partial-tokenization)" 'git commit -m "unclosed'
+test_detected "P: git commit -m 'unclosed (unmatched single quote, partial-tokenization)" "git commit -m 'unclosed"
+test_detected "P: git commit with literal newline between tokens" $'git\ncommit -m x'
+
+# ── Group N — pins, assert NOT detected, all pass today ──────────────────────
+
+test_not_detected "N: echo \"git commit\"" 'echo "git commit"'
+test_not_detected "N: grep 'git commit -m x' somefile" "grep 'git commit -m x' somefile"
+test_not_detected "N: for i in 1; do echo \"git commit\"; done" 'for i in 1; do echo "git commit"; done'
+test_not_detected "N: echo hi && echo \"git commit\" (substring in chained segment)" 'echo hi && echo "git commit"'
+test_not_detected "N: gitx commit" "gitx commit"
+test_not_detected "N: git commitx" "git commitx"
+test_not_detected "N: empty string" ""
+
+# ── Group KNOWN-BUG-chains — assert DETECTED, all FAIL today (ledger finding #25) ─
+
+test_detected "KNOWN-BUG-chains: cd /tmp && git commit -m x" "cd /tmp && git commit -m x"
+test_detected "KNOWN-BUG-chains: echo hi; git commit -m x" "echo hi; git commit -m x"
+test_detected "KNOWN-BUG-chains: true | git commit -m x" "true | git commit -m x"
+test_detected "KNOWN-BUG-chains: false || git commit -m x" "false || git commit -m x"
+test_detected "KNOWN-BUG-chains: git status && git commit -m x" "git status && git commit -m x"
+
+# ── Group KNOWN-BUG-glued-chains — assert DETECTED, all FAIL before W1.5a (ledger finding #25, review r1) ─
+# Chain operators glued directly onto a non-space word (no space on one or both
+# sides) are not isolated as their own xargs token, so the boundary scan in
+# _commit_detect_scan_segments never sees them and the chained `git commit`
+# slips through. HQ-verified LIVE 2026-07-17 these three bypass pre-fix.
+
+test_detected "KNOWN-BUG-glued-chains: x&&git commit -m z" "x&&git commit -m z"
+test_detected "KNOWN-BUG-glued-chains: true|git commit -m z" "true|git commit -m z"
+test_detected "KNOWN-BUG-glued-chains: echo hi;git commit -m z" "echo hi;git commit -m z"
+test_detected "KNOWN-BUG-glued-chains: false||git commit -m z" "false||git commit -m z"
+test_detected "KNOWN-BUG-glued-chains: a&git commit -m z" "a&git commit -m z"
+
+# Regression guards: glued-operator normalization must not disturb quoting.
+test_detected "KNOWN-BUG-glued-chains: git commit -m \"a && b\" (operator inside quoted message, real commit)" 'git commit -m "a && b"'
+test_pathspecs "KNOWN-BUG-glued-chains: git commit -m \"a && b\" pathspecs empty (message not split)" 'git commit -m "a && b"' ""
+test_not_detected "KNOWN-BUG-glued-chains: echo hi&&echo \"git commit\" (glued but committing text is a quoted echo arg)" 'echo hi&&echo "git commit"'
+
+# ── Group KNOWN-BUG-globalflags — assert DETECTED, all FAIL today (W1.1 minor 2) ─
+
+test_detected "KNOWN-BUG-globalflags: git --no-pager commit -m x" "git --no-pager commit -m x"
+test_detected "KNOWN-BUG-globalflags: git -p commit -m x" "git -p commit -m x"
+test_detected "KNOWN-BUG-globalflags: git --git-dir=/x commit -m x" "git --git-dir=/x commit -m x"
+test_detected "KNOWN-BUG-globalflags: git --git-dir /x commit -m x" "git --git-dir /x commit -m x"
+test_detected "KNOWN-BUG-globalflags: git --work-tree /x commit -m x" "git --work-tree /x commit -m x"
+test_detected "KNOWN-BUG-globalflags: git --namespace ns commit -m x" "git --namespace ns commit -m x"
+
+# ── Group KNOWN-BUG-envS — assert DETECTED, FAILS today (W1.1 minor 3) ───────────
+
+test_detected "KNOWN-BUG-envS: env -S 'git commit -m x' (quoted -S value, not re-tokenized)" "env -S 'git commit -m x'"
+
+# ── Group KNOWN-BUG-singlecharvar — assert DETECTED, all FAIL today (ledger finding #26) ─
+
+test_detected "KNOWN-BUG-singlecharvar: A=1 git commit -m x" "A=1 git commit -m x"
+test_detected "KNOWN-BUG-singlecharvar: A=1 B=2 git commit -m x" "A=1 B=2 git commit -m x"
+
+# ── Group PS — pathspec extraction contract, all pass today ──────────────────────
+
+test_pathspecs "PS: git commit -m msg -- path1 path2" "git commit -m msg -- path1 path2" $'path1\npath2'
+test_pathspecs "PS: git commit -m \"touch hooks/check-commit.sh and g-docs/x.md\" (message text never tokenized)" 'git commit -m "touch hooks/check-commit.sh and g-docs/x.md"' ""
+test_pathspecs "PS: git commit -m msg file1.txt (positional pathspec without --)" "git commit -m msg file1.txt" "file1.txt"
+
+# ── Summary ───────────────────────────────────────────────────────────────────────
+
+echo ""
+echo "Results: $PASS passed, $FAIL failed"
+[ "$FAIL" -eq 0 ] || exit 1

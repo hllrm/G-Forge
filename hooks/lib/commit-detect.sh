@@ -18,36 +18,53 @@
 # rather than `eval` — eval re-parses the string as shell code and would
 # execute embedded command substitutions/backticks even when the caller only
 # wants to inspect argv, including on a command the gate ultimately denies.
+# On malformed input (e.g. an unmatched quote), GNU xargs emits the tokens it
+# had already assembled up to the malformed point, then errors — so we get
+# partial tokens, not zero tokens. That partial argv typically still starts
+# `git commit ...` and so is typically DETECTED: fail-toward-deny, the safe
+# direction for a commit gate.
 _commit_detect_tokenize() {
     printf '%s' "$1" | xargs -n1 2>/dev/null
 }
 
-# _commit_detect_parse <cmd> — internal shared walk, used by both public
-# functions so they classify a command identically (never two implementations
-# that could disagree). Sets globals:
-#   _CD_TOKENS  — array of argv tokens
-#   _CD_N       — token count
-#   _CD_OK      — 1 if <cmd> is confirmed `git commit`, 0 otherwise
-#   _CD_IDX     — index of the first token AFTER the `commit` subcommand
-#                 (only meaningful when _CD_OK=1)
-_commit_detect_parse() {
-    local cmd="$1"
-    _CD_TOKENS=()
-    while IFS= read -r _cd_tok; do
-        _CD_TOKENS+=("$_cd_tok")
-    done < <(_commit_detect_tokenize "$cmd")
-    _CD_N=${#_CD_TOKENS[@]}
+# _commit_detect_is_var_assign <tok> — true iff <tok> is a shell env-style
+# assignment (`NAME=value`, NAME possibly one character). Deliberately NOT
+# the single glob `[A-Za-z_][A-Za-z0-9_]*=*` — that compound (two adjacent
+# bracket expressions) fails to match single-character names such as `A=1`
+# under git-bash bash 5.2.37 (verified live, both `case` and `[[ ]]`; ledger
+# finding #26). Split-then-validate with single-class patterns instead.
+_commit_detect_is_var_assign() {
+    local tok="$1"
+    case "$tok" in
+        *=*) ;;
+        *) return 1 ;;
+    esac
+    local name="${tok%%=*}"
+    [ -n "$name" ] || return 1
+    case "${name:0:1}" in
+        [A-Za-z_]) ;;
+        *) return 1 ;;
+    esac
+    case "${name:1}" in
+        *[!A-Za-z0-9_]*) return 1 ;;
+    esac
+    return 0
+}
+
+# _commit_detect_walk_core — the argv walk for a SINGLE already-isolated
+# segment (no chain operators inside it — see _commit_detect_scan_segments).
+# Assumes _CD_TOKENS/_CD_N already hold that segment's tokens; sets
+# _CD_OK/_CD_IDX. May splice extra tokens into _CD_TOKENS/_CD_N in place when
+# unwrapping `env -S "..."` (the quoted value is itself re-tokenized and its
+# tokens take the place of the single -S value token).
+_commit_detect_walk_core() {
     _CD_OK=0
     _CD_IDX=0
-
     local i=0
 
     # Strip leading VAR=val assignments (env-style prefix, e.g. `FOO=bar git commit`).
-    while [ "$i" -lt "$_CD_N" ]; do
-        case "${_CD_TOKENS[$i]}" in
-            [A-Za-z_][A-Za-z0-9_]*=*) i=$((i + 1)) ;;
-            *) break ;;
-        esac
+    while [ "$i" -lt "$_CD_N" ] && _commit_detect_is_var_assign "${_CD_TOKENS[$i]}"; do
+        i=$((i + 1))
     done
 
     # Strip a leading `env` / `env -S ...` prefix (its own flags and any
@@ -56,9 +73,31 @@ _commit_detect_parse() {
         i=$((i + 1))
         while [ "$i" -lt "$_CD_N" ]; do
             case "${_CD_TOKENS[$i]}" in
+                -S | --split-string)
+                    if [ "$((i + 1))" -lt "$_CD_N" ]; then
+                        # The -S value is one token containing embedded
+                        # whitespace (e.g. "git commit -m x"). Re-tokenize it
+                        # and splice the pieces in place of the flag + value,
+                        # then keep walking from the same position — the
+                        # spliced tokens may themselves be `VAR=val git commit …`.
+                        local -a _cd_spliced=()
+                        while IFS= read -r _cd_stok; do
+                            _cd_spliced+=("$_cd_stok")
+                        done < <(_commit_detect_tokenize "${_CD_TOKENS[$((i + 1))]}")
+                        _CD_TOKENS=("${_CD_TOKENS[@]:0:i}" "${_cd_spliced[@]}" "${_CD_TOKENS[@]:$((i + 2))}")
+                        _CD_N=${#_CD_TOKENS[@]}
+                    else
+                        i=$((i + 1))
+                    fi
+                    ;;
                 -*) i=$((i + 1)) ;;
-                [A-Za-z_][A-Za-z0-9_]*=*) i=$((i + 1)) ;;
-                *) break ;;
+                *)
+                    if _commit_detect_is_var_assign "${_CD_TOKENS[$i]}"; then
+                        i=$((i + 1))
+                    else
+                        break
+                    fi
+                    ;;
             esac
         done
     fi
@@ -73,10 +112,17 @@ _commit_detect_parse() {
     esac
     i=$((i + 1))
 
-    # Walk forward skipping global flags that take a value: -C <path>, -c <k=v>.
+    # Walk forward skipping global flags: value-taking -C/-c/--git-dir/
+    # --work-tree/--namespace (separate-value or `=`-glued), and boolean
+    # --no-pager/-p. Unknown `-*` tokens intentionally break the loop — the
+    # first non-flag token after `git` must be `commit` itself; we don't
+    # invent a general flag-skipper that could over-skip and create false
+    # positives on flags we haven't verified.
     while [ "$i" -lt "$_CD_N" ]; do
         case "${_CD_TOKENS[$i]}" in
-            -C | -c) i=$((i + 2)) ;;
+            -C | -c | --git-dir | --work-tree | --namespace) i=$((i + 2)) ;;
+            --git-dir=* | --work-tree=* | --namespace=*) i=$((i + 1)) ;;
+            --no-pager | -p) i=$((i + 1)) ;;
             *) break ;;
         esac
     done
@@ -90,6 +136,147 @@ _commit_detect_parse() {
         _CD_OK=1
         _CD_IDX=$((i + 1))
     fi
+    return 0
+}
+
+# _commit_detect_scan_segments <raw> — normalize <raw>, tokenize it, and
+# split the token stream into segments at shell command-separator
+# boundaries: the tokens `&&`, `||`, `;`, `|`, `&`, and a `;` glued onto the
+# end of the previous token (xargs word-splitting yields `hi;` as one token
+# when there's no space before the semicolon — that's still a boundary,
+# just spelled differently).
+#
+# GLUED-OPERATOR NORMALIZATION (ledger finding #25, W1.5a review r1): a chain
+# operator glued directly onto a non-space word (`x&&git commit`,
+# `true|git commit`, `echo hi;git commit`) is NOT isolated as its own
+# xargs token — it survives as part of a larger word (`x&&git`, `true|git`,
+# `hi;git`) and the boundary `case` below never sees it, so the chained
+# `git commit` slips through undetected. Fixed by a `sed` pass that pads
+# every bare `&`, `|`, `;` in the RAW string with surrounding spaces
+# BEFORE tokenizing — done on the string, never on the already-split
+# tokens, because after xargs a quoted `"a&&b"` and a glued `a&&b` are
+# indistinguishable as tokens; splitting post-tokenization would corrupt
+# quoted content with no way back. Padding on the raw string is safe
+# because it composes correctly with xargs's own quote handling: the sed
+# pass doesn't (and doesn't need to) know about quotes — it blindly pads
+# every bare operator character, including ones that happen to sit inside
+# a quoted region (e.g. a commit message `-m "a && b"`). But the quote
+# characters themselves are untouched by sed, so when xargs tokenizes the
+# padded string it still sees the same opening/closing quotes and folds
+# everything between them back into ONE token — the extra padding just
+# becomes harmless extra whitespace inside that token's value. So an
+# operator glued OUTSIDE quotes becomes a real boundary token, while the
+# same character sitting INSIDE quotes never becomes its own token and
+# so is never treated as a boundary — a real commit message containing
+# `&&`/`|`/`;` is never split. `&&`/`||` need no special-case handling:
+# padding each `&` independently turns `&&` into two adjacent `&` tokens
+# (two boundaries with an empty segment between them, which the loop below
+# already skips via the `${#_cd_seg[@]} -gt 0` guard); same for `||`.
+#
+# NOTE: an unescaped `&` in a sed REPLACEMENT means "the matched text" —
+# the `&` replacement below is written `s/&/ \& /g` (escaped) so it
+# inserts a literal ampersand rather than relying on that coincidence.
+#
+# Runs _commit_detect_walk_core on each segment in order and stops at the
+# FIRST one that resolves to a real `git commit`: `_CD_TOKENS`/`_CD_N`/
+# `_CD_IDX` are left describing that committing segment so
+# extract_pathspecs keeps working unchanged. If a chained command has
+# several committing segments (e.g. `git commit -m a && git commit -m b`),
+# only the first is reported — deliberate and conservative; which one is
+# "the" commit rarely matters since the gate treats both identically.
+# Returns 0 iff some segment committed, 1 otherwise.
+_commit_detect_scan_segments() {
+    local raw="$1"
+    local _cd_norm
+    _cd_norm=$(printf '%s' "$raw" | sed -e 's/&/ \& /g' -e 's/|/ | /g' -e 's/;/ ; /g')
+
+    local -a _cd_flat=()
+    while IFS= read -r _cd_tok; do
+        _cd_flat+=("$_cd_tok")
+    done < <(_commit_detect_tokenize "$_cd_norm")
+    local _cd_flat_n=${#_cd_flat[@]}
+
+    local -a _cd_seg=()
+    local _cd_i=0
+    local _cd_cur
+
+    while [ "$_cd_i" -le "$_cd_flat_n" ]; do
+        if [ "$_cd_i" -eq "$_cd_flat_n" ]; then
+            if [ "${#_cd_seg[@]}" -gt 0 ]; then
+                _CD_TOKENS=("${_cd_seg[@]}")
+                _CD_N=${#_CD_TOKENS[@]}
+                _commit_detect_walk_core
+                [ "$_CD_OK" -eq 1 ] && return 0
+            fi
+            break
+        fi
+
+        _cd_cur="${_cd_flat[$_cd_i]}"
+        case "$_cd_cur" in
+            "&&" | "||" | ";" | "|" | "&")
+                if [ "${#_cd_seg[@]}" -gt 0 ]; then
+                    _CD_TOKENS=("${_cd_seg[@]}")
+                    _CD_N=${#_CD_TOKENS[@]}
+                    _commit_detect_walk_core
+                    [ "$_CD_OK" -eq 1 ] && return 0
+                fi
+                _cd_seg=()
+                ;;
+            *";")
+                _cd_seg+=("${_cd_cur%;}")
+                _CD_TOKENS=("${_cd_seg[@]}")
+                _CD_N=${#_CD_TOKENS[@]}
+                _commit_detect_walk_core
+                [ "$_CD_OK" -eq 1 ] && return 0
+                _cd_seg=()
+                ;;
+            *)
+                _cd_seg+=("$_cd_cur")
+                ;;
+        esac
+        _cd_i=$((_cd_i + 1))
+    done
+
+    _CD_OK=0
+    return 1
+}
+
+# _commit_detect_parse <cmd> — internal shared walk, used by both public
+# functions so they classify a command identically (never two implementations
+# that could disagree). A raw multi-line command string is one or more
+# separate commands — same root cause as the chain operators handled in
+# _commit_detect_scan_segments, just spelled with a newline instead of `;`
+# (M-audit finding #25). We try the whole string first (a bare embedded
+# newline inside what is really one command, e.g. a wrapped `git\ncommit -m
+# x`, tokenizes to a single flattened segment there, same as before this
+# fix), then each suffix starting right after an embedded newline, so a
+# `git commit` that only appears standalone on a later line is still caught.
+# Stops at the first entry point that yields a committing segment (leftmost
+# wins). Sets globals:
+#   _CD_TOKENS  — array of argv tokens for the COMMITTING segment
+#   _CD_N       — token count of that segment
+#   _CD_OK      — 1 if <cmd> is confirmed `git commit`, 0 otherwise
+#   _CD_IDX     — index of the first token AFTER the `commit` subcommand
+#                 (only meaningful when _CD_OK=1)
+_commit_detect_parse() {
+    local cmd="$1"
+    _CD_TOKENS=()
+    _CD_N=0
+    _CD_OK=0
+    _CD_IDX=0
+
+    local _cd_rest="$cmd"
+    local _cd_next
+    while :; do
+        if _commit_detect_scan_segments "$_cd_rest"; then
+            return 0
+        fi
+        _cd_next="${_cd_rest#*$'\n'}"
+        [ "$_cd_next" = "$_cd_rest" ] && break
+        _cd_rest="$_cd_next"
+    done
+
+    _CD_OK=0
     return 0
 }
 
