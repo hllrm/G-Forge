@@ -11,10 +11,16 @@
 #   gf_classify_changeset — read a changeset's file paths (one per line) on
 #     stdin, classify each path into the CODE or DOC bucket, and set the
 #     caller-visible globals HAS_CODE / HAS_DOC accordingly (1 = present in
-#     this changeset, 0 = absent). Always sets both globals, even for an
-#     empty/whitespace-only input (both left 0), matching the pre-extraction
-#     inline loop in hooks/check-commit.sh so the derived CLASS logic that
-#     follows it (mixed/doc/code/none→code) is unaffected by this extraction.
+#     this changeset, 0 = absent). Always sets both globals. Empty lines are
+#     skipped, so a fully empty input leaves both flags at 0 (neither bucket
+#     present). A whitespace-only line (e.g. a single space) is NOT empty and
+#     is NOT skipped — it falls through every case arm to the unmatched→CODE
+#     default, so HAS_CODE=1 for that input. This is fail-toward-deny (an
+#     unparseable/garbage path gates as the stricter CODE bucket rather than
+#     silently vanishing) and matches the pre-extraction inline loop in
+#     hooks/check-commit.sh byte-for-byte (verified against commit 9688e95),
+#     so the derived CLASS logic that follows it (mixed/doc/code/none→code)
+#     is unaffected by this extraction.
 #
 # Bucket rules (byte-identical to hooks/check-commit.sh's former inline
 # case-statement — do not extend or "improve" without a corresponding update
