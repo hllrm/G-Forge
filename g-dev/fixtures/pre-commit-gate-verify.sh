@@ -340,6 +340,143 @@ check "i3: doc sentinel consumed" "$([ ! -f "$REPO/.claude/g-forge-docs-approved
 echo
 
 # ============================================================================
+echo "--- Scenario j1: DOC-only class denied without valid doc sentinel (two sub-cases) ---"
+
+echo "  j1a: fresh repo, tier full, doc-only staged, NO sentinels -> deny naming doc"
+REPO=$(new_repo "j1a-doc-no-sentinel")
+gate_tier "$REPO" full
+initial_commit "$REPO"
+stage_doc_file "$REPO" "g-docs/j1a.md"
+echo "  staged: g-docs/j1a.md (DOC bucket only); no sentinels written"
+run_precommit "$REPO"
+check "j1a: exit non-zero, doc-only unstamped" "$([ "$LAST_CODE" -ne 0 ] && echo 1 || echo 0)" "exit=$LAST_CODE"
+LC_ERR=$(printf '%s' "$LAST_ERR" | tr '[:upper:]' '[:lower:]')
+check "j1a: reason names doc" "$(case "$LC_ERR" in *doc*) echo 1;; *) echo 0;; esac)" "stderr='$LAST_ERR'"
+
+echo "  j1b: fresh repo, tier full, doc-only staged, STALE doc sentinel (stamp taken before content changed+restaged) -> deny"
+REPO=$(new_repo "j1b-doc-stale-sentinel")
+gate_tier "$REPO" full
+initial_commit "$REPO"
+stage_doc_file "$REPO" "g-docs/j1b.md"
+TREE=$(git -C "$REPO" write-tree)
+HEAD=$(git -C "$REPO" rev-parse --verify HEAD)
+WT=$(git -C "$REPO" rev-parse --show-toplevel)
+write_sentinel "$REPO/.claude/g-forge-docs-approved" "$TREE" "$HEAD" "$WT"
+echo "  doc stamp taken: ts=$TREE head=$HEAD worktree=$WT"
+printf '# doc changed\n' > "$REPO/g-docs/j1b.md"
+git -C "$REPO" add g-docs/j1b.md
+NEWTREE=$(git -C "$REPO" write-tree)
+echo "  staged doc content changed post-stamp; new write-tree=$NEWTREE (differs from stamped ts=$TREE: $([ "$NEWTREE" != "$TREE" ] && echo yes || echo NO))"
+run_precommit "$REPO"
+check "j1b: exit non-zero on stale doc sentinel" "$([ "$LAST_CODE" -ne 0 ] && echo 1 || echo 0)" "exit=$LAST_CODE"
+echo
+
+# ============================================================================
+echo "--- Scenario j2: DOC-only class, only a fully valid CODE sentinel present -> deny naming doc ---"
+REPO=$(new_repo "j2-doc-only-code-sentinel")
+gate_tier "$REPO" full
+initial_commit "$REPO"
+stage_doc_file "$REPO" "g-docs/j2.md"
+TREE=$(git -C "$REPO" write-tree)
+HEAD=$(git -C "$REPO" rev-parse --verify HEAD)
+WT=$(git -C "$REPO" rev-parse --show-toplevel)
+write_sentinel "$REPO/.claude/g-forge-approved" "$TREE" "$HEAD" "$WT"
+echo "  staged: g-docs/j2.md (DOC bucket only); fully VALID code sentinel written (ts=$TREE head=$HEAD worktree=$WT); no doc sentinel"
+run_precommit "$REPO"
+check "j2: exit non-zero, valid code sentinel does not substitute for doc sign-off" "$([ "$LAST_CODE" -ne 0 ] && echo 1 || echo 0)" "exit=$LAST_CODE"
+LC_ERR=$(printf '%s' "$LAST_ERR" | tr '[:upper:]' '[:lower:]')
+check "j2: reason names doc" "$(case "$LC_ERR" in *doc*) echo 1;; *) echo 0;; esac)" "stderr='$LAST_ERR'"
+echo
+
+# ============================================================================
+echo "--- Scenario j3: DOC-only class, valid doc sentinel -> pass + consume ---"
+REPO=$(new_repo "j3-doc-valid")
+gate_tier "$REPO" full
+initial_commit "$REPO"
+stage_doc_file "$REPO" "g-docs/j3.md"
+TREE=$(git -C "$REPO" write-tree)
+HEAD=$(git -C "$REPO" rev-parse --verify HEAD)
+WT=$(git -C "$REPO" rev-parse --show-toplevel)
+write_sentinel "$REPO/.claude/g-forge-docs-approved" "$TREE" "$HEAD" "$WT"
+echo "  staged: g-docs/j3.md (DOC bucket only); valid doc sentinel: ts=$TREE head=$HEAD worktree=$WT"
+run_precommit "$REPO"
+check "j3: exit 0 on matching doc sentinel" "$([ "$LAST_CODE" -eq 0 ] && echo 1 || echo 0)" "exit=$LAST_CODE"
+check "j3: doc sentinel consumed (file gone) immediately after" "$([ ! -f "$REPO/.claude/g-forge-docs-approved" ] && echo 1 || echo 0)" "file still present: $REPO/.claude/g-forge-docs-approved"
+echo
+
+# ============================================================================
+echo "--- Scenario k: conflicted/unmerged index -> write-tree failure -> deny (with canary) ---"
+REPO=$(new_repo "k-conflict")
+gate_tier "$REPO" full
+initial_commit "$REPO"
+BASE_BRANCH=$(git -C "$REPO" branch --show-current)
+printf 'line1\nline2\nline3\n' > "$REPO/conflict.txt"
+git -C "$REPO" add conflict.txt
+git -C "$REPO" commit -q -m "base conflict file"
+echo "  base branch=$BASE_BRANCH; base commit for conflict.txt established"
+git -C "$REPO" checkout -q -b branch-a
+printf 'line1\nA-CHANGE\nline3\n' > "$REPO/conflict.txt"
+git -C "$REPO" add conflict.txt
+git -C "$REPO" commit -q -m "branch-a edits line2"
+git -C "$REPO" checkout -q "$BASE_BRANCH"
+git -C "$REPO" checkout -q -b branch-b
+printf 'line1\nB-CHANGE\nline3\n' > "$REPO/conflict.txt"
+git -C "$REPO" add conflict.txt
+git -C "$REPO" commit -q -m "branch-b edits line2 (conflicting)"
+echo "  merging branch-a into branch-b (expect conflict)..."
+git -C "$REPO" merge branch-a >/dev/null 2>&1
+UNMERGED=$(git -C "$REPO" ls-files -u)
+echo "  canary: git ls-files -u output:"
+echo "$UNMERGED"
+check "k: canary - unmerged index present (git ls-files -u non-empty)" "$([ -n "$UNMERGED" ] && echo 1 || echo 0)" "ls-files -u produced no output"
+WT_ERR=$(git -C "$REPO" write-tree 2>&1)
+WT_RC=$?
+echo "  canary: standalone 'git write-tree' exit=$WT_RC output='$WT_ERR' (expected non-zero)"
+check "k: canary - standalone git write-tree fails on conflicted index" "$([ "$WT_RC" -ne 0 ] && echo 1 || echo 0)" "write-tree rc=$WT_RC output='$WT_ERR'"
+run_precommit "$REPO"
+check "k: exit non-zero, hook denies on write-tree failure" "$([ "$LAST_CODE" -ne 0 ] && echo 1 || echo 0)" "exit=$LAST_CODE"
+LC_ERR=$(printf '%s' "$LAST_ERR" | tr '[:upper:]' '[:lower:]')
+check "k: reason mentions write-tree/unmerged/conflict" "$(case "$LC_ERR" in *write-tree*|*unmerged*|*conflict*) echo 1;; *) echo 0;; esac)" "stderr='$LAST_ERR'"
+echo
+
+# ============================================================================
+echo "--- Scenario l: ambiguous worktree resolution (separate-git-dir) -> deny (with canary) ---"
+SEP_STORAGE="$BASE/l-separate-git-storage"
+SEP_REPO="$BASE/l-separate-repo"
+mkdir -p "$SEP_STORAGE"
+mkdir -p "$SEP_REPO"
+(
+    cd "$SEP_REPO" || exit 99
+    git init --separate-git-dir "$SEP_STORAGE" -q
+    git config user.email "test@g-forge.local"
+    git config user.name "g-forge-test"
+    printf 'seed\n' > README.md
+    git add README.md
+    git commit -q -m "seed"
+)
+stage_code_file "$SEP_REPO" "hooks/l.sh"
+echo "  repo: separate-git-dir construction (storage=$SEP_STORAGE, worktree=$SEP_REPO); no .claude/integration-tier anywhere"
+CANARY_OUT=$(
+    cd "$SEP_REPO" || exit 99
+    . "$REPO_ROOT/hooks/lib/worktree-resolve.sh"
+    gf_resolve_primary_claude_dir
+)
+CANARY_RC=$?
+echo "  canary: gf_resolve_primary_claude_dir sourced+called directly with cwd=$SEP_REPO -> rc=$CANARY_RC stdout='$CANARY_OUT'"
+check "l: canary - gf_resolve_primary_claude_dir rejects separate-git-dir (rc non-zero)" "$([ "$CANARY_RC" -ne 0 ] && echo 1 || echo 0)" "rc=$CANARY_RC stdout='$CANARY_OUT'"
+check "l: canary - gf_resolve_primary_claude_dir stdout empty on reject" "$([ -z "$CANARY_OUT" ] && echo 1 || echo 0)" "stdout='$CANARY_OUT'"
+run_precommit "$SEP_REPO"
+check "l: exit non-zero, hook denies on ambiguous worktree resolution" "$([ "$LAST_CODE" -ne 0 ] && echo 1 || echo 0)" "exit=$LAST_CODE"
+LC_ERR=$(printf '%s' "$LAST_ERR" | tr '[:upper:]' '[:lower:]')
+HAS_RESOLVE=0
+case "$LC_ERR" in *resolve*) HAS_RESOLVE=1 ;; esac
+HAS_WORKTREE=0
+case "$LC_ERR" in *worktree*) HAS_WORKTREE=1 ;; esac
+check "l: reason contains 'resolve'" "$HAS_RESOLVE" "stderr='$LAST_ERR'"
+check "l: reason contains 'worktree'" "$HAS_WORKTREE" "stderr='$LAST_ERR'"
+echo
+
+# ============================================================================
 echo "=== SUMMARY ==="
 echo "PASS: $TOTAL_PASS"
 echo "FAIL: $TOTAL_FAIL"
