@@ -70,31 +70,13 @@ INPUT=$(cat)
 # primary-tree / non-worktree path byte-identical to before this change.
 #
 # This hook is NON-GATING (unlike check-commit.sh's deny() path): any
-# resolution failure or ambiguity here — gf_resolve_primary_claude_dir
-# returning nothing, or a primary that resolved but was itself never
-# gated — just exits 0, clearing nothing. It never blocks and never
-# guesses which sentinel to clear.
-GF_CLAUDE_DIR=".claude"
-if [ ! -f "$GF_CLAUDE_DIR/integration-tier" ]; then
-    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        _primary_claude_dir=$(gf_resolve_primary_claude_dir)
-        if [ -n "$_primary_claude_dir" ] && [ -f "$_primary_claude_dir/integration-tier" ]; then
-            # Primary resolved AND is itself a gated project — inherit its
-            # state for the rest of this run.
-            GF_CLAUDE_DIR="$_primary_claude_dir"
-        else
-            # Either gf_resolve_primary_claude_dir found nothing (any
-            # failure/ambiguity — nested worktree, --separate-git-dir,
-            # submodule) or it resolved cleanly but the primary was never
-            # gated either. Either way stay inert: NON-GATING means never
-            # guess which sentinel to clear.
-            exit 0
-        fi
-    else
-        # Not inside a git work tree at all — definitely not a G-Forge project.
-        exit 0
-    fi
-fi
+# resolution failure or ambiguity here — gf_guard_claude_dir returning
+# nothing (rc1) — just exits 0, clearing nothing. It never blocks and
+# never guesses which sentinel to clear. gf_guard_claude_dir()
+# (hooks/lib/worktree-resolve.sh) is the single shared implementation of
+# the local-.claude-else-resolved-primary decision every non-gating hook
+# in this repo needs (ADR-005).
+GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 
 CMD=$(extract_cmd "$INPUT")
 # No parser yielded a command (missing/stubbed) → grep the raw payload.

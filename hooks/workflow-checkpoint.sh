@@ -41,27 +41,10 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # blocks anything — so any resolution failure or ambiguity exits 0 silently
 # instead of escalating (contrast hooks/check-commit.sh, which denies on
 # ambiguity for a confirmed commit — there is nothing analogous to deny
-# here).
-GF_CLAUDE_DIR=".claude"
-if [ ! -f "$GF_CLAUDE_DIR/integration-tier" ]; then
-    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        _primary_claude_dir=$(gf_resolve_primary_claude_dir)
-        if [ -n "$_primary_claude_dir" ] && [ -f "$_primary_claude_dir/integration-tier" ]; then
-            # Primary resolved AND is itself a gated project — inherit its
-            # state for the rest of this run.
-            GF_CLAUDE_DIR="$_primary_claude_dir"
-        else
-            # Either the primary resolved cleanly but never ran /g-init
-            # (genuinely ungated), or gf_resolve_primary_claude_dir printed
-            # nothing (any failure/ambiguity, its documented fail signal).
-            # Non-gating hook: both cases just stay silent.
-            exit 0
-        fi
-    else
-        # Not inside a git work tree at all — definitely not a G-Forge project.
-        exit 0
-    fi
-fi
+# here). gf_guard_claude_dir() (hooks/lib/worktree-resolve.sh) is the
+# single shared implementation of this local-.claude-else-resolved-primary
+# decision every non-gating hook in this repo needs (ADR-005).
+GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 
 # Helper: emit a non-negative integer, defaulting to 0 on empty / non-numeric input.
 to_int() {

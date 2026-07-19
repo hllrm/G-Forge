@@ -20,6 +20,8 @@
 
 **Agent prompt must include:** exact `file:line` refs for known things · scope boundary (what NOT to touch) · one specific verifiable done condition · enough WHY for judgment calls.
 
+**Out-of-scope edit recovery:** when any agent touches a file outside its stated scope, recovery is a full-file diff against git for every file it touched — never a spot-revert of the noticed line.
+
 **Results flow:** summary + `file:line` refs back to HQ — never raw file dumps.
 
 **Caps:** Hard limit 7 agents/task. 4 agents in one wave = warning sign, restructure first.

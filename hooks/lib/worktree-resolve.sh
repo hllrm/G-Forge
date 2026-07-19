@@ -86,3 +86,51 @@ gf_worktree_key() {
 
     printf '%s\n' "$toplevel"
 }
+
+# gf_guard_claude_dir — resolve which .claude/ directory should govern the
+# CURRENT invocation, applying the "local-first-else-primary" project guard
+# that every non-gating hook in this repo (post-commit-cleanup.sh,
+# workflow-checkpoint.sh, observe.sh, agent-lifecycle.sh, pre-compact.sh,
+# session-start.sh) invokes via the canonical one-liner
+# `GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0` — the single guard
+# structure W1.5f normalized them onto, conformance-pinned by
+# tests/test-worktree-resolve.sh (ADR-005; developer decision 2026-07-15:
+# one project = one /g-retro timeline). The two GATING hooks
+# (check-commit.sh, pre-commit) deliberately do NOT use this guard —
+# fail-toward-deny must never silently exit 0.
+#
+# Case (a): a local .claude/integration-tier means this IS the primary tree
+# (or a standalone, non-worktree project) — print ".claude" and return 0
+# without ever invoking git.
+# Case (b): otherwise, defer to gf_resolve_primary_claude_dir (this may be a
+# linked worktree of a gated primary, which has no local .claude/ of its own
+# — gitignored, so it's simply absent in a fresh worktree). If that resolves
+# AND the resolved primary is itself gated (has its own integration-tier),
+# print the resolved primary path and return 0.
+# Case (c): anything else — resolution failure/ambiguity (nested worktree,
+# --separate-git-dir, submodule, or simply not inside a git work tree at
+# all — gf_resolve_primary_claude_dir's own `git rev-parse --git-common-dir`
+# already fails identically in that last case, which is what makes a
+# separate `git rev-parse --is-inside-work-tree` probe redundant ahead of
+# this call) or a primary that resolved cleanly but was never gated — prints
+# NOTHING and returns 1. Callers must treat this as "not a G-Forge project
+# here", never guess a directory to use. No stderr on this path either:
+# every current caller invokes this in command substitution under
+# `... || exit 0`, so stderr output would leak past a hook's silence
+# contract.
+gf_guard_claude_dir() {
+    local primary
+
+    if [ -f ".claude/integration-tier" ]; then
+        printf '.claude\n'
+        return 0
+    fi
+
+    primary=$(gf_resolve_primary_claude_dir 2>/dev/null)
+    if [ -n "$primary" ] && [ -f "$primary/integration-tier" ]; then
+        printf '%s\n' "$primary"
+        return 0
+    fi
+
+    return 1
+}

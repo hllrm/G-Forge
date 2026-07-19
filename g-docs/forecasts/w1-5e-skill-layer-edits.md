@@ -36,7 +36,7 @@ Recommendations:
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
+| 1 | yes | no (git) | Wave-close integrity check: only the 3 scoped files changed — the no-child-dispatch hard line held. First clean slice since the overreach class appeared. |
+| 2 | yes | partial (git) | A latent contradictory claim existed beyond the flagged sentences ("currently-staged index equals reviewed tree") — the whole-file-read mitigation absorbed it at implementation time; nothing survived to review. |
+| 3 | yes | partial (git/journal) | #21-class false-positive fired in a NEW form (PreToolUse denied code-lead's report-write heredoc quoting commit phrases) — but the predicted sentinel-cleanup friction did NOT occur: both sentinels auto-consumed at `4e1c49a`, first time in 3+ sessions. |
+| 4 | yes | no (git) | Generic-text grep 0 matches, verified by implementer and independently by code-lead. |

@@ -40,19 +40,12 @@ DAY=$(date -u +"%Y-%m-%d")
 # primary tree; resolve the primary .claude/ via the shared helper and defer
 # entirely to its tier + journal. This hook is NON-GATING — any resolution
 # failure or ambiguity exits silently rather than guessing or blocking.
+GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 IS_LINKED_WORKTREE=0
-if [ -f ".claude/integration-tier" ]; then
-    CLAUDE_DIR=".claude"
-else
-    CLAUDE_DIR="$(gf_resolve_primary_claude_dir 2>/dev/null)"
-    if [ -z "$CLAUDE_DIR" ] || [ ! -f "$CLAUDE_DIR/integration-tier" ]; then
-        exit 0
-    fi
-    IS_LINKED_WORKTREE=1
-fi
+[ "$GF_CLAUDE_DIR" != ".claude" ] && IS_LINKED_WORKTREE=1
 
 # `light` tier means the user opted G-Forge out — don't journal either.
-_t=$(tr -d '[:space:]' < "$CLAUDE_DIR/integration-tier" 2>/dev/null)
+_t=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
 [ "$_t" = "light" ] && exit 0
 
 # Linked-worktree events tag the journal line with which worktree fired it
@@ -64,7 +57,7 @@ if [ "$IS_LINKED_WORKTREE" -eq 1 ]; then
     WT_KEY=$(gf_worktree_key 2>/dev/null | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r')
 fi
 
-JOURNAL_DIR="$CLAUDE_DIR/journal"
+JOURNAL_DIR="$GF_CLAUDE_DIR/journal"
 JOURNAL="$JOURNAL_DIR/$DAY.jsonl"
 
 mkdir -p "$JOURNAL_DIR" 2>/dev/null || exit 0

@@ -16,5 +16,5 @@ Your execution contract is defined by the g-execute dispatch prompt you receive 
 - One committed approach, one attempt. If it works, return `DONE`. If it does not, return `FAILED` with a `LEARNINGS` report — never thrash or start a second approach in this context. HQ owns the retry with a fresh agent.
 - Use `BLOCKED` only when an external dependency makes the task impossible; a different approach would not help.
 - Touch only the files in your stated scope. Never run `git commit` — HQ commits after `/g-review`.
-- For any file where you add or change a public interface or exported symbol, dispatch `doc-writer` with the changed files and your design intent.
+- If you change a public interface AND its doc files are inside your stated scope, dispatch `doc-writer` restricted to that same scope. If the docs live outside your scope, record the gap in `LEARNINGS` for HQ — never let a child agent widen your file scope.
 - Write your implementation summary to the `output_file` path, then return **only** the compact `RESULT / SUMMARY / FILES / DONE_CONDITION / LEARNINGS / DETAIL` block — no other prose.

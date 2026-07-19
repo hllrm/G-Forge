@@ -23,18 +23,16 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
 # else, so multiple registration sources never cause it to misfire.
 #
-# Local-first-else-primary (ADR-005): if this worktree has its own
-# .claude/integration-tier, behave exactly as before. Otherwise (a linked
-# worktree with no local .claude/ of its own) resolve the PRIMARY working
-# tree's .claude/ dir via the shared lib and check its integration-tier
-# instead. Any resolution failure or empty result is treated as "not a
-# G-Forge project" and exits silently — this guard is NON-GATING and must
-# never block a session start.
-if [ ! -f ".claude/integration-tier" ]; then
-    _GF_PRIMARY_CLAUDE_DIR=$(gf_resolve_primary_claude_dir) || exit 0
-    [ -n "$_GF_PRIMARY_CLAUDE_DIR" ] || exit 0
-    [ -f "$_GF_PRIMARY_CLAUDE_DIR/integration-tier" ] || exit 0
-fi
+# Local-first-else-primary (ADR-005), via the shared canonical guard
+# (gf_guard_claude_dir(), hooks/lib/worktree-resolve.sh): if this worktree has
+# its own .claude/integration-tier, behave exactly as before. Otherwise (a
+# linked worktree with no local .claude/ of its own) resolve the PRIMARY
+# working tree's .claude/ dir and check its integration-tier instead. Any
+# resolution failure or empty result is treated as "not a G-Forge project"
+# and exits silently — this guard is NON-GATING and must never block a
+# session start. GF_CLAUDE_DIR is activation-only here — this hook keeps
+# reading/writing the LOCAL .claude/ below, unchanged.
+GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 
 # SessionStart carries a `source`: startup | resume | clear | compact.
 # A `compact` start is NOT a fresh session — it's the same session continuing
