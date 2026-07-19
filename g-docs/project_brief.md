@@ -49,6 +49,7 @@ Shipped at **M15 / v1.0.0**: the end-to-end enforced loop — `/g-kickoff` → `
 | Coordination surface (multiplayer) | Surface-agnostic adapter; **Confluence advised**, Gmail floor, Drive out (ADR-001) | Lead on official MCPs; degrade by capability tier without skill change | MCP availability divergence | Confluence = in-place; Gmail = draft-and-nod |
 | Authority (multiplayer) | One **human** orchestrator seat per Roundtable, never co-chairs (ADR-002) | Answers "who owns `main`"; keeps AI out of the master role | Stale seat blocks decisions | Seat is an M29-leased claim |
 | Deployment | GitHub repo + Claude Code marketplace; self-hosted on this repo (dogfood) | Distribution + continuous dogfooding | — | `/g-update` realigns installs |
+| Naming / version strategy | Arc runs its natural life as **G-Forge 2.x**; rebrand ships as the **M44 capstone — G-Proof 1.0**, versioning restarts under the new name; **no mid-arc 3.0.0** (developer, 2026-07-18–19; downgraded from ADR — product strategy, not architecture) | Consumers keep a stable name through the heavy middle; "proof" claimed only when M38/M39 self-governance can back it | 2.13→1.0 reads as a downgrade to the unbriefed — announcement + CHANGELOG lead with the lineage note (M44.md premortem) | Not an ADR by triage |
 
 ## Success metrics
 

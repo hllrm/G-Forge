@@ -270,14 +270,14 @@ If the plugin cache does not contain any of the eleven files above (the top-leve
 
 ADR-004 makes the native git `pre-commit` hook (`<plugin-hooks>/pre-commit`) — not the PreToolUse `check-commit.sh` hook installed in Step 6 — the authoritative enforcement site for the commit gate: it fires after `git commit` has already staged the true to-be-committed tree, so it sees things PreToolUse cannot (e.g. `git commit -a`/`-p`, raw-terminal commits). It has never been installed by `/g-init` until now.
 
-1. Resolve the real git hooks directory — do not assume `.git/hooks`: run `git rev-parse --git-path hooks` and use its output as `<git-hooks-dir>`. This honors `core.hooksPath` overrides and, in a linked worktree, correctly resolves to the primary checkout's shared hooks directory rather than a per-worktree path.
+1. Resolve the real git hooks directory — do not assume a fixed default path: run `git rev-parse --git-path hooks` and use its output as `<git-hooks-dir>`. This honors `core.hooksPath` overrides and, in a linked worktree, correctly resolves to the primary checkout's shared hooks directory rather than a per-worktree path.
 
 2. Check what's at `<git-hooks-dir>/pre-commit`:
    - **Absent** — copy `<plugin-hooks>/pre-commit` to `<git-hooks-dir>/pre-commit`, then `chmod +x` it (best effort, same as Step 6).
    - **Present and G-Forge-managed** — read its first lines; if they contain the literal string `G-Forge commit gate` (the canonical `hooks/pre-commit`'s own line-2 header), it is a previous G-Forge install. Overwrite it with `<plugin-hooks>/pre-commit` and `chmod +x` it, same as a fresh install.
    - **Present and NOT G-Forge-managed** — a developer- or another-tool-installed `pre-commit` already exists. **Leave it untouched — never overwrite a foreign hook.** Surface a warning naming the path instead:
      ```
-     ⚠ .git/hooks/pre-commit already exists and is not G-Forge-managed — left untouched.
+     ⚠ <git-hooks-dir>/pre-commit already exists and is not G-Forge-managed — left untouched.
        G-Forge's commit gate is enforced at the PreToolUse layer only (.claude/hooks/check-commit.sh).
        To let G-Forge also enforce natively, back up and remove the existing hook, then re-run /g-init.
      ```

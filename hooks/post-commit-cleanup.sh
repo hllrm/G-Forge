@@ -1,6 +1,7 @@
 #!/bin/bash
 # G-Forge post-commit cleanup — PostToolUse hook.
-# Clears .claude/g-forge-approved after a successful git commit.
+# Clears both .claude/g-forge-approved (commit sentinel) and
+# .claude/g-forge-docs-approved (docs sentinel) after a successful git commit.
 # Input: Claude Code PostToolUse JSON on stdin.
 
 # Sources shared lib helpers so commit detection and worktree resolution

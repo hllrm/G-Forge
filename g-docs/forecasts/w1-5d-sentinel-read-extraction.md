@@ -31,8 +31,8 @@ Forecast assumes the historical pattern set is representative.
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | no (git) | Byte-identical verified by code-lead (comments-stripped diff empty); fixture 35/35 through the real hook |
+| 2 | yes | **happened (git)** | Case-(b) malformed-partial-stamp advisory delta surfaced exactly as predicted — documented + quantified by the implementer, accepted by code-lead as bounded (advisory-only; gate still denies). Mitigation worked as designed |
+| 3 | yes | partial (git) | 4 tracked surfaces stayed consistent (attested), BUT an adjacent count-drift variant fired: the extraction agent's out-of-scope doc-writer child retro-edited the SHIPPED W1.4 CHANGELOG entry (11→12, falsifying history) — HQ-caught at the wave boundary, reverted, attested intact |
+| 4 | yes | no (git) | Wave 2→3 ordering held; fail-before evidence locked before the lib landed |
+| 5 | yes | no (git) | Mitigations applied; no gate friction observed |

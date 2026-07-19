@@ -30,8 +30,8 @@ Forecast assumes the historical pattern set is representative.
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | no (git) | No hook bug surfaced; all three new deny paths behaved per contract, canaries proved trigger states first |
+| 2 | yes | no (git) | Zero fixture-construction bugs — canary-first discipline; contrast W1.5b's flag-order bug |
+| 3 | yes | no (git) | All 16 new checks parent-shell; SUMMARY reconciled 35=35 |
+| 4 | yes | no (git) | Mitigations applied (script-file probes, path-free commit message); no false-fire observed |
+| 5 | yes | no (git) | Doc gate passed 0-blocking first try; counts verified against fixture |

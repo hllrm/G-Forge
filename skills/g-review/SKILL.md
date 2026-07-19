@@ -30,6 +30,15 @@ Telemetry profile: [profile] — review intensity adjusted accordingly
 
 Before reviewing any code, verify the test suite passes.
 
+**Check for a project-local test-runner agent first.** Glob `.claude/agents/*-dev.md`. If exactly one file matches:
+- Dispatch that agent to run the project's test suite (and any project-specific gate fixtures it is described as covering) and return its runner output verbatim.
+- Its report must include real pass/fail counts and, on any failure, the actual failing lines from the runner output. A self-declared "tests pass" claim with no runner evidence attached is UNVERIFIED (finding #20 doctrine) and does not count as attested — treat a report with no verbatim runner output the same as a failed run below and stop until the developer resolves it.
+- Include the agent's verbatim runner output as the attested test result passed to code-lead in Step 4.
+- Apply the same pass/fail branching described below: on a fully green report, continue to Step 2; on any red or partial report, follow the **If any tests fail** branch below, substituting the agent's verbatim output for directly-captured output.
+- If more than one `.claude/agents/*-dev.md` file matches, ask the developer which one to dispatch, then proceed as above.
+
+**If no project-local test-runner agent exists, fall back to the following inline detect-and-run behavior.**
+
 **Detect the test command** using this priority order:
 1. Check `package.json` scripts for `"test"` — if found, use `npm test` (or `bun test` / `yarn test` based on lockfile)
 2. Check for `pytest.ini`, `pyproject.toml` with `[tool.pytest]`, or `tests/` with `.py` files — use `pytest`
@@ -138,10 +147,10 @@ Present code-lead's verdict to the developer verbatim.
 **If verdict is MERGE READY:**
 - Create `.claude/` directory if it does not exist
 - Compute the sentinel stamp (binds the sentinel to the exact reviewed tree — ADR-004):
-  - `commit_sentinel_ts`: `git write-tree` of the currently-staged index (the tree just reviewed in Step 2)
-  - `commit_sentinel_head`: `git rev-parse HEAD`
+  - `commit_sentinel_ts`: for this to match the staged + unstaged-tracked union reviewed in Step 2, first stage any unstaged-but-tracked files that were part of that union (`git add -u`) so the index now holds exactly what was reviewed, then take `git write-tree` of the now-staged index — this reproduces the same tree `hooks/pre-commit`'s own `git write-tree` will hash at commit time (whether the developer commits with plain `git commit` or `git commit -a`), keeping the stamped tree and the committed tree identical. If Step 2 instead fell back to `git diff main...HEAD` (nothing staged or unstaged to review), the index already equals HEAD's tree and no extra staging is needed.
+  - `commit_sentinel_head`: `git rev-parse --verify HEAD`
   - `commit_sentinel_worktree`: `git rev-parse --show-toplevel`
-- Write `.claude/g-forge-approved` with content: `commit_sentinel_ts=<write-tree output> commit_sentinel_head=<rev-parse HEAD output> commit_sentinel_worktree=<show-toplevel output>` (one line, space-separated `key=value` fields, exact field names — do not rename them)
+- Write `.claude/g-forge-approved` with content: `commit_sentinel_ts=<write-tree output> commit_sentinel_head=<rev-parse --verify HEAD output> commit_sentinel_worktree=<show-toplevel output>` (one line, space-separated `key=value` fields, exact field names — do not rename them)
 - If this review covered doc/mixed changes and `.claude/g-forge-docs-approved` is also being written (see doc-review flows), write the identical stamp format there too, using the same tree+HEAD pair — on a mixed commit both sentinels bind to the one tree being committed.
 - Tell the developer: "MERGE READY. Commit gate unlocked — you can now run git commit and merge."
 - Ask once: "Would you like a PR description? (yes/no)" — if yes, dispatch `pr-writer` with the full diff from Step 2 and the done conditions from Step 3. Present the PR description. If no, continue silently.
