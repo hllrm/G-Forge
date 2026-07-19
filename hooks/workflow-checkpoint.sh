@@ -20,6 +20,8 @@ fi
 _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/worktree-resolve.sh
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+# shellcheck source=lib/sentinel-read.sh
+. "$_GF_HOOK_DIR/lib/sentinel-read.sh"
 
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the checkpoint inert
@@ -106,14 +108,35 @@ if [ -f "$_gf_sentinel" ]; then
     _gf_sentinel_line=$(cat -- "$_gf_sentinel" 2>/dev/null)
     case "$_gf_sentinel_line" in
         *commit_sentinel_worktree=*)
-            _gf_sentinel_worktree=${_gf_sentinel_line#*commit_sentinel_worktree=}
-            _gf_sentinel_worktree=${_gf_sentinel_worktree%$'\r'}
-            _gf_current_worktree=$(gf_worktree_key)
-            # Empty current-worktree resolution means gf_worktree_key()
-            # itself failed (not a git failure this hook can meaningfully
-            # gate on — it's advisory only): fall back to the pre-ADR-004
-            # existence signal rather than under-report.
-            if [ -z "$_gf_current_worktree" ] || [ "$_gf_sentinel_worktree" = "$_gf_current_worktree" ]; then
+            if gf_parse_stamp "$_gf_sentinel"; then
+                _gf_sentinel_worktree="$STAMP_WORKTREE"
+                _gf_current_worktree=$(gf_worktree_key)
+                # Empty current-worktree resolution means gf_worktree_key()
+                # itself failed (not a git failure this hook can meaningfully
+                # gate on — it's advisory only): fall back to the pre-ADR-004
+                # existence signal rather than under-report.
+                if [ -z "$_gf_current_worktree" ] || [ "$_gf_sentinel_worktree" = "$_gf_current_worktree" ]; then
+                    REVIEW_APPROVED=true
+                fi
+            else
+                # Line matched the new-format marker (contains
+                # commit_sentinel_worktree=) but gf_parse_stamp rejected it
+                # because commit_sentinel_ts or commit_sentinel_head is
+                # missing — a malformed partial stamp that should never
+                # occur from /g-review itself (which always writes all
+                # three fields), only from a hand-edited/corrupted file.
+                # hooks/lib/sentinel-read.sh is this repo's single reader
+                # of the stamp format (tests/test-sentinel-read.sh
+                # invariant (c)), so re-adding an inline fallback
+                # extraction here to preserve the pre-extraction behavior
+                # (worktree-compare even on a partial stamp) is out of
+                # scope — see g-docs/agent-output/wave-w15d/extraction.md
+                # for the quantified delta. Fall back to the legacy/
+                # presence-only branch's outcome instead: this hook is
+                # advisory-only (never blocks a commit; hooks/pre-commit's
+                # gf_validate_sentinel still requires all three fields for
+                # the real gate), so the only effect is a possibly-optimistic
+                # status line on this specific malformed-input edge case.
                 REVIEW_APPROVED=true
             fi
             ;;

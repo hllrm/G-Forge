@@ -131,7 +131,7 @@ hash_file() {
 
 This check also covers two related canonical-vs-installed surfaces that hook drift can hide in — the shared `hooks/lib/` scripts, and the native git `pre-commit` hook:
 
-- **`hooks/lib/` drift.** For each of the 3 canonical lib scripts (`commit-detect.sh`, `worktree-resolve.sh`, `classify-changeset.sh`) in `hooks/lib/` (plugin source), check for an installed counterpart at `.claude/hooks/lib/<file>` and hash-compare using the same `hash_file` cascade above.
+- **`hooks/lib/` drift.** For each of the 4 canonical lib scripts (`commit-detect.sh`, `worktree-resolve.sh`, `classify-changeset.sh`, `sentinel-read.sh`) in `hooks/lib/` (plugin source), check for an installed counterpart at `.claude/hooks/lib/<file>` and hash-compare using the same `hash_file` cascade above.
   - Pass (per file): installed lib file exists AND its hash matches the canonical source in `hooks/lib/`.
   - Fail (missing): ✗ hooks/lib/[file] missing from installed copy (drift)
     → Run `/g-update` to re-sync hooks/ into .claude/hooks/.

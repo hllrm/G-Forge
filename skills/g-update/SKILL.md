@@ -221,7 +221,7 @@ The canonical hook bodies live in `[plugin-root]/hooks/` (the same files `/g-ini
 - **File exists:** Replace its contents with `[plugin-root]/hooks/<file>`. Report: `✓ .claude/hooks/<file> — updated`.
 - **File does not exist:** Create it (along with `.claude/hooks/` — and `.claude/hooks/lib/` too, when it does not yet exist — if needed) from the plugin source, AND register its hook entry in `.claude/settings.json` for every event it uses, if not already present. Report: `✓ .claude/hooks/<file> — created and registered`.
 
-In **both** cases, after writing the file, verify `.claude/settings.json` contains a registration for every event the hook uses; if any is missing, add it with the merge-not-overwrite pattern (read the current JSON, insert under the event key, write back without touching other keys) and report `✓ .claude/settings.json — <Event> hook verified`. The three `lib/` scripts below have no `settings.json` event of their own — they are `source`d by the top-level hooks at runtime, never invoked directly — so for them this step is realign-content-only; skip the registration-verification clause.
+In **both** cases, after writing the file, verify `.claude/settings.json` contains a registration for every event the hook uses; if any is missing, add it with the merge-not-overwrite pattern (read the current JSON, insert under the event key, write back without touching other keys) and report `✓ .claude/settings.json — <Event> hook verified`. The four `lib/` scripts below have no `settings.json` event of their own — they are `source`d by the top-level hooks at runtime, never invoked directly — so for them this step is realign-content-only; skip the registration-verification clause.
 
 | Hook | settings.json event(s) | invocation |
 |------|------------------------|------------|
@@ -237,6 +237,7 @@ The shell-tool matcher must be `Bash|PowerShell`, never `Bash` alone — Claude 
 | `lib/commit-detect.sh` | — (sourced, not registered) | sourced by check-commit.sh, observe.sh, post-commit-cleanup.sh — never invoked directly |
 | `lib/worktree-resolve.sh` | — (sourced, not registered) | sourced by all seven top-level hooks — never invoked directly |
 | `lib/classify-changeset.sh` | — (sourced, not registered) | sourced by check-commit.sh — never invoked directly |
+| `lib/sentinel-read.sh` | — (sourced, not registered) | sourced by pre-commit and workflow-checkpoint.sh — never invoked directly |
 
 The `lib/` rows realign to `.claude/hooks/lib/<filename>` (create `.claude/hooks/lib/` first if it does not exist) — same file-exists/file-does-not-exist branching as above, minus the settings.json step.
 
