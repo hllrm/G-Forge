@@ -33,8 +33,8 @@ Forecast assumes the historical pattern set is representative.
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | partial | Two test-vs-contract adjudications (gating-pair scan exclusion; two observe assertions), absorbed in-wave; no actual hook behavior drift — decision-matrix audit + review spot-check confirmed behavior-identity ×6 |
+| 2 | yes | partial | Ran ~40 vs ~29 est. budget; slice completed, no mid-plan handoff, but on fumes — W1.6 must start fresh |
+| 3 | yes | no | No-child-dispatch line held; wave-close integrity clean across all 3 Wave-2 agents (only scoped files changed) |
+| 4 | yes | happened (variant) | Session-limit kill hit a Wave-2 IMPLEMENTER (Task 3) mid-verification, not the attestation runner; resumed intact via SendMessage — no redeploy (interrupted ≠ FAILED) |
+| 5 | yes | no | No #21-class gate false-fire this session; the gated commit passed clean, both sentinels auto-consumed |
