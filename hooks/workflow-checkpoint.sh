@@ -175,7 +175,7 @@ fi
 # Context depth counter — increments each prompt; thresholds vary by session mode.
 # Reset to 0 by session-start.sh on a genuinely new session (startup/resume/clear);
 # preserved across a `compact` SessionStart so it keeps climbing toward the gate.
-PROMPT_COUNT_FILE=".claude/session-prompt-count"
+PROMPT_COUNT_FILE="$GF_CLAUDE_DIR/session-prompt-count"
 PROMPT_COUNT=0
 if [ -f "$PROMPT_COUNT_FILE" ]; then
     PROMPT_COUNT=$(cat "$PROMPT_COUNT_FILE" 2>/dev/null | tr -d '[:space:]')
@@ -216,8 +216,8 @@ fi
 
 # Persistent calibration offset (never reset; grows with each compaction).
 OFFSET=0
-if [ -f ".claude/context-threshold-offset" ]; then
-    OFFSET=$(to_int "$(cat .claude/context-threshold-offset 2>/dev/null)")
+if [ -f "$GF_CLAUDE_DIR/context-threshold-offset" ]; then
+    OFFSET=$(to_int "$(cat "$GF_CLAUDE_DIR/context-threshold-offset" 2>/dev/null)")
 fi
 
 AMBER_THRESHOLD=$((BASE_AMBER - OFFSET))
@@ -244,8 +244,8 @@ fi
 # (carried across the compact SessionStart by session-start.sh); surface the §A7
 # reset directly off that count. Even one auto-compaction means the window is full.
 COMPACTION_COUNT=0
-if [ -f ".claude/session-compaction-count" ]; then
-    COMPACTION_COUNT=$(to_int "$(cat .claude/session-compaction-count 2>/dev/null)")
+if [ -f "$GF_CLAUDE_DIR/session-compaction-count" ]; then
+    COMPACTION_COUNT=$(to_int "$(cat "$GF_CLAUDE_DIR/session-compaction-count" 2>/dev/null)")
 fi
 if [ "$COMPACTION_COUNT" -ge 1 ]; then
     echo "  🔴 Context compacted ${COMPACTION_COUNT}× this session — the window is overloaded; finish in-flight work, auto-trigger /g-retro, then start a fresh session (run /g-resume to re-hydrate)"

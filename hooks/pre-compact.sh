@@ -28,9 +28,9 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # whether this hook should activate — a worktree of a gated project inherits
 # activation instead of silently no-op'ing. This hook is NON-GATING (it must
 # never block or deny), so any resolution failure or ambiguity just falls
-# through to a silent `exit 0` below, never an escalation. GF_CLAUDE_DIR is
-# activation-only here — all state below (this hook's writes) still targets
-# the LOCAL .claude/, unchanged.
+# through to a silent `exit 0` below, never an escalation. The counter writes
+# below (compaction count, threshold offset) target $GF_CLAUDE_DIR so linked
+# worktrees maintain PRIMARY state; only compact-state.md stays LOCAL.
 GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown")
@@ -43,7 +43,7 @@ mkdir -p .claude 2>/dev/null
 # and escalates the §A7 reset recommendation (auto-/g-retro + fresh session).
 # Reset to 0 by session-start.sh only on a genuinely new session, never on the
 # compact-source SessionStart that follows this hook.
-CC_FILE=".claude/session-compaction-count"
+CC_FILE="$GF_CLAUDE_DIR/session-compaction-count"
 _cc=0
 [ -f "$CC_FILE" ] && _cc=$(tr -dc '0-9' < "$CC_FILE" 2>/dev/null)
 [ -z "$_cc" ] && _cc=0
@@ -54,7 +54,7 @@ printf '%d\n' "$((_cc + 1))" > "$CC_FILE" 2>/dev/null || true
 # workflow-checkpoint.sh fires amber/red earlier next time — converging toward
 # zero compactions. Step 5 per compaction, capped at 30 (the per-mode floors in
 # workflow-checkpoint.sh stop thresholds collapsing regardless).
-OFF_FILE=".claude/context-threshold-offset"
+OFF_FILE="$GF_CLAUDE_DIR/context-threshold-offset"
 _off=0
 [ -f "$OFF_FILE" ] && _off=$(tr -dc '0-9' < "$OFF_FILE" 2>/dev/null)
 [ -z "$_off" ] && _off=0

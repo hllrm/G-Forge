@@ -28,7 +28,7 @@ Telemetry profile: [profile] — review intensity adjusted accordingly
 
 ## Step 1 — Run the test suite
 
-**Installed-copy drift check (routine, visible-only — ADR-008 clause 5).** Before anything else, do a one-shot hash comparison of the installed `.claude/hooks/` copy (plus `.claude/hooks/lib/`) against the canonical `hooks/` source in this repo — the same comparison `/g-doctor` Check 16 performs:
+**Installed-copy drift check (routine, visible-only — ADR-008 clause 5).** Before anything else, do a one-shot hash comparison of the installed `.claude/hooks/` copy (plus `.claude/hooks/lib/`) against the canonical `hooks/` source in this repo. This covers hooks and libs only — it is the hooks+libs subset of the comparison `/g-doctor` Check 16 performs; Check 16 proper additionally covers g-rules and agents, which this routine check does not:
 ```bash
 hash_file() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -168,7 +168,10 @@ Present code-lead's verdict to the developer verbatim, followed by the `Installe
 **If verdict is MERGE READY:**
 - Create `.claude/` directory if it does not exist
 - Compute the sentinel stamp (binds the sentinel to the exact reviewed tree — ADR-004):
-  - `commit_sentinel_ts`: for this to match the staged + unstaged-tracked union reviewed in Step 2, first stage any unstaged-but-tracked files that were part of that union (`git add -u`) so the index now holds exactly what was reviewed, then take `git write-tree` of the now-staged index — this reproduces the same tree `hooks/pre-commit`'s own `git write-tree` will hash at commit time (whether the developer commits with plain `git commit` or `git commit -a`), keeping the stamped tree and the committed tree identical. If Step 2 instead fell back to `git diff main...HEAD` (nothing staged or unstaged to review), the index already equals HEAD's tree and no extra staging is needed.
+  - `commit_sentinel_ts`: binds the sentinel to the exact tree reviewed in Step 2, computed in order:
+    - First, stage any unstaged-but-tracked files that were part of the Step 2 staged + unstaged-tracked union (`git add -u`), so the index now holds exactly what was reviewed.
+    - Then take `git write-tree` of the now-staged index. This reproduces the same tree `hooks/pre-commit`'s own `git write-tree` will hash at commit time (whether the developer commits with plain `git commit` or `git commit -a`), keeping the stamped tree and the committed tree identical.
+    - If Step 2 instead fell back to `git diff main...HEAD` (nothing staged or unstaged to review), the index already equals HEAD's tree and no extra staging is needed.
   - `commit_sentinel_head`: `git rev-parse --verify HEAD`
   - `commit_sentinel_worktree`: `git rev-parse --show-toplevel`
 - Write `.claude/g-forge-approved` with content: `commit_sentinel_ts=<write-tree output> commit_sentinel_head=<rev-parse --verify HEAD output> commit_sentinel_worktree=<show-toplevel output>` (one line, space-separated `key=value` fields, exact field names — do not rename them)

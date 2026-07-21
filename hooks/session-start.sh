@@ -34,6 +34,20 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # reading/writing the LOCAL .claude/ below, unchanged.
 GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 
+# Integration tier — mirrors the read idiom in hooks/workflow-checkpoint.sh
+# (lines 59-67): `full` (default) and `balanced` behave exactly as before;
+# `light` is manual mode and must stay fully silent per the tier model in
+# g-rules-B-workflow.md ("light = workflow-checkpoint only, G-Forge silent").
+# Read via GF_CLAUDE_DIR (not a bare local path) so a linked worktree's tier
+# decision matches the project guard it was just resolved against above.
+TIER="full"
+if [ -f "$GF_CLAUDE_DIR/integration-tier" ]; then
+    _t=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
+    case "$_t" in
+        full|balanced|light) TIER="$_t" ;;
+    esac
+fi
+
 # SessionStart carries a `source`: startup | resume | clear | compact.
 # A `compact` start is NOT a fresh session — it's the same session continuing
 # after context compression. Treating it as fresh (and resetting the context-depth
@@ -49,41 +63,46 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 0
 fi
 
-BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+# Banner + network sync — skipped entirely on `light` (manual mode, G-Forge
+# silent). The counter reset below is state maintenance, not banner output,
+# so it stays outside this block and still runs on every tier.
+if [ "$TIER" != "light" ]; then
+    BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 
-echo "[G-Forge Session Start]"
-echo "  Branch: $BRANCH"
+    echo "[G-Forge Session Start]"
+    echo "  Branch: $BRANCH"
 
-# Kick off a background fetch so local checks run in parallel.
-timeout 5 git fetch origin --quiet --no-tags 2>/dev/null &
-FETCH_PID=$!
+    # Kick off a background fetch so local checks run in parallel.
+    timeout 5 git fetch origin --quiet --no-tags 2>/dev/null &
+    FETCH_PID=$!
 
-# --- Local state (no network required) ---
-DIRTY_COUNT=$(git status --porcelain 2>/dev/null | wc -l | tr -d '[:space:]')
-STASH_COUNT=$(git stash list 2>/dev/null | wc -l | tr -d '[:space:]')
+    # --- Local state (no network required) ---
+    DIRTY_COUNT=$(git status --porcelain 2>/dev/null | wc -l | tr -d '[:space:]')
+    STASH_COUNT=$(git stash list 2>/dev/null | wc -l | tr -d '[:space:]')
 
-[ "$DIRTY_COUNT" -gt 0 ] && echo "  ~ $DIRTY_COUNT uncommitted change(s)"
-[ "$STASH_COUNT" -gt 0 ] && echo "  📦 $STASH_COUNT stash(es) pending"
+    [ "$DIRTY_COUNT" -gt 0 ] && echo "  ~ $DIRTY_COUNT uncommitted change(s)"
+    [ "$STASH_COUNT" -gt 0 ] && echo "  📦 $STASH_COUNT stash(es) pending"
 
-# --- Remote state (wait for fetch) ---
-wait "$FETCH_PID" 2>/dev/null
+    # --- Remote state (wait for fetch) ---
+    wait "$FETCH_PID" 2>/dev/null
 
-BEHIND=$(git rev-list "HEAD..origin/$BRANCH" --count 2>/dev/null || echo 0)
-AHEAD=$(git rev-list "origin/$BRANCH..HEAD" --count 2>/dev/null || echo 0)
+    BEHIND=$(git rev-list "HEAD..origin/$BRANCH" --count 2>/dev/null || echo 0)
+    AHEAD=$(git rev-list "origin/$BRANCH..HEAD" --count 2>/dev/null || echo 0)
 
-[ "$BEHIND" -gt 0 ] && echo "  ⚠ $BEHIND commit(s) behind origin/$BRANCH — git pull"
-[ "$AHEAD" -gt 0 ]  && echo "  ↑ $AHEAD commit(s) ahead of origin/$BRANCH (unpushed)"
+    [ "$BEHIND" -gt 0 ] && echo "  ⚠ $BEHIND commit(s) behind origin/$BRANCH — git pull"
+    [ "$AHEAD" -gt 0 ]  && echo "  ↑ $AHEAD commit(s) ahead of origin/$BRANCH (unpushed)"
 
-# Warn when a feature branch has drifted behind origin/main.
-if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
-    MAIN_BEHIND=$(git rev-list "HEAD..origin/main" --count 2>/dev/null || echo 0)
-    [ "$MAIN_BEHIND" -gt 0 ] && echo "  ⚠ $MAIN_BEHIND commit(s) behind origin/main — consider rebasing"
-fi
+    # Warn when a feature branch has drifted behind origin/main.
+    if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
+        MAIN_BEHIND=$(git rev-list "HEAD..origin/main" --count 2>/dev/null || echo 0)
+        [ "$MAIN_BEHIND" -gt 0 ] && echo "  ⚠ $MAIN_BEHIND commit(s) behind origin/main — consider rebasing"
+    fi
 
-# Clean summary when there is nothing to report.
-if [ "$DIRTY_COUNT" -eq 0 ] && [ "$STASH_COUNT" -eq 0 ] && \
-   [ "$BEHIND" -eq 0 ]       && [ "$AHEAD" -eq 0 ]; then
-    echo "  ✓ Clean and in sync with remote"
+    # Clean summary when there is nothing to report.
+    if [ "$DIRTY_COUNT" -eq 0 ] && [ "$STASH_COUNT" -eq 0 ] && \
+       [ "$BEHIND" -eq 0 ]       && [ "$AHEAD" -eq 0 ]; then
+        echo "  ✓ Clean and in sync with remote"
+    fi
 fi
 
 # Reset the per-session counters so workflow-checkpoint tracks context depth from
@@ -93,6 +112,6 @@ fi
 if [ "$SESSION_SOURCE" = "compact" ]; then
     : # same session post-compaction — preserve counters
 else
-    printf '0\n' > ".claude/session-prompt-count" 2>/dev/null || true
-    printf '0\n' > ".claude/session-compaction-count" 2>/dev/null || true
+    printf '0\n' > "$GF_CLAUDE_DIR/session-prompt-count" 2>/dev/null || true
+    printf '0\n' > "$GF_CLAUDE_DIR/session-compaction-count" 2>/dev/null || true
 fi

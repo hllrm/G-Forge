@@ -97,7 +97,7 @@ except Exception:
     fi
     if command -v node >/dev/null 2>&1; then
         val=$(printf '%s' "$payload" | node -e "
-let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s);const v=d.agent_type;process.stdout.write(v===undefined?'unknown':String(v));}catch(e){process.exit(1);}});
+let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s);const v=d.agent_type;process.stdout.write((v===undefined||v===null)?'unknown':String(v));}catch(e){process.exit(1);}});
 " 2>/dev/null)
         rc=$?
         if [ "$rc" -eq 0 ]; then printf '%s' "$val"; return 0; fi

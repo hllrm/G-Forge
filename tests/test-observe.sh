@@ -4,8 +4,11 @@
 # skipped, the journal is valid JSONL, and the parser survives a stubbed
 # python3 (the Windows Microsoft-Store stub) without losing events.
 # Also tests: agent-lifecycle extraction of agent_type, agent_id, and RESULT
-# tokens from real SubagentStart/SubagentStop payloads (M-audit finding #22 fix).
-# Total assertions: 22 (16 original observe tests + 6 new agent-lifecycle extraction tests).
+# tokens from real SubagentStart/SubagentStop payloads (M-audit finding #22 fix),
+# plus a forced-node-path regression pin for JSON null agent_type (W1.5f/W1.6-15).
+# W1.6-17: json_escape hostile-input coverage with adversarial chars on line 1.
+# W1.6-18: sed-tier escaped-quote truncation behavior regression pin.
+# Total assertions: 24 (16 original observe tests + 8 agent-lifecycle extraction/regression tests).
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/observe.sh"
 PASS=0
@@ -100,17 +103,26 @@ agent_lifecycle_detail() {
     rm -rf "$dir"
 }
 
-# agent_lifecycle_journal <event> <payload-json> — extract the journal detail
-# line (if any) from the agent-lifecycle hook output.
+# agent_lifecycle_journal <event> <payload-json> [PATH-override] — extract the
+# journal detail line (if any) from the agent-lifecycle hook output. Optional
+# third arg overrides PATH (same tier-forcing idiom as kind_of's second arg
+# above) so a fixture can shadow specific parsers to force a given tier.
 agent_lifecycle_journal() {
-    local event="$1" payload="$2" dir jfile detail
+    local event="$1" payload="$2" path_override="$3" dir jfile detail
     dir=$(mktemp -d)
     ( cd "$dir" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier )
-    printf '%s' "$payload" | ( cd "$dir" && bash "$AGENT_SCRIPT" "$event" >/dev/null 2>&1 )
+    if [ -n "$path_override" ]; then
+        printf '%s' "$payload" | ( cd "$dir" && PATH="$path_override" bash "$AGENT_SCRIPT" "$event" >/dev/null 2>&1 )
+    else
+        printf '%s' "$payload" | ( cd "$dir" && bash "$AGENT_SCRIPT" "$event" >/dev/null 2>&1 )
+    fi
     jfile=$(ls "$dir"/.claude/journal/*.jsonl 2>/dev/null | head -1)
     if [ -n "$jfile" ]; then
-        # Extract detail field using sed (portable, no jq dependency in tests)
-        sed -n 's/.*"detail":"\([^"]*\)".*/\1/p' "$jfile" | head -1
+        # Extract detail field using sed (portable, no jq dependency in tests).
+        # Escape-aware capture: \\. matches any escaped char so the value can
+        # contain \" and \\ without truncating at the first escaped quote
+        # (returns the still-escaped form; assertions match on substrings).
+        sed -n 's/.*"detail":"\(\(\\.\|[^"\\]\)*\)".*/\1/p' "$jfile" | head -1
     fi
     rm -rf "$dir"
 }
@@ -139,8 +151,14 @@ PAYLOAD_STOP_WAVE='{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"/t
 PAYLOAD_STOP_INTERNAL='{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"/tmp","prompt_id":"p1","agent_id":"a7653079b1995bdc8","agent_type":"","permission_mode":"auto","effort":{"level":"high"},"hook_event_name":"SubagentStop","stop_hook_active":false,"agent_transcript_path":"/tmp/a.jsonl","last_assistant_message":"go","background_tasks":[],"session_crons":[]}'
 
 # Real payload fixture: SubagentStop with quotes and backslash in RESULT line
-# (must not break the JSON line emitted to the journal)
-PAYLOAD_STOP_QUOTED='{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"/tmp","prompt_id":"p1","agent_id":"a7653079b1995bdc8","agent_type":"test-agent","hook_event_name":"SubagentStop","stop_hook_active":false,"agent_transcript_path":"/tmp/a.jsonl","last_assistant_message":"RESULT: DONE\nfixed \"path\\\\file\" issue","background_tasks":[]}'
+# (adversarial characters on line 1 of message, not line 2, so head -n1 captures them).
+# json_escape must preserve and properly escape the quotes and backslashes.
+PAYLOAD_STOP_QUOTED='{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"/tmp","prompt_id":"p1","agent_id":"a7653079b1995bdc8","agent_type":"test-agent","hook_event_name":"SubagentStop","stop_hook_active":false,"agent_transcript_path":"/tmp/a.jsonl","last_assistant_message":"RESULT: DONE \"path\\\\file\" survived","background_tasks":[]}'
+
+# Real payload fixture: SubagentStart with JSON null agent_type (distinct from
+# the empty-string "internal" case above — a real null must fall back to
+# "unknown", not stringify to the literal "null").
+PAYLOAD_START_NULL='{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"/tmp","prompt_id":"p1","agent_id":"a7653079b1995bdc8","agent_type":null,"hook_event_name":"SubagentStart"}'
 
 # Test 1: Start payload extracts agent_type and agent_id correctly
 DETAIL1=$(agent_lifecycle_journal "start" "$PAYLOAD_START")
@@ -179,18 +197,22 @@ else
     echo "FAIL: empty stdin → expected detail 'unknown start', got '$EMPTY_DETAIL'"; FAIL=$((FAIL+1))
 fi
 
-# Test 5: Quotes and backslashes in RESULT line do not break JSON; detail ends with RESULT token
+# Test 5: Quotes and backslashes in RESULT line do not break JSON; adversarial
+# chars (quotes + backslashes) must be present in the parsed detail (not discarded
+# by head -n1), properly json-escaped in the journal line.
 DETAIL5=$(agent_lifecycle_journal "stop" "$PAYLOAD_STOP_QUOTED")
 JSONL5=$(agent_lifecycle_jsonl "stop" "$PAYLOAD_STOP_QUOTED")
 if [ -n "$JSONL5" ]; then
     # Check JSON validity: line must start with { and end with }
     case "$JSONL5" in
         '{'*'}')
-            # Check that detail ends with the parsed RESULT token (content beyond RESULT is deliberately not preserved)
-            if echo "$DETAIL5" | grep -q 'test-agent stop a7653079 DONE$'; then
-                echo "PASS: quoted/backslash in RESULT → JSON valid and detail ends with RESULT token"; PASS=$((PASS+1))
+            # Detail must contain both "path" and "file" (from the adversarial fixture),
+            # proving json_escape exercised the quotes and backslashes on line 1.
+            if echo "$DETAIL5" | grep -q 'test-agent stop a7653079' && \
+               echo "$DETAIL5" | grep -q 'path' && echo "$DETAIL5" | grep -q 'file'; then
+                echo "PASS: quoted/backslash in RESULT → JSON valid, adversarial chars preserved"; PASS=$((PASS+1))
             else
-                echo "FAIL: quoted/backslash in RESULT → detail did not end with RESULT token, got '$DETAIL5'"; FAIL=$((FAIL+1))
+                echo "FAIL: quoted/backslash in RESULT → adversarial chars lost or detail malformed, got '$DETAIL5'"; FAIL=$((FAIL+1))
             fi
             ;;
         *)
@@ -200,6 +222,48 @@ if [ -n "$JSONL5" ]; then
 else
     echo "FAIL: quoted/backslash in RESULT → no journal line emitted"; FAIL=$((FAIL+1))
 fi
+
+# Test 6: JSON null agent_type on a forced-node-path — shadow jq and python3
+# with exit-1 stubs (same shadowing idiom as the STUB fixture above) so only
+# the node tier can answer; JSON.parse(...).agent_type is JS `null`, and the
+# node tier must map that to "unknown", never stringify it to "null".
+STUB2=$(mktemp -d)
+for p in jq python3; do printf '#!/bin/sh\nexit 1\n' > "$STUB2/$p"; chmod +x "$STUB2/$p"; done
+DETAIL6=$(agent_lifecycle_journal "start" "$PAYLOAD_START_NULL" "$STUB2:$PATH")
+if echo "$DETAIL6" | grep -q "^unknown start" && ! echo "$DETAIL6" | grep -q "null"; then
+    echo "PASS: forced-node-path null agent_type → detail begins 'unknown start', never 'null'"; PASS=$((PASS+1))
+else
+    echo "FAIL: forced-node-path null agent_type → expected detail to begin 'unknown start' with no 'null', got '$DETAIL6'"; FAIL=$((FAIL+1))
+fi
+rm -rf "$STUB2"
+
+# Test 7: Sed tier escaped-quote truncation behavior (W1.6-18 regression pin).
+# The sed-tier parser (last resort when jq/python3/node all fail) uses the
+# pattern [^"]* which means "match any char except literal quote". It does not
+# understand JSON escaping, so an escaped quote like \" is seen as backslash
+# followed by a quote terminator. For payload with agent_type "value\"truncated",
+# the sed tier extracts "value\" (truncated at the escaped quote). This test
+# stubs ALL THREE parsers (jq, python3, AND node) to force the sed tier, then
+# verifies it produces the documented truncation behavior on escaped quotes.
+STUB3=$(mktemp -d)
+for p in jq python3 node; do printf '#!/bin/sh\nexit 1\n' > "$STUB3/$p"; chmod +x "$STUB3/$p"; done
+PAYLOAD_STOP_SED_ESCAPE='{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"/tmp","prompt_id":"p1","agent_id":"a7653079b1995bdc8","agent_type":"sedtier\"truncated","hook_event_name":"SubagentStop","stop_hook_active":false,"agent_transcript_path":"/tmp/a.jsonl","last_assistant_message":"RESULT: DONE","background_tasks":[]}'
+DETAIL7=$(agent_lifecycle_journal "stop" "$PAYLOAD_STOP_SED_ESCAPE" "$STUB3:$PATH")
+# The sed tier extracts "sedtier\" (backslash is part of the payload content,
+# quote is the terminator). After json_escape, the backslash is doubled, so the
+# observed detail is: sedtier\\ stop <agent_id>
+# The assertion must DISCRIMINATE: an escape-aware parser would instead yield
+# "sedtier\"truncated", so a bare '^sedtier' anchor matches both forms and pins
+# nothing. Require the doubled-backslash terminus AND the absence of the tail
+# that only an escape-aware parser could recover.
+if printf '%s' "$DETAIL7" | grep -qF 'sedtier\\' \
+   && ! printf '%s' "$DETAIL7" | grep -qF 'truncated' \
+   && printf '%s' "$DETAIL7" | grep -q 'stop'; then
+    echo "PASS: sed-tier escaped-quote truncation → detail shows extraction terminated at quote"; PASS=$((PASS+1))
+else
+    echo "FAIL: sed-tier escaped-quote truncation → detail does not show truncation, got '$DETAIL7'"; FAIL=$((FAIL+1))
+fi
+rm -rf "$STUB3"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

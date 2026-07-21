@@ -3,6 +3,9 @@
 # Tests the git-commit detection and pathspec extraction APIs.
 # Encodes HQ-verified ground-truth table (2026-07-17, git-bash bash 5.2.37, GNU xargs 4.10.0).
 # No temp repos — all tests call shell functions on fixed strings only.
+#
+# W1.6 additions: +6 tests (newline-boundary cases, quoted pathspec fidelity).
+# Total assertions: 49. Runner-attested (W1.6 Wave 7 r2: 49/49).
 
 LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/commit-detect.sh"
 source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
@@ -64,6 +67,14 @@ test_detected "P: git commit -m \"unclosed (unmatched double quote, partial-toke
 test_detected "P: git commit -m 'unclosed (unmatched single quote, partial-tokenization)" "git commit -m 'unclosed"
 test_detected "P: git commit with literal newline between tokens" $'git\ncommit -m x'
 
+# ── Group NEWLINE-BOUNDARY — newline handling at command boundaries ──────────
+# Ensure newlines at various positions don't confuse the tokenizer (M-audit W1.6 task 9)
+
+test_detected "NEWLINE-BOUNDARY: git with newline before commit subcommand" $'git\ncommit -m x'
+test_detected "NEWLINE-BOUNDARY: git with newline after commit subcommand" $'git commit\n-m x'
+test_detected "NEWLINE-BOUNDARY: newline before git token" $'\ngit commit -m x'
+test_detected "NEWLINE-BOUNDARY: multiple newlines in command" $'git\n\ncommit -m x'
+
 # ── Group N — pins, assert NOT detected, all pass today ──────────────────────
 
 test_not_detected "N: echo \"git commit\"" 'echo "git commit"'
@@ -122,6 +133,12 @@ test_detected "KNOWN-BUG-singlecharvar: A=1 B=2 git commit -m x" "A=1 B=2 git co
 test_pathspecs "PS: git commit -m msg -- path1 path2" "git commit -m msg -- path1 path2" $'path1\npath2'
 test_pathspecs "PS: git commit -m \"touch hooks/check-commit.sh and g-docs/x.md\" (message text never tokenized)" 'git commit -m "touch hooks/check-commit.sh and g-docs/x.md"' ""
 test_pathspecs "PS: git commit -m msg file1.txt (positional pathspec without --)" "git commit -m msg file1.txt" "file1.txt"
+
+# ── Group PS-QUOTED — pathspec fidelity with quoted filenames (M-audit W1.6 task 10) ─
+# Verify that pathspecs with quoted special characters survive tokenization intact
+
+test_pathspecs "PS-QUOTED: git commit -- \"file with spaces.txt\"" 'git commit -- "file with spaces.txt"' "file with spaces.txt"
+test_pathspecs "PS-QUOTED: git commit with quoted pathspec containing shell chars" "git commit -- \"path/with\$vars.txt\"" "path/with\$vars.txt"
 
 # ── Summary ───────────────────────────────────────────────────────────────────────
 

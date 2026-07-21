@@ -7,6 +7,8 @@
 # Attested 2026-07-18 (W1.5b): 42 passed, 0 failed — after the whitespace-only
 # assertion was flipped to pin observed fail-toward-deny behavior (see the
 # polarity note on that case; lib header corrected in the same pass).
+# W1.6 additions: +5 tests (shadowed .md dirs, pathspec fidelity, pre-commit scan).
+# Total assertions: 47. Runner-attested (W1.6 Wave 7 r2: 47/47).
 
 LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/classify-changeset.sh"
 source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
@@ -74,6 +76,13 @@ test_classify "DOC: root-level *.md another example" "CONTRIBUTING.md" 0 1
 test_classify "CODE: nested *.md file" "some/dir/file.md" 1 0
 test_classify "CODE: nested *.md in docs dir" "content/pages/article.md" 1 0
 
+# CODE bucket: shadowed .md directory — directory name ends in .md but doesn't match
+# special directory rules (g-docs, g-wiki, docs), so files inside fall through to CODE
+# (M-audit W1.6 task 11)
+test_classify "CODE: file in docs.md directory (no match)" "docs.md/README" 1 0
+test_classify "CODE: file in api.md directory (no match)" "api.md/guide.txt" 1 0
+test_classify "CODE: nested .md file in .md-named directory" "docs.md/file.md" 1 0
+
 # CODE bucket: hooks/* directory
 test_classify "CODE: hooks/check-commit.sh" "hooks/check-commit.sh" 1 0
 test_classify "CODE: hooks/lib/commit-detect.sh" "hooks/lib/commit-detect.sh" 1 0
@@ -110,6 +119,11 @@ test_classify "CODE: unknown root file (no match)" "unknown.txt" 1 0
 test_classify "CODE: unknown nested path" "random/dir/file" 1 0
 test_classify "CODE: unknown extension" "file.xyz" 1 0
 
+# CODE bucket: pathspec fidelity — unmatched/complex pathspecs fall through to CODE
+# (M-audit W1.6 task 10) — verifies the stricter default gate behavior
+test_classify "CODE: pathspec with quoted/escaped chars not matching DOC rules" "\"quoted-path\"/file.txt" 1 0
+test_classify "CODE: pathspec with shell metacharacters not matching any rule" "path\$with\$vars/file" 1 0
+
 # BOUNDARY: Empty input — neither flag set (both 0)
 test_classify "EMPTY: empty input string" "" 0 0
 # BOUNDARY: whitespace-only (non-empty) line is NOT skipped by the lib's
@@ -144,13 +158,15 @@ DOC_PATTERNS=("g-docs/\*" "g-wiki/\*" "docs/\*" "README\*" "CHANGELOG\*" "LICENS
 # Check that no hook file (except the lib itself) contains a case-statement
 # matching the DOC bucket patterns. We search for the literal case patterns.
 # If found outside of classify-changeset.sh, that's a duplicate rule violation.
+# Scan both *.sh files AND the extensionless hooks/pre-commit (M-audit W1.6 task 12).
 
 found_duplicate_rules=0
 
 # Search for case statement patterns that match DOC buckets in other hooks
 # Look for lines like `g-docs/*|` or `README*|` in case statements
-for hook_file in hooks/*.sh; do
+for hook_file in hooks/*.sh hooks/pre-commit; do
     [ "$hook_file" = "hooks/lib/classify-changeset.sh" ] && continue
+    [ -f "$hook_file" ] || continue
     # Search for DOC bucket case patterns (pipe-separated glob patterns in case statements)
     if grep -E 'g-docs/\*|g-wiki/\*|docs/\*|README\*|CHANGELOG\*|LICENSE\*' "$hook_file" | grep -qv "^[[:space:]]*#"; then
         # Check if it's in a case-statement (not just a comment)
@@ -167,7 +183,7 @@ for hook_file in hooks/*.sh; do
 done
 
 if [ "$found_duplicate_rules" -eq 0 ]; then
-    echo "PASS: Task 6a — no DOC bucket classification patterns found in other hooks"
+    echo "PASS: Task 6a — no DOC bucket classification patterns found in other hooks (including hooks/pre-commit)"
     PASS=$((PASS+1))
 fi
 

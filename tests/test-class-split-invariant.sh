@@ -24,19 +24,6 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/../hooks" && pwd)"
 PASS=0
 FAIL=0
 
-# Verify that the gating pair is never referenced in the hook list.
-# check-commit.sh and pre-commit are ALLOWED to exit non-zero (they are
-# enforcement gates); this suite ONLY tests the six non-gating hooks.
-GATING_PAIR_IN_SCOPE=0
-if grep -q 'check-commit.sh\|hooks/check-commit.sh' "$0" 2>/dev/null | grep -v '^#'; then
-    GATING_PAIR_IN_SCOPE=$((GATING_PAIR_IN_SCOPE + 1))
-fi
-if grep -q '^[^#]*pre-commit[^a-z-]' "$0" 2>/dev/null | grep -v 'post-commit\|# '; then
-    # This might match pre-commit but we check context carefully — skip if it's in
-    # a comment or in "pre-commit-cleanup" or similar.
-    :
-fi
-
 # The suite's declared NON-GATING_HOOKS list is the authority for which
 # hooks are tested. Verify it exists and is complete.
 NON_GATING_HOOKS="observe.sh agent-lifecycle.sh session-start.sh pre-compact.sh workflow-checkpoint.sh post-commit-cleanup.sh"

@@ -423,7 +423,7 @@ for token in "${RETIRED_TOKENS[@]}"; do
     # Search all .sh files under hooks/ for the retired token,
     # excluding hooks/lib/ (utility library) and gating hooks check-commit.sh
     # and pre-commit (which require fail-toward-deny semantics with raw resolver).
-    hits=$(grep -rn "$token" "$REPO_ROOT/hooks/" 2>/dev/null | grep -v -- '/hooks/lib/worktree-resolve\.sh:' | grep -v -- '/hooks/lib/classify-changeset\.sh:' | grep -v -- '/hooks/lib/commit-detect\.sh:' | grep -v -- '/hooks/lib/sentinel-read\.sh:' | grep -v -- '/hooks/check-commit\.sh:' | grep -v -- '/hooks/pre-commit:')
+    hits=$(grep -rn --exclude-dir=lib "$token" "$REPO_ROOT/hooks/" 2>/dev/null | grep -v -- '/hooks/check-commit\.sh:' | grep -v -- '/hooks/pre-commit:')
     if [ -n "$hits" ]; then
         found_retired=1
     fi

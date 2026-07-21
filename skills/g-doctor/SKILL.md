@@ -1,6 +1,6 @@
 ---
 name: g-doctor
-description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel, and no installed-copy drift (hashes the installed hooks against plugin source to catch silently stale copies). Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
+description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel, and no installed-copy drift (hashes the installed hooks, hooks/lib/ scripts, native pre-commit hook, g-rules section files, and installed agents — under a three-class rule — against plugin source to catch silently stale copies). Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
 ---
 
 Announce: "Using g-doctor to check project health."

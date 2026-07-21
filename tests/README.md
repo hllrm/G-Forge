@@ -16,3 +16,24 @@ bash tests/test-observe.sh
 ```
 
 Each script prints one `PASS:`/`FAIL:` line per case and a `Results: N passed, M failed` summary, exiting non-zero if any case fails.
+
+## Path resolution convention
+
+Every suite resolves script/repo paths to **absolute, once, at the top** —
+before any fixture `cd`. Suites must be invocation-form-insensitive: identical
+results whether run as `bash tests/test-<name>.sh` from the repo root or via
+an absolute path from any cwd. Lazy `dirname "$0"` re-derivation after a `cd`
+is prohibited — a fixture `cd` invalidates a relative `$0`, silently breaking
+path lookups that run after it.
+
+Reference implementation: `tests/test-class-split-invariant.sh` lines 1-8 —
+resolve `SCRIPT_DIR` and `HOOKS_DIR` via `cd "$(dirname "${BASH_SOURCE[0]}")" && pwd`
+before the sandbox `cd`, never after.
+
+This convention exists because the class-split invariant suite once returned
+contradictory results under relative vs. absolute invocation — hook paths
+were re-derived after a fixture `cd` (W1.5g finding, ADR-008 clause 6).
+
+Attestation runs use the canonical invocation form (repo-root relative,
+`bash tests/test-<name>.sh`); only an attested runner table is authoritative
+for pass counts.
