@@ -28,6 +28,26 @@ Telemetry profile: [profile] — review intensity adjusted accordingly
 
 ## Step 1 — Run the test suite
 
+**Installed-copy drift check (routine, visible-only — ADR-008 clause 5).** Before anything else, do a one-shot hash comparison of the installed `.claude/hooks/` copy (plus `.claude/hooks/lib/`) against the canonical `hooks/` source in this repo — the same comparison `/g-doctor` Check 16 performs:
+```bash
+hash_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    cksum "$1" | awk '{print $1, $2}'
+  fi
+}
+```
+For each top-level script in `hooks/` and each lib script in `hooks/lib/*.sh`, compare `hash_file` of the canonical source against its installed counterpart at `.claude/hooks/<file>` and `.claude/hooks/lib/<file>` respectively. A missing installed file counts as drift, same as Check 16. Skip this check silently (report `Installed-copy drift: not applicable — no canonical hooks/ in this checkout`) if `hooks/` does not exist at the repo root, so /g-review stays usable outside this repo's own dogfooded copy.
+
+Report the result as one line, verbatim, in the review record:
+- Clean: `Installed-copy drift: clean`
+- Drifted: `Installed-copy drift: N file(s) drifted — run /g-update ([file], [file], ...)`
+
+**This result NEVER gates the MERGE READY / HOLD verdict.** It is reported for visibility only — carry the line forward unchanged into Step 4's dispatch to code-lead and into the verdict presented in Step 6, but do not let drift (of any degree) turn a MERGE READY into a HOLD, and do not ask code-lead to treat it as a finding.
+
 Before reviewing any code, verify the test suite passes.
 
 **Check for a project-local test-runner agent first.** Glob `.claude/agents/*-dev.md`. If exactly one file matches:
@@ -99,6 +119,7 @@ Dispatch the `code-lead` agent. Provide **all of the following** in the prompt s
 
 - **Attested test result** — state explicitly: `"Tests: PASS (attested — exit 0, output below)"` and include the captured output from Step 1, OR `"Tests: skipped — developer override"` if the developer chose (b). If tests failed, you do not reach this step.
 - **Attested type-check result** — if a type-checker was run (e.g. `vue-tsc --noEmit`, `tsc --noEmit`) in any prior step or by an implementing agent, include: `"Type-check: PASS (attested — exit 0)"`. If not run, omit this line.
+- The `Installed-copy drift:` line from Step 1, verbatim. Tell code-lead explicitly: this is informational only, it must appear in the review record but must never factor into the MERGE READY / HOLD verdict.
 - The full diff from Step 2
 - The done conditions from Step 3
 - The current branch name (from `git branch --show-current`)
@@ -142,7 +163,7 @@ If code-lead's verdict is **MERGE READY**:
 
 ## Step 6 — Present verdict and manage sentinel
 
-Present code-lead's verdict to the developer verbatim.
+Present code-lead's verdict to the developer verbatim, followed by the `Installed-copy drift:` line from Step 1 — this is a visibility-only report and never changes the verdict above it, whatever it says.
 
 **If verdict is MERGE READY:**
 - Create `.claude/` directory if it does not exist
@@ -196,6 +217,7 @@ Present code-lead's verdict to the developer verbatim.
 
 ## Rules
 - Never modify code-lead's verdict — present it exactly.
+- The Step 1 installed-copy drift check is visible-only — it is always reported in the review record, but it never gates or downgrades the MERGE READY / HOLD verdict.
 - Never write `.claude/g-forge-approved` for anything other than MERGE READY.
 - Never skip Step 5 (Tier 3 smoke test) on a MERGE READY verdict — the sentinel must not be written until at least one clean smoke-test round completes.
 - If code-lead is blocked by missing information, gather it and re-dispatch — do not guess.

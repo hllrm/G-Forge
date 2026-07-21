@@ -5,11 +5,18 @@ description: Realign all G-Forge-managed files in this project to the current pl
 
 **Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
 
-You are first updating the plugin cache from GitHub, then syncing G-Forge-managed content in this project against it. You only touch content that G-Forge originally injected — never user-written content.
+You are first updating the plugin cache from GitHub, then syncing G-Forge-managed content in this project against it — unless this project is the plugin source itself (self-host mode, Step 0), in which case the working tree already IS the current source and there is no cache to update first. You only touch content that G-Forge originally injected — never user-written content.
 
 ---
 
 ## Step 0 — Check plugin version
+
+**Self-host detection:** root `.claude-plugin/plugin.json` exists AND its `name` matches the plugin's own name (`g-forge`) → the source root flips from the plugin cache to the working tree (self-host mode); every plugin-cache Glob below resolves through this detected source root instead. Consumer projects (no root `.claude-plugin/plugin.json`) are structurally unaffected — detection cannot fire there, and the plugin-cache path is the fallback branch, unchanged.
+
+Check this now, before anything else in this skill. Read `.claude-plugin/plugin.json` at the project root (the working tree you are running in — not the cache) if it exists, and compare its `name` field. Store the result as **self-host mode: on/off** — every step below that references `[plugin-root]` or "the plugin cache" uses this result.
+
+- **Self-host mode on:** report `✓ Self-host mode detected — working tree is source, skipping cache version check.` and skip directly to Step 1 (which sets `[plugin-root]` to the project root, no Glob needed). Items 1–4 below do not apply — there is no separate cache copy to be behind GitHub.
+- **Self-host mode off (fallback branch — every consumer project):** proceed with the version check below, exactly as before.
 
 1. Fetch the latest version from GitHub:
    ```bash
@@ -62,12 +69,14 @@ Do not attempt to delete another plugin's files yourself — only the developer 
 
 ## Step 1 — Locate the plugin root
 
-Use Glob to find the plugin's skill files:
+**Self-host mode on** (detected in Step 0): `[plugin-root]` = the project root — the working tree itself. There is nothing to locate; skip the Glob below entirely.
+
+**Self-host mode off (fallback branch — every consumer project):** Use Glob to find the plugin's skill files:
 ```
 ~/.claude/plugins/cache/g-forge/g-forge/*/skills/g-init/SKILL.md
 ```
 
-The parent of the `skills/` directory is the plugin root. Store this path — you will need it throughout.
+The parent of the `skills/` directory is the plugin root. Store this path as `[plugin-root]` — you will need it throughout.
 
 If not found, tell the developer: "Could not find the G-Forge plugin in ~/.claude/plugins/cache/. Run `/plugin update g-forge` first." and stop.
 
@@ -301,4 +310,5 @@ If nothing needed updating (all content already matched): "All G-Forge-managed c
 - Never delete or overwrite files not identified as G-Forge-managed.
 - Never run without developer confirmation from Step 2.
 - If the plugin root cannot be found, stop and tell the developer.
+- Step 0's self-host detection is the single source-root resolution point — `[plugin-root]` is set once (Step 0/1) and reused everywhere; never hardcode `~/.claude/plugins/cache/...` outside that fallback branch.
 - Read the plugin files fresh each time — never use cached or assumed content.

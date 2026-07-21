@@ -146,6 +146,36 @@ This check also covers two related canonical-vs-installed surfaces that hook dri
     → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
   - Advisory, not a failure (marker absent — a foreign, non-G-Forge pre-commit occupies the slot; the /g-init·/g-update clobber guard preserves it rather than overwriting it): ⚠ foreign pre-commit present (gate not installed — advisory, run /g-update to see options)
 
+This check also covers the g-rules section files and the `.claude/agents/` surface — agents differ from hooks/lib/rules in that not every installed agent has a byte-canonical source, so the three classes below get distinct pass/fail/advisory wording rather than one shared rule:
+
+- **`g-rules` section-file drift.** For each of the 10 canonical g-rules section files in `rules/g-rules/` (plugin source), hash-compare against its installed counterpart in `.claude/rules/`, using the same flat-rename mapping CLAUDE.md's own `@` references use — `rules/g-rules/X-name.md` (source) → `.claude/rules/g-rules-X-name.md` (installed):
+  - `rules/g-rules/A-session.md` → `.claude/rules/g-rules-A-session.md`
+  - `rules/g-rules/B-workflow.md` → `.claude/rules/g-rules-B-workflow.md`
+  - `rules/g-rules/C-agent-discipline.md` → `.claude/rules/g-rules-C-agent-discipline.md`
+  - `rules/g-rules/D-code-quality.md` → `.claude/rules/g-rules-D-code-quality.md`
+  - `rules/g-rules/E-architecture-gate.md` → `.claude/rules/g-rules-E-architecture-gate.md`
+  - `rules/g-rules/F-design-patterns.md` → `.claude/rules/g-rules-F-design-patterns.md`
+  - `rules/g-rules/G-documentation.md` → `.claude/rules/g-rules-G-documentation.md`
+  - `rules/g-rules/H-testing.md` → `.claude/rules/g-rules-H-testing.md`
+  - `rules/g-rules/I-project-tracking.md` → `.claude/rules/g-rules-I-project-tracking.md`
+  - `rules/g-rules/J-memory.md` → `.claude/rules/g-rules-J-memory.md`
+  - Pass (per file): installed copy exists AND its hash matches the canonical source in `rules/g-rules/` (same `hash_file` cascade above).
+  - Fail (missing): ✗ g-rules-[X-name].md missing from installed copy (drift)
+    → Run `/g-update` to re-sync rules/g-rules/ into .claude/rules/.
+  - Fail (hash mismatch, file present): ✗ g-rules-[X-name].md installed copy differs from plugin source (drift)
+    → Run `/g-update` to re-sync rules/g-rules/ into .claude/rules/.
+
+- **Installed-agents drift.** `.claude/agents/` mixes three provenance classes. For each file found in `.claude/agents/`, classify it first, then apply that class's rule — never the same rule for all three:
+  1. **Profile-copied** agents (e.g. `claude-plugin-architect.md`) — a byte-canonical source exists under `profiles/<stack>/agents/<name>.md`, installed verbatim by `/g-specialize`. Hash-compare using the `hash_file` cascade above.
+     - Pass: ✓ [agent].md matches profile source (no drift)
+     - Fail (hash mismatch): ✗ [agent].md installed copy differs from profile source (drift)
+       → Run `/g-specialize` to re-sync the architect agent from its profile source.
+     - Fail (canonical source missing, e.g. the profile that installed it was renamed or removed upstream): ✗ [agent].md has no matching profile source — cannot verify (drift)
+       → Run `/g-update` to check for a renamed or removed profile.
+  2. **Template-instantiated** agents (e.g. `claude-plugin-implementer.md`) — generated per-project by `/g-specialize` from `templates/stack-implementer.md` with per-stack substitutions ({{IMPLEMENTER_NAME}}, {{ARCHITECT_NAME}}, {{STACK_LABEL}}, etc.); no byte-canonical per-stack source exists to hash against. This class is advisory-only and must never Fail — it mirrors the foreign-pre-commit precedent above, where the absence of a comparable canonical copy rules out a hash-based verdict.
+     - Advisory: ⚠ [agent].md is template-instantiated (no canonical source — not checked for drift)
+  3. **Project-local** agents matching `*-dev.md` (e.g. `g-forge-dev.md`) are never shipped by the plugin and are excluded entirely from this check (zero drift output) — they are neither Pass, Fail, nor Advisory; skip them before classification even runs.
+
 **17. CLAUDE.md architecture rules format** (advisory)
 Read `CLAUDE.md`. For each `<!-- G-Forge [stack] Architecture Rules` block, count the non-empty lines between the opening and closing markers. If any block has more than 3 lines of content, it is using the legacy inline format.
 - Pass: ✓ CLAUDE.md architecture rules compact (@reference format)

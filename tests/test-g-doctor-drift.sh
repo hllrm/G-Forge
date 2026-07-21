@@ -2,6 +2,12 @@
 # Unit tests for g-doctor Check 16: installed-copy drift detection
 # Verifies the hash-comparison mechanism correctly identifies matching and mismatched
 # hooks using the portable cascade (sha256sum → shasum -a 256 → cksum).
+#
+# Extended for W1.5g (M-audit tasks 3+4):
+#   Tests 1-3: Hook drift detection (3 assertions, existing)
+#   Tests 4-6: G-rules path drift (3 assertions, 10-file flat-rename mapping: rules/g-rules/*.md → .claude/rules/g-rules-*.md)
+#   Tests 7-11: Agent classifier (6 assertions: profile-copied match/mismatch/missing, template-instantiated advisory-only, project-local *-dev.md excluded)
+# Total: 12 assertions (up from 3)
 
 PASS=0
 FAIL=0
@@ -151,6 +157,323 @@ RESULT=$(compare_hashes "hooks/missing.sh" ".claude/hooks/missing.sh")
 check "missing installed copy: detected as MISSING" "MISSING" "$RESULT"
 
 cd / && rm -rf "$FIXTURE3"
+
+# ────────────────────────────────────────────────────────────────────────────
+# Test 4: G-RULES IDENTICAL CONTENT → hashes equal → MATCH (no drift)
+# Scenario: canonical g-rules file and installed copy have identical content.
+# Expected: compare_hashes reports MATCH.
+# This verifies the 10-file flat-rename mapping: rules/g-rules/X-name.md → .claude/rules/g-rules-X-name.md
+#
+# Trace:
+#   - Create rules/g-rules/A-session.md with "## A · Session Rules\n..."
+#   - Copy it to .claude/rules/g-rules-A-session.md (bit-identical)
+#   - Compute hash of both → identical hashes → MATCH ✓
+
+echo "Test 4: Identical g-rules file (no drift)"
+FIXTURE4=$(mktemp -d)
+cd "$FIXTURE4" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p rules/g-rules .claude/rules
+
+# Fixed g-rules content (10-file mapping example: A-session.md)
+GRULES_CONTENT="## A · Session Rules
+
+This is the canonical A-session rules file.
+Model selection, planning, execution, token optimisation.
+"
+printf '%s\n' "$GRULES_CONTENT" > rules/g-rules/A-session.md
+cp rules/g-rules/A-session.md .claude/rules/g-rules-A-session.md
+
+RESULT=$(compare_hashes "rules/g-rules/A-session.md" ".claude/rules/g-rules-A-session.md")
+check "identical g-rules: hashes match (no drift)" "MATCH" "$RESULT"
+
+cd / && rm -rf "$FIXTURE4"
+
+# Test 5: G-RULES DIFFERENT CONTENT → hashes differ → MISMATCH (drift detected)
+# Scenario: canonical g-rules has current rules, installed copy has staled version.
+# Expected: compare_hashes reports MISMATCH.
+#
+# Trace:
+#   - Create rules/g-rules/B-workflow.md with "## B · Workflow Rules\n..." (canonical, current)
+#   - Create .claude/rules/g-rules-B-workflow.md with old "## OLD Workflow\n..." (installed, staled)
+#   - Compute hashes → different → MISMATCH ✓
+
+echo "Test 5: Different g-rules file (drift detected)"
+FIXTURE5=$(mktemp -d)
+cd "$FIXTURE5" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p rules/g-rules .claude/rules
+
+# Canonical (current)
+CURRENT_GRULES="## B · Workflow Rules
+
+G-Forge lifecycle, per-task loop, PM interface, skills reference.
+Version 2.0 with updated semantics.
+"
+printf '%s\n' "$CURRENT_GRULES" > rules/g-rules/B-workflow.md
+
+# Installed (staled)
+STALED_GRULES="## B · OLD Workflow
+
+Legacy workflow rules (outdated).
+Do not use this version.
+"
+printf '%s\n' "$STALED_GRULES" > .claude/rules/g-rules-B-workflow.md
+
+RESULT=$(compare_hashes "rules/g-rules/B-workflow.md" ".claude/rules/g-rules-B-workflow.md")
+check "different g-rules: hashes differ (drift detected)" "MISMATCH" "$RESULT"
+
+cd / && rm -rf "$FIXTURE5"
+
+# Test 6: G-RULES MISSING INSTALLED COPY → no hash comparison possible → MISSING
+# Scenario: canonical g-rules exists but its installed copy is absent.
+# Expected: compare_hashes reports MISSING.
+#
+# Trace:
+#   - Create rules/g-rules/C-agent-discipline.md (canonical)
+#   - Do NOT create .claude/rules/g-rules-C-agent-discipline.md (missing)
+#   - Check if installed copy exists → NO
+#   - Return MISSING without computing hashes ✓
+
+echo "Test 6: Missing g-rules installed copy"
+FIXTURE6=$(mktemp -d)
+cd "$FIXTURE6" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p rules/g-rules .claude/rules
+
+GRULES_CONTENT="## C · Agent Discipline
+
+Wave model, spawn decisions, agent caps.
+"
+printf '%s\n' "$GRULES_CONTENT" > rules/g-rules/C-agent-discipline.md
+# Intentionally do NOT create .claude/rules/g-rules-C-agent-discipline.md
+
+RESULT=$(compare_hashes "rules/g-rules/C-agent-discipline.md" ".claude/rules/g-rules-C-agent-discipline.md")
+check "missing g-rules installed copy: detected as MISSING" "MISSING" "$RESULT"
+
+cd / && rm -rf "$FIXTURE6"
+
+# ────────────────────────────────────────────────────────────────────────────
+# Agent Classifier Tests (Tests 7-11)
+# Three classes of agents in G-Forge:
+#   1. Profile-copied agents: profiles/<stack>/agents/<name>.md (hash-compare, Fail on mismatch/missing)
+#   2. Template-instantiated agents: agents/<name>.md at root (advisory-only, never Fail)
+#   3. Project-local *-dev.md agents: .claude/agents/*-dev.md (excluded entirely, zero-drift)
+
+# Helper function: classify_agent <canonical_path>
+# Returns: "PROFILE_COPIED", "TEMPLATE_INSTANTIATED", or "PROJECT_LOCAL_DEV"
+# This mimics the Check 16 agent classification logic
+classify_agent() {
+    local canonical="$1"
+
+    # Check if it's a project-local *-dev.md agent (.claude/agents/*-dev.md)
+    if [[ "$canonical" =~ \.claude/agents/.*-dev\.md$ ]]; then
+        echo "PROJECT_LOCAL_DEV"
+        return 0
+    fi
+
+    # Check if it's a profile-copied agent (profiles/<stack>/agents/<name>.md)
+    if [[ "$canonical" =~ ^profiles/[^/]+/agents/[^/]+\.md$ ]]; then
+        echo "PROFILE_COPIED"
+        return 0
+    fi
+
+    # Otherwise, it's template-instantiated (agents/<name>.md at root)
+    if [[ "$canonical" =~ ^agents/[^/]+\.md$ ]]; then
+        echo "TEMPLATE_INSTANTIATED"
+        return 0
+    fi
+
+    # Unknown classification
+    echo "UNKNOWN"
+    return 1
+}
+
+# Test 7: PROFILE-COPIED AGENT MATCHING → hashes equal → MATCH (no drift)
+# Scenario: profile-copied agent exists in both canonical (plugin profiles/) and installed (.claude/agents/)
+# with identical content. This represents a healthy, synced profile-copied agent.
+# Expected: compare_hashes reports MATCH.
+#
+# Trace:
+#   - Create profiles/test-stack/agents/test-architect.md (canonical, in plugin source)
+#   - Create .claude/agents/test-architect.md (installed, copied by /g-init)
+#   - Content is identical
+#   - Classify as PROFILE_COPIED
+#   - compare_hashes reports MATCH ✓
+
+echo "Test 7: Profile-copied agent matching (no drift)"
+FIXTURE7=$(mktemp -d)
+cd "$FIXTURE7" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p profiles/test-stack/agents .claude/agents
+
+AGENT_CONTENT="---
+name: test-architect
+description: Test stack architecture specialist. Validates structure and design.
+model: sonnet
+tools: Read, Glob, Grep
+---
+
+You are a test stack architecture validator.
+"
+printf '%s\n' "$AGENT_CONTENT" > profiles/test-stack/agents/test-architect.md
+cp profiles/test-stack/agents/test-architect.md .claude/agents/test-architect.md
+
+# Classify
+CLASSIFICATION=$(classify_agent "profiles/test-stack/agents/test-architect.md")
+check "profile-copied agent classification" "PROFILE_COPIED" "$CLASSIFICATION"
+
+# Compare hashes
+RESULT=$(compare_hashes "profiles/test-stack/agents/test-architect.md" ".claude/agents/test-architect.md")
+check "profile-copied agent matching (no drift)" "MATCH" "$RESULT"
+
+cd / && rm -rf "$FIXTURE7"
+
+# Test 8: PROFILE-COPIED AGENT MISMATCH → hashes differ → MISMATCH (drift detected)
+# Scenario: profile-copied agent has drifted — canonical and installed have different content.
+# Expected: compare_hashes reports MISMATCH.
+#
+# Trace:
+#   - Create profiles/another-stack/agents/another-architect.md (canonical, current)
+#   - Create .claude/agents/another-architect.md (installed, staled version)
+#   - Hashes differ
+#   - compare_hashes reports MISMATCH ✓
+
+echo "Test 8: Profile-copied agent mismatch (drift detected)"
+FIXTURE8=$(mktemp -d)
+cd "$FIXTURE8" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p profiles/another-stack/agents .claude/agents
+
+# Canonical (current, v2.0)
+CURRENT_AGENT="---
+name: another-architect
+description: Another stack architecture specialist. Validates structure and design (v2.0).
+model: sonnet
+tools: Read, Glob, Grep
+---
+
+You are an another stack architecture validator.
+Current version with new rules.
+"
+printf '%s\n' "$CURRENT_AGENT" > profiles/another-stack/agents/another-architect.md
+
+# Installed (staled, v1.0)
+STALED_AGENT="---
+name: another-architect
+description: Another stack architecture specialist (v1.0 - outdated).
+model: sonnet
+tools: Read, Glob
+---
+
+You are an another stack architecture validator.
+Old version.
+"
+printf '%s\n' "$STALED_AGENT" > .claude/agents/another-architect.md
+
+RESULT=$(compare_hashes "profiles/another-stack/agents/another-architect.md" ".claude/agents/another-architect.md")
+check "profile-copied agent mismatch (drift detected)" "MISMATCH" "$RESULT"
+
+cd / && rm -rf "$FIXTURE8"
+
+# Test 9: PROFILE-COPIED AGENT MISSING → installed copy absent → MISSING
+# Scenario: profile-copied agent exists in canonical but its installed copy is absent (not yet deployed).
+# Expected: compare_hashes reports MISSING.
+#
+# Trace:
+#   - Create profiles/new-stack/agents/new-architect.md (canonical)
+#   - Do NOT create .claude/agents/new-architect.md (missing)
+#   - Check if installed copy exists → NO
+#   - Return MISSING ✓
+
+echo "Test 9: Profile-copied agent missing (not yet deployed)"
+FIXTURE9=$(mktemp -d)
+cd "$FIXTURE9" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p profiles/new-stack/agents .claude/agents
+
+AGENT_CONTENT="---
+name: new-architect
+description: New stack architecture specialist.
+model: sonnet
+tools: Read, Glob, Grep
+---
+
+You are a new stack architecture validator.
+"
+printf '%s\n' "$AGENT_CONTENT" > profiles/new-stack/agents/new-architect.md
+# Intentionally do NOT create .claude/agents/new-architect.md
+
+RESULT=$(compare_hashes "profiles/new-stack/agents/new-architect.md" ".claude/agents/new-architect.md")
+check "profile-copied agent missing (not yet deployed)" "MISSING" "$RESULT"
+
+cd / && rm -rf "$FIXTURE9"
+
+# Test 10: TEMPLATE-INSTANTIATED AGENT CLASSIFICATION → advisory-only (never Fail)
+# Scenario: template-instantiated agent (e.g., agents/feature-implementer.md) is classified correctly
+# and is treated as advisory-only, never Fail.
+# Expected: classify_agent reports TEMPLATE_INSTANTIATED.
+# This test verifies that the agent classifier correctly identifies template-instantiated agents
+# and ensures Check 16 will only produce advisories for them, not failures.
+#
+# Trace:
+#   - Classify agents/feature-implementer.md
+#   - Classification should be TEMPLATE_INSTANTIATED
+#   - Check 16 logic: template-instantiated agents are advisory-only (never Fail) ✓
+
+echo "Test 10: Template-instantiated agent classification (advisory-only, never Fail)"
+FIXTURE10=$(mktemp -d)
+cd "$FIXTURE10" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p agents
+
+TEMPLATE_AGENT="---
+name: feature-implementer
+description: Generic, stack-agnostic wave implementer.
+model: sonnet
+tools: Read, Glob, Grep, Write, Edit, Bash
+---
+
+You are a generic wave implementer.
+"
+printf '%s\n' "$TEMPLATE_AGENT" > agents/feature-implementer.md
+
+CLASSIFICATION=$(classify_agent "agents/feature-implementer.md")
+check "template-instantiated agent classification" "TEMPLATE_INSTANTIATED" "$CLASSIFICATION"
+
+cd / && rm -rf "$FIXTURE10"
+
+# Test 11: PROJECT-LOCAL *-DEV.MD AGENT EXCLUSION → completely excluded (zero-drift/no-op)
+# Scenario: project-local agent (e.g., .claude/agents/g-forge-dev.md) is classified and excluded
+# from drift detection entirely. It should never be compared against anything.
+# Expected: classify_agent reports PROJECT_LOCAL_DEV and Check 16 produces zero-drift (no-op).
+#
+# Trace:
+#   - Classify .claude/agents/g-forge-dev.md
+#   - Classification should be PROJECT_LOCAL_DEV
+#   - Check 16 logic: project-local *-dev.md agents are excluded entirely (zero-drift/no-op) ✓
+
+echo "Test 11: Project-local *-dev.md agent excluded (zero-drift/no-op)"
+FIXTURE11=$(mktemp -d)
+cd "$FIXTURE11" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p .claude/agents
+
+DEV_AGENT="---
+name: g-forge-dev
+description: Use proactively to run this repo's test suites.
+model: haiku
+tools: Read, Glob, Grep, Bash
+---
+
+You run G-Forge's own test suites and report VERBATIM runner output.
+"
+printf '%s\n' "$DEV_AGENT" > .claude/agents/g-forge-dev.md
+
+CLASSIFICATION=$(classify_agent ".claude/agents/g-forge-dev.md")
+check "project-local *-dev.md agent classification" "PROJECT_LOCAL_DEV" "$CLASSIFICATION"
+
+cd / && rm -rf "$FIXTURE11"
 
 # ────────────────────────────────────────────────────────────────────────────
 # Summary

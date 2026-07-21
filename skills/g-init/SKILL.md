@@ -11,7 +11,16 @@ description: The single G-Forge front door — run once after installing the plu
 
 The project root is the current working directory. If uncertain, ask the developer to confirm before creating any files.
 
-## Step 1a — Detect state and route to intake
+## Step 1a — Detect self-host source root
+
+**Self-host detection:** root `.claude-plugin/plugin.json` exists AND its `name` matches the plugin's own name (`g-forge`) → the source root flips from the plugin cache to the working tree (self-host mode); every plugin-cache Glob below resolves through this detected source root instead. Consumer projects (no root `.claude-plugin/plugin.json`) are structurally unaffected — detection cannot fire there, and the plugin-cache path is the fallback branch, unchanged.
+
+Check this now, before any Glob below runs. Read `.claude-plugin/plugin.json` at the project root (the working tree you are running in) if it exists, and compare its `name` field.
+
+- **Self-host mode on:** `[plugin-root]` = the project root itself. Every step below that references `[plugin-root]` or "the plugin cache" uses this working-tree path directly — no Glob into `~/.claude/plugins/cache/` is needed.
+- **Self-host mode off (fallback branch — every consumer project):** `[plugin-root]` resolves per-step via Glob into `~/.claude/plugins/cache/g-forge/g-forge/`, exactly as before this step existed.
+
+## Step 1b — Detect state and route to intake
 
 Before scaffolding anything, figure out the situation and get a `g-docs/project_brief.md` in place via the right intake skill.
 
@@ -20,8 +29,8 @@ Before scaffolding anything, figure out the situation and get a `g-docs/project_
 2. **Does a `g-docs/project_brief.md` already exist?** If yes, intake is done — skip to Step 2 (scaffold).
 
 3. **Otherwise classify the directory and run the matching intake skill, then continue to Step 2 when it returns:**
-   - **Existing codebase** — there is real source beyond docs: a dependency manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, `pom.xml`/`build.gradle`), or source directories, or more than a couple of commits of real code → run **`/g-onboard`**. Use Glob to find `skills/g-onboard/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It deep-reads the repo, resolves any existing-G-Forge-state conflicts (so the scaffold and `/g-specialize` don't clobber the developer's files), and writes `g-docs/project_brief.md`. **Carry its recorded conflict preferences forward** — if the developer chose to skip CLAUDE.md injection, the existing `g-docs/todo.md` schema, or rules/agents installation, honor that in Steps 2–7.
-   - **New / greenfield** — empty, or only docs/README, no real source → run **`/g-kickoff`**. Use Glob to find `skills/g-kickoff/SKILL.md` and follow it (interview → goals/stack → `g-docs/project_brief.md`).
+   - **Existing codebase** — there is real source beyond docs: a dependency manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pubspec.yaml`, `*.csproj`, `pom.xml`/`build.gradle`), or source directories, or more than a couple of commits of real code → run **`/g-onboard`**. Locate `skills/g-onboard/SKILL.md` under `[plugin-root]` (resolved in Step 1a — self-host: read `[plugin-root]/skills/g-onboard/SKILL.md` directly; fallback: Glob `~/.claude/plugins/cache/g-forge/g-forge/*/skills/g-onboard/SKILL.md`) and follow it. It deep-reads the repo, resolves any existing-G-Forge-state conflicts (so the scaffold and `/g-specialize` don't clobber the developer's files), and writes `g-docs/project_brief.md`. **Carry its recorded conflict preferences forward** — if the developer chose to skip CLAUDE.md injection, the existing `g-docs/todo.md` schema, or rules/agents installation, honor that in Steps 2–7.
+   - **New / greenfield** — empty, or only docs/README, no real source → run **`/g-kickoff`**. Locate `skills/g-kickoff/SKILL.md` under `[plugin-root]` (self-host: `[plugin-root]/skills/g-kickoff/SKILL.md` directly; fallback: Glob `~/.claude/plugins/cache/g-forge/g-forge/*/skills/g-kickoff/SKILL.md`) and follow it (interview → goals/stack → `g-docs/project_brief.md`).
    - If it's genuinely ambiguous, ask the developer one question: "Is this an existing codebase to onboard, or a fresh project to scaffold?" and route accordingly.
 
    (When `/g-onboard` or `/g-kickoff` finishes by suggesting `/g-init`, ignore that — you're already in it. Continue to Step 2.)
@@ -31,7 +40,7 @@ Before scaffolding anything, figure out the situation and get a `g-docs/project_
 Check if `CLAUDE.md` exists at the project root.
 
 **If it does not exist:**
-1. Glob the plugin cache for `templates/CLAUDE.md` — pattern: `~/.claude/plugins/cache/g-forge/g-forge/*/templates/CLAUDE.md`. Use the highest version found.
+1. Locate `templates/CLAUDE.md` under `[plugin-root]` (resolved in Step 1a) — self-host: read `[plugin-root]/templates/CLAUDE.md` directly; fallback: Glob `~/.claude/plugins/cache/g-forge/g-forge/*/templates/CLAUDE.md` and use the highest version found.
 2. Read the template file.
 3. Replace `[Project Name]` with the actual project name (use the directory name, or ask if unclear).
 4. Write the result to `CLAUDE.md` at the project root.
@@ -50,7 +59,7 @@ Report: `✓ CLAUDE.md — verified`
 
 ## Step 2a — Install G-RULES.md and rule section files
 
-The plugin root is `~/.claude/plugins/cache/g-forge/g-forge/` (use Glob to confirm the exact path).
+`[plugin-root]` was resolved in Step 1a — self-host mode points it at the working tree; fallback mode points it at `~/.claude/plugins/cache/g-forge/g-forge/` (confirm the exact versioned path there via Glob).
 
 1. Copy `[plugin-root]/G-RULES.md` to the project root as `G-RULES.md`. Overwrite if it exists — G-Forge managed.
 
@@ -221,7 +230,7 @@ Create `.claude/hooks/` directory if it does not exist.
 
 All hook scripts are **copied verbatim from the plugin cache** rather than inlined here, so a fresh `/g-init` installs the same canonical hook bodies that `/g-update` and `hooks/*.sh` in the plugin source ship. Inlining them here previously caused divergence — new projects ran the pre-M15 hooks until `/g-update` was run.
 
-Plugin hooks directory: use Glob to find the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`. Call this `<plugin-hooks>`.
+Plugin hooks directory: `<plugin-hooks>` = `[plugin-root]/hooks/` — `[plugin-root]` was resolved in Step 1a. Self-host mode: this is the working tree's own `hooks/` directly. Fallback mode: Glob the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`.
 
 Create `.claude/hooks/lib/` too: `mkdir -p .claude/hooks/lib/` — the four shared libraries below live there, and every top-level hook now sources from that path at runtime, so skipping it produces a broken install.
 
@@ -438,9 +447,9 @@ Report:
 
 ## Step 7b — Specialize for the stack
 
-The structure is in place; now fit it to the project's stack so the right architect agent and architecture rules are installed. Run **`/g-specialize`** — use Glob to find `skills/g-specialize/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and follow it. It detects the stack (from the brief + dependency manifests), confirms with the developer, and installs the matching architect agent + rules.
+The structure is in place; now fit it to the project's stack so the right architect agent and architecture rules are installed. Run **`/g-specialize`** — locate `skills/g-specialize/SKILL.md` under `[plugin-root]` (resolved in Step 1a — self-host: `[plugin-root]/skills/g-specialize/SKILL.md` directly; fallback: Glob `~/.claude/plugins/cache/g-forge/g-forge/*/skills/g-specialize/SKILL.md`) and follow it. It detects the stack (from the brief + dependency manifests), confirms with the developer, and installs the matching architect agent + rules.
 
-Honor any conflict preference recorded in Step 1a: if the developer chose to **skip** or **overlay** rules/agents installation during `/g-onboard`, pass that through — do not overwrite existing `.claude/agents/` or `.claude/rules/` files without the permission they already gave. If no stack is detectable (e.g. a brand-new empty project), skip specialization and note that `/g-specialize` can be run later once the stack exists.
+Honor any conflict preference recorded in Step 1b: if the developer chose to **skip** or **overlay** rules/agents installation during `/g-onboard`, pass that through — do not overwrite existing `.claude/agents/` or `.claude/rules/` files without the permission they already gave. If no stack is detectable (e.g. a brand-new empty project), skip specialization and note that `/g-specialize` can be run later once the stack exists.
 
 ## Step 8 — Report
 
@@ -479,3 +488,4 @@ To install: Claude Code → Settings → MCP Servers, or add to `~/.claude/setti
 - Never create a file that already exists without reading it first.
 - If g-docs/project_brief.md exists at the project root, use its content to pre-fill g-docs/ROADMAP.md and g-docs/milestones/M1.md.
 - Settings.json merge must never drop existing hooks — read before writing.
+- Step 1a's self-host detection is the single source-root resolution point — `[plugin-root]` is resolved there and reused everywhere; never hardcode `~/.claude/plugins/cache/...` outside that step's fallback branch.
