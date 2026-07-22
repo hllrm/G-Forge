@@ -13,9 +13,21 @@
 # 5. EXIT CODE: hook exits 0 on all payloads (representative + garbage)
 # 6. JSON VALIDITY: both log lines (.claude/g-forge-agent-log.jsonl) and journal lines
 #    (.claude/journal/YYYY-MM-DD.jsonl) are well-formed JSON objects
+# 7. CONTROL-CHAR ESCAPING (M-audit W3 sub-task 7): json_escape() strips the full C0
+#    control-char range, not just CR/LF -- a validly-escaped JSON control-char
+#    agent_type / last_assistant_message must never leave a raw control byte in the
+#    emitted log or journal line
+# 8. TIER-GATING IDIOM ALIGNMENT (M-audit W3 sub-task 8): agent-lifecycle's light-tier
+#    check matches observe.sh's reference idiom across every integration-tier file
+#    state (missing, "light", "light\n", "full") — journal-suppression outcome agrees
+#    with observe.sh for each state
 #
-# Total assertions: 29 (5 primary-tree + 6 linked-worktree wt-tagging + 5 light-tier +
-#                       7 start/stop pairing + 4 exit-code invariant + 2 JSON validity)
+# Total assertions: 35 (5 primary-tree + 6 linked-worktree wt-tagging + 5 light-tier +
+#                       7 start/stop pairing + 4 exit-code invariant + 2 JSON validity +
+#                       2 control-char escaping + 4 tier-gating idiom alignment)
+# jq-gated strict-parse checks (control-char section) are SKIP-credited 0 when jq is
+# unavailable, per the same convention as the linked-worktree SKIP below — the count
+# above is this environment's runner-observed total (jq absent), not a design ceiling.
 # The count is the RUNNER-OBSERVED total, not a design target — it must equal the
 # `Results:` line. A header that over-claims defeats the finding-#20 cross-check,
 # which exists precisely to catch a suite silently dropping cases.
@@ -495,6 +507,161 @@ fi
 # Cleanup JSON fixture
 cd / || true
 rm -rf "$JSON_FIXTURE"
+
+# ============================================================================
+# § 9. CONTROL-CHARACTER JSON ESCAPING (sub-task 7, M-audit W3)
+# ============================================================================
+# json_escape() used to strip only CR/LF (tr -d '\n\r'); any other C0 control
+# byte (tab, \x01-\x1F) embedded in agent_type/agent_id/RESULT passed through
+# raw into the emitted line, which strict JSON (`jq -e .`) rejects. Fail-
+# before was confirmed by running the pre-fix committed hook (git show HEAD)
+# against the same payload: the emitted log line contained a raw 0x09 byte.
+# This suite runs only the pass-after check against the current hook, per
+# the repo's existing convention of encoding the fixed behavior as the
+# regression test rather than re-deriving the historical failure at runtime.
+
+CTRL_FIXTURE="$(mktemp -d)"
+cd "$CTRL_FIXTURE" || { echo "FAIL: could not create control-char fixture"; exit 1; }
+git init -q 2>/dev/null
+git config user.email "test@g-forge.local" 2>/dev/null
+git config user.name "test" 2>/dev/null
+mkdir -p .claude
+printf 'full\n' > .claude/integration-tier
+
+# has_raw_ctrl <string> — true (rc 0) iff a raw C0 control byte (0x00-0x1F)
+# is present. Implemented as a strip-and-compare with tr (same primitive the
+# hook itself uses) rather than grep -P, which is not portable across the
+# grep builds this suite runs under.
+has_raw_ctrl() {
+    local s="$1" stripped
+    stripped=$(printf '%s' "$s" | tr -d '\000-\037')
+    [ "$stripped" != "$s" ]
+}
+
+# Test 9.1: start event — agent_type carries a validly-escaped JSON
+# \t sequence (the wire payload itself must stay valid JSON so the parser
+# cascade decodes it rather than rejecting the document upstream of
+# json_escape; decoding is what turns the escape into a RAW control byte
+# in the shell variable). LOG line must contain no raw control byte.
+CTRL_PAYLOAD_START='{"agent_type":"tab\tctrlagent","agent_id":"a1234567890abc","hook_event_name":"SubagentStart"}'
+hook_run "start" "$CTRL_PAYLOAD_START" "$CTRL_FIXTURE" >/dev/null 2>&1
+
+CTRL_LOG_FILE="$CTRL_FIXTURE/.claude/g-forge-agent-log.jsonl"
+if [ -f "$CTRL_LOG_FILE" ]; then
+    CTRL_LOG_LINE=$(tail -n 1 "$CTRL_LOG_FILE")
+    if has_raw_ctrl "$CTRL_LOG_LINE"; then
+        echo "FAIL: control-char escaping — log line still contains a raw control byte"; FAIL=$((FAIL+1))
+    else
+        echo "PASS: control-char escaping — log line has no raw control bytes"; PASS=$((PASS+1))
+    fi
+    if command -v jq >/dev/null 2>&1; then
+        if printf '%s' "$CTRL_LOG_LINE" | jq -e . >/dev/null 2>&1; then
+            echo "PASS: control-char escaping — log line parses with jq -e ."; PASS=$((PASS+1))
+        else
+            echo "FAIL: control-char escaping — log line does not parse with jq -e ."; FAIL=$((FAIL+1))
+        fi
+    else
+        echo "SKIP: control-char escaping — jq not available, strict-parse check not credited (0 assertions credited)"
+    fi
+else
+    echo "FAIL: control-char escaping — log file not created"; FAIL=$((FAIL+1))
+fi
+
+# Test 9.2: stop event — last_assistant_message's RESULT line carries
+# a validly-escaped JSON \u0001\u0002 control-char pair after "RESULT: DONE"
+# (again: valid JSON on the wire; the parser cascade decodes the escapes
+# into RAW control bytes). JOURNAL detail (not the log) is what carries
+# RESULT_VAL, so this exercises that field instead.
+CTRL_PAYLOAD_STOP='{"agent_type":"test-agent","agent_id":"a1234567890abc","hook_event_name":"SubagentStop","last_assistant_message":"RESULT: DONE\u0001\u0002\nSUMMARY: test"}'
+hook_run "stop" "$CTRL_PAYLOAD_STOP" "$CTRL_FIXTURE" >/dev/null 2>&1
+CTRL_JOURNAL_DIR="$CTRL_FIXTURE/.claude/journal"
+CTRL_JOURNAL_FILE=$(ls "$CTRL_JOURNAL_DIR"/*.jsonl 2>/dev/null | head -1)
+if [ -n "$CTRL_JOURNAL_FILE" ] && [ -f "$CTRL_JOURNAL_FILE" ]; then
+    CTRL_JOURNAL_LINE=$(tail -n 1 "$CTRL_JOURNAL_FILE")
+    if has_raw_ctrl "$CTRL_JOURNAL_LINE"; then
+        echo "FAIL: control-char escaping — journal line still contains a raw control byte"; FAIL=$((FAIL+1))
+    else
+        echo "PASS: control-char escaping — journal line has no raw control bytes"; PASS=$((PASS+1))
+    fi
+    if command -v jq >/dev/null 2>&1; then
+        if printf '%s' "$CTRL_JOURNAL_LINE" | jq -e . >/dev/null 2>&1; then
+            echo "PASS: control-char escaping — journal line parses with jq -e ."; PASS=$((PASS+1))
+        else
+            echo "FAIL: control-char escaping — journal line does not parse with jq -e ."; FAIL=$((FAIL+1))
+        fi
+    else
+        echo "SKIP: control-char escaping — jq not available, strict-parse check not credited (0 assertions credited)"
+    fi
+else
+    echo "FAIL: control-char escaping — journal file not created"; FAIL=$((FAIL+1))
+fi
+
+# Cleanup control-char fixture
+cd / || true
+rm -rf "$CTRL_FIXTURE"
+
+# ============================================================================
+# § 10. TIER-GATING IDIOM ALIGNMENT (sub-task 8, M-audit W3)
+# ============================================================================
+# observe.sh is a READ-ONLY reference in this suite (a separate agent owns it
+# this wave) — invoked here only to compare journal-suppression behavior
+# against agent-lifecycle.sh's tier check, never modified. Proves the two
+# idioms agree across every integration-tier file state, including the one
+# agent-lifecycle no longer special-cases (missing file — both hooks now
+# rely solely on gf_guard_claude_dir, which already requires the file to
+# exist before either tier check is ever reached).
+OBSERVE_SCRIPT="$HOOKS_DIR/observe.sh"
+
+# journal_written <fixture-dir> — prints 1 if a non-empty *.jsonl exists
+# under <fixture-dir>/.claude/journal, else 0.
+journal_written() {
+    local dir="$1" f
+    if [ -d "$dir/.claude/journal" ]; then
+        f=$(ls "$dir/.claude/journal"/*.jsonl 2>/dev/null | head -1)
+        if [ -n "$f" ] && [ -s "$f" ]; then
+            printf '1'; return
+        fi
+    fi
+    printf '0'
+}
+
+# tier_state_fixture <state> — creates an isolated git repo fixture for the
+# given integration-tier state and prints its path. States: missing (repo
+# exists, integration-tier absent — exercises gf_guard_claude_dir's own -f
+# check rather than ambient-filesystem git ancestry) | light | light_nl
+# (trailing newline) | full.
+tier_state_fixture() {
+    local state="$1" dir
+    dir=$(mktemp -d)
+    ( cd "$dir" && git init -q 2>/dev/null && git config user.email "test@g-forge.local" 2>/dev/null && git config user.name "test" 2>/dev/null )
+    mkdir -p "$dir/.claude"
+    case "$state" in
+        missing)  : ;;
+        light)    printf 'light' > "$dir/.claude/integration-tier" ;;
+        light_nl) printf 'light\n' > "$dir/.claude/integration-tier" ;;
+        full)     printf 'full\n' > "$dir/.claude/integration-tier" ;;
+    esac
+    printf '%s' "$dir"
+}
+
+for tier_state in missing light light_nl full; do
+    TS_AL_DIR=$(tier_state_fixture "$tier_state")
+    TS_OBS_DIR=$(tier_state_fixture "$tier_state")
+
+    ( cd "$TS_AL_DIR" && printf '%s' "$PAYLOAD_START" | bash "$SCRIPT" start >/dev/null 2>&1 )
+    ( cd "$TS_OBS_DIR" && printf '' | bash "$OBSERVE_SCRIPT" session >/dev/null 2>&1 )
+
+    TS_AL_WRITTEN=$(journal_written "$TS_AL_DIR")
+    TS_OBS_WRITTEN=$(journal_written "$TS_OBS_DIR")
+
+    if [ "$TS_AL_WRITTEN" = "$TS_OBS_WRITTEN" ]; then
+        echo "PASS: tier-gating idiom — journal suppression matches observe.sh for state '$tier_state' (written=$TS_AL_WRITTEN)"; PASS=$((PASS+1))
+    else
+        echo "FAIL: tier-gating idiom — journal suppression diverges for state '$tier_state' (agent-lifecycle=$TS_AL_WRITTEN observe=$TS_OBS_WRITTEN)"; FAIL=$((FAIL+1))
+    fi
+
+    rm -rf "$TS_AL_DIR" "$TS_OBS_DIR"
+done
 
 # ============================================================================
 # § Results

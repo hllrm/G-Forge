@@ -177,9 +177,22 @@ if [ -f ".claude/tier3-active" ]; then
 fi
 
 # Context depth counter — increments each prompt; thresholds vary by session mode.
-# Reset to 0 by session-start.sh on a genuinely new session (startup/resume/clear);
-# preserved across a `compact` SessionStart so it keeps climbing toward the gate.
+# Reset to 0 by session-start.sh on a genuinely new session (startup/clear);
+# preserved across `compact`/`resume` SessionStarts so it keeps climbing toward
+# the gate (same session continuing either way — see hooks/session-start.sh).
+#
+# Session identity — keyed the same way session-start.sh keys its reset
+# (M-audit W3 task 14): this hook's own UserPromptSubmit payload carries the
+# same stable session_id for the session's whole lifetime, so increments here
+# land in the exact per-session file session-start.sh resets/preserves —
+# never a concurrent session's counter on the same project. No session_id in
+# the payload falls back to the legacy bare filename (graceful degrade,
+# identical to pre-fix single-session behavior).
+SESSION_ID=$(printf '%s' "${_STDIN_PAYLOAD:-}" \
+    | grep -oE '"session_id"[[:space:]]*:[[:space:]]*"[a-zA-Z0-9_-]+"' | head -1 \
+    | grep -oE '"[a-zA-Z0-9_-]+"$' | tr -d '"')
 PROMPT_COUNT_FILE="$GF_CLAUDE_DIR/session-prompt-count"
+[ -n "$SESSION_ID" ] && PROMPT_COUNT_FILE="$GF_CLAUDE_DIR/session-prompt-count.$SESSION_ID"
 PROMPT_COUNT=0
 if [ -f "$PROMPT_COUNT_FILE" ]; then
     PROMPT_COUNT=$(cat "$PROMPT_COUNT_FILE" 2>/dev/null | tr -d '[:space:]')
@@ -375,9 +388,25 @@ if [ -f "g-docs/project_brief.md" ] && [ -f "g-docs/ROADMAP.md" ]; then
     fi
 fi
 
-# Self-update check — background curl once per day, zero blocking latency
+# Self-update check — background curl once per day, zero blocking latency.
+# INSTALLED_MANIFEST resolves the HIGHEST-versioned directory under the
+# plugin cache (mirrors skills/g-update/SKILL.md Step 2: "Glob for
+# subdirectories, pick the highest semver, read its .claude-plugin/plugin.json").
+# The real installed layout always has a version-numbered directory between
+# g-forge/g-forge/ and the plugin content (e.g. .../g-forge/g-forge/0.3.3/
+# .claude-plugin/plugin.json) — the previous bare two-segment path here
+# (M-audit W3 task 13) had no version segment at all, so it never matched a
+# real install and this whole nudge was silently dead on every consumer
+# project. `sort -V` is an adequate semver approximation for this
+# advisory-only nudge — a misordered pick only shifts which release the
+# update message names, it never blocks anything (this hook is non-gating).
 CLAUDE_DIR="$HOME/.claude"
-INSTALLED_MANIFEST="$CLAUDE_DIR/plugins/cache/g-forge/g-forge/.claude-plugin/plugin.json"
+_gf_plugin_cache_base="$CLAUDE_DIR/plugins/cache/g-forge/g-forge"
+INSTALLED_MANIFEST=""
+if [ -d "$_gf_plugin_cache_base" ]; then
+    _gf_highest_version_dir=$(ls -d "$_gf_plugin_cache_base"/*/ 2>/dev/null | sort -V | tail -1)
+    [ -n "$_gf_highest_version_dir" ] && INSTALLED_MANIFEST="${_gf_highest_version_dir}.claude-plugin/plugin.json"
+fi
 VERSION_CACHE="$CLAUDE_DIR/g-forge-latest-version"
 CHECK_STAMP="$CLAUDE_DIR/g-forge-check-stamp"
 

@@ -6,10 +6,16 @@
 # - Worktree guard: resolves primary-tree state per ADR-005, never blocks
 # - Integration-tier gating: light tier ⇒ silently skips
 # - Session banner: prints branch, dirty-count, stash, ahead/behind, clean indicator
-# - SESSION_SOURCE semantics: compact ⇒ preserve counters, other ⇒ reset counters
+# - SESSION_SOURCE semantics: compact/resume ⇒ preserve counters, startup/clear/
+#   unknown ⇒ reset counters (2026-07-22 decision: resume reloads a prior
+#   transcript, so it is NOT a fresh window — see
+#   g-docs/agent-output/wave-w3-1/characterize-resume-counter.md)
+# - Session-scoped prompt counter (M-audit W3 task 14): keyed by session_id so a
+#   reset in one session never clobbers a concurrent session's counter
+# - timeout(1) absence graceful fallback (M-audit W3 task 15)
 # - Edge cases: not in git repo, not a G-Forge project, missing remote branch
 #
-# Total assertions: 30
+# Total assertions: 43
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 # Every PASS/FAIL emission is in the parent shell; the subshells below are
@@ -207,15 +213,43 @@ check "compact preserves prompt counter (not reset)" "5" "$COUNTER"
 COUNTER=$(counter_value "session-compaction-count" "$PAYLOAD_COMPACT")
 check "compact preserves compaction counter (not reset)" "3" "$COUNTER"
 
-# 3.5 Resume source resets counters (same as startup)
+# 3.5 Resume source PRESERVES prompt counter (2026-07-22 decision — resume
+# reloads a prior transcript, so it is NOT a fresh window; treated the same
+# as `compact`. See g-docs/agent-output/wave-w3-1/characterize-resume-counter.md
+# — this assertion FLIPS the pre-decision expectation from "0" (reset) to "5"
+# (preserved), pinning the new behavior).
 COUNTER=$(counter_value "session-prompt-count" "$PAYLOAD_RESUME")
-check "resume resets prompt counter to 0" "0" "$COUNTER"
+check "resume preserves prompt counter (not reset)" "5" "$COUNTER"
 
-# 3.6 Missing source field resets counters (backward-compat)
+# 3.6 Resume source PRESERVES compaction counter too (closes the asymmetric
+# coverage gap the task-5 characterization pass flagged: compact's preserve
+# path asserts both counters, resume's had only ever asserted the prompt one).
+COUNTER=$(counter_value "session-compaction-count" "$PAYLOAD_RESUME")
+check "resume preserves compaction counter (not reset)" "3" "$COUNTER"
+
+# 3.7 Missing source field resets counters (backward-compat)
 COUNTER=$(counter_value "session-prompt-count" "$PAYLOAD_EMPTY")
 check "missing source resets prompt counter to 0" "0" "$COUNTER"
 
-# 3.7 LINKED-WORKTREE reset path. The fixtures above are primary-tree only, where
+# 3.8 Missing source field resets compaction counter too (closes the same
+# asymmetric coverage gap for the "unknown source" reset path).
+COUNTER=$(counter_value "session-compaction-count" "$PAYLOAD_EMPTY")
+check "missing source resets compaction counter to 0" "0" "$COUNTER"
+
+# 3.9 "clear" source resets prompt counter — revives the dead PAYLOAD_CLEAR
+# fixture (declared above, never previously asserted against anywhere in this
+# file). `clear` is an explicit context wipe, unlike resume's reload, so
+# resetting on it (unlike resume/compact) is the intentionally correct
+# behavior — this pins it so a future regression that widened the
+# compact/resume preserve branch to also match "clear" would be caught.
+COUNTER=$(counter_value "session-prompt-count" "$PAYLOAD_CLEAR")
+check "clear resets prompt counter to 0" "0" "$COUNTER"
+
+# 3.10 "clear" source resets compaction counter too.
+COUNTER=$(counter_value "session-compaction-count" "$PAYLOAD_CLEAR")
+check "clear resets compaction counter to 0" "0" "$COUNTER"
+
+# 3.11 LINKED-WORKTREE reset path. The fixtures above are primary-tree only, where
 # a bare-relative ".claude/..." write and a "$GF_CLAUDE_DIR/..." write are the same
 # file — so they cannot see a writer that never reaches the primary tree. From a
 # linked worktree (no local .claude/) a bare-relative reset silently no-ops under
@@ -491,6 +525,138 @@ else
 fi
 cd - >/dev/null
 rm -rf "$FIXTURE"
+
+# ============================================================================
+# § Section 8: Session-scoped prompt counter (M-audit W3 task 14)
+# ============================================================================
+
+echo "§ 8 — Session-scoped prompt counter (concurrent sessions)"
+
+# 8.1 A reset in session A (with its own session_id) must not clobber a
+# CONCURRENT session B's counter on the SAME project — the pre-fix behavior
+# shared one project-wide session-prompt-count file, so session A's
+# startup/clear reset would wipe session B's in-flight depth tracking.
+FIXTURE="$(mktemp -d)"
+cd "$FIXTURE"
+git init -q
+git config user.email "test@g-forge.local"
+git config user.name "test"
+mkdir -p .claude
+printf 'full\n' > .claude/integration-tier
+# Session B is already mid-session: its own keyed counter file holds 7.
+printf '7\n' > .claude/session-prompt-count.sess-bbb
+# Session A starts fresh (startup) with its own session_id.
+printf '{"source":"startup","session_id":"sess-aaa"}' | bash "$SESSION_SCRIPT" >/dev/null 2>&1
+A_COUNTER=$(cat .claude/session-prompt-count.sess-aaa 2>/dev/null || echo "MISSING")
+B_COUNTER=$(cat .claude/session-prompt-count.sess-bbb 2>/dev/null || echo "MISSING")
+check "session A's own keyed counter resets to 0" "0" "$A_COUNTER"
+check "concurrent session B's counter untouched by A's reset" "7" "$B_COUNTER"
+cd - >/dev/null
+rm -rf "$FIXTURE"
+
+# 8.2 Session identity is also honored on the PRESERVE path (resume/compact):
+# session A's own file must be the one preserved, not a neighboring session's.
+FIXTURE="$(mktemp -d)"
+cd "$FIXTURE"
+git init -q
+git config user.email "test@g-forge.local"
+git config user.name "test"
+mkdir -p .claude
+printf 'full\n' > .claude/integration-tier
+printf '12\n' > .claude/session-prompt-count.sess-ccc
+printf '99\n' > .claude/session-prompt-count.sess-bbb
+printf '{"source":"resume","session_id":"sess-ccc"}' | bash "$SESSION_SCRIPT" >/dev/null 2>&1
+CCC_COUNTER=$(cat .claude/session-prompt-count.sess-ccc 2>/dev/null || echo "MISSING")
+BBB_COUNTER=$(cat .claude/session-prompt-count.sess-bbb 2>/dev/null || echo "MISSING")
+check "resume preserves the SESSION-KEYED counter (sess-ccc)" "12" "$CCC_COUNTER"
+check "resume does not touch a different session's keyed counter (sess-bbb)" "99" "$BBB_COUNTER"
+cd - >/dev/null
+rm -rf "$FIXTURE"
+
+# 8.3 No session_id in payload — graceful fallback to the legacy bare
+# filename (single-session behavior identical to before this fix).
+FIXTURE="$(mktemp -d)"
+cd "$FIXTURE"
+git init -q
+git config user.email "test@g-forge.local"
+git config user.name "test"
+mkdir -p .claude
+printf 'full\n' > .claude/integration-tier
+printf '5\n' > .claude/session-prompt-count
+printf '{"source":"startup"}' | bash "$SESSION_SCRIPT" >/dev/null 2>&1
+BARE_COUNTER=$(cat .claude/session-prompt-count 2>/dev/null || echo "MISSING")
+check "no session_id: falls back to legacy bare counter filename" "0" "$BARE_COUNTER"
+SUFFIXED_FILE_COUNT=$(ls .claude/session-prompt-count.* 2>/dev/null | wc -l | tr -d '[:space:]')
+check "no session_id: no stray suffixed counter file created" "0" "$SUFFIXED_FILE_COUNT"
+cd - >/dev/null
+rm -rf "$FIXTURE"
+
+# ============================================================================
+# § Section 9: timeout(1) absence graceful fallback (M-audit W3 task 15)
+# ============================================================================
+
+echo "§ 9 — timeout(1) absence graceful fallback"
+
+# hooks/session-start.sh's background git-fetch used an unguarded `timeout 5`
+# — when `timeout` isn't on PATH (minimal containers, some BusyBox/Alpine
+# images), the whole `timeout 5 git fetch ...` command fails to exec, so
+# `git fetch` is silently NEVER attempted at all (confirmed empirically
+# against the pre-fix hook: the fetch never appears in a git-invocation log
+# when timeout is absent from PATH). The fix (hooks/session-start.sh, guarded
+# by `command -v timeout`) falls back to an untimed background fetch instead.
+#
+# Wholesale PATH replacement with plain symlinks breaks git-bash on Windows
+# (bash.exe can't resolve its own DLLs through a bare symlink dir — see
+# tests/test-check-commit.sh's STUBDIR comment for the prior incident), so
+# each shim below is a tiny wrapper SCRIPT that execs the REAL tool by its
+# resolved absolute path (never a symlink), and bash itself is invoked by its
+# own absolute path too, sidestepping PATH lookup for the interpreter itself.
+NO_TIMEOUT_STUBDIR="$(mktemp -d)"
+BASH_BIN="$(command -v bash)"
+FETCH_LOG="$(mktemp)"
+REAL_GIT="$(command -v git)"
+# git is a logging shim so the fetch attempt itself is observable (proves the
+# fallback branch actually ran `git fetch`, not merely that the hook
+# survived — a bare exit-0 check alone would already pass on the pre-fix
+# code too, since a backgrounded "command not found" doesn't kill the
+# parent script).
+printf '#!/bin/sh\necho "$@" >> "%s"\nexec "%s" "$@"\n' "$FETCH_LOG" "$REAL_GIT" > "$NO_TIMEOUT_STUBDIR/git"
+chmod +x "$NO_TIMEOUT_STUBDIR/git"
+for _tool in grep head tr wc cat dirname basename; do
+    _real="$(command -v "$_tool" 2>/dev/null)"
+    if [ -n "$_real" ]; then
+        printf '#!/bin/sh\nexec "%s" "$@"\n' "$_real" > "$NO_TIMEOUT_STUBDIR/$_tool"
+        chmod +x "$NO_TIMEOUT_STUBDIR/$_tool"
+    fi
+done
+# Deliberately no 'timeout' shim placed — this PATH has no timeout binary.
+
+FIXTURE="$(mktemp -d)"
+cd "$FIXTURE"
+git init -q
+git config user.email "test@g-forge.local"
+git config user.name "test"
+mkdir -p .claude
+printf 'full\n' > .claude/integration-tier
+
+OUTPUT=$(printf '%s' "$PAYLOAD_STARTUP" | PATH="$NO_TIMEOUT_STUBDIR" "$BASH_BIN" "$SESSION_SCRIPT" 2>&1)
+RC=$?
+check "hook exits 0 when timeout(1) absent from PATH" "0" "$RC"
+
+if echo "$OUTPUT" | grep -q "G-Forge Session Start"; then
+    echo "PASS: banner still produced when timeout(1) absent"; PASS=$((PASS+1))
+else
+    echo "FAIL: banner missing when timeout(1) absent, got: $OUTPUT"; FAIL=$((FAIL+1))
+fi
+
+if grep -q "fetch" "$FETCH_LOG" 2>/dev/null; then
+    echo "PASS: git fetch still attempted via untimed fallback (timeout absent)"; PASS=$((PASS+1))
+else
+    echo "FAIL: git fetch was never attempted when timeout absent — fallback did not run"; FAIL=$((FAIL+1))
+fi
+
+cd - >/dev/null
+rm -rf "$FIXTURE" "$NO_TIMEOUT_STUBDIR" "$FETCH_LOG"
 
 # ============================================================================
 # § Results

@@ -1,5 +1,11 @@
 # Electron + React Architecture Rules
 
+## Layer map (seam)
+- **Main process** — owns system resources, OS APIs, and file access; the source of truth for shared app state.
+- **Preload (`preload.ts`)** — the seam: exposes a typed API surface via `contextBridge`; owns no state of its own, only translates.
+- **Renderer (React)** — the UI projection layer; components read and act via `window.electronAPI.*` and re-render, never persisting state independently of main.
+- **Import direction:** main → (IPC channel) → renderer only; renderer never imports main-process or `electron` modules directly, and cross-window communication always routes through main — never renderer-to-renderer.
+
 ## Context bridge (IPC boundary)
 - All main-process capabilities exposed via `contextBridge.exposeInMainWorld()` in `preload.ts` — never use the `remote` module or set `contextIsolation: false`
 - Declare the exposed API as a TypeScript interface and augment the global `Window` type in `src/types/global.d.ts` — no bare `(window as any)` casts in renderer code

@@ -7,7 +7,11 @@
 #   Tests 1-3: Hook drift detection (3 assertions, existing)
 #   Tests 4-6: G-rules path drift (3 assertions, 10-file flat-rename mapping: rules/g-rules/*.md → .claude/rules/g-rules-*.md)
 #   Tests 7-11: Agent classifier (6 assertions: profile-copied match/mismatch/missing, template-instantiated advisory-only, project-local *-dev.md excluded)
-# Total: 12 assertions (up from 3)
+# Extended for W3 task 3 (M-audit finding #23 / BUG-4):
+#   Tests 12-14: Check 21 stray-doc scan, fail-before/pass-after (5 assertions: old fixed 6-name
+#   allowlist misses agent-output/plans strays, new inverted check — canonical names derived from
+#   g-docs/ subdirs — catches them, no false positive on a clean tree)
+# Total: 17 assertions (up from 3)
 
 PASS=0
 FAIL=0
@@ -474,6 +478,118 @@ CLASSIFICATION=$(classify_agent ".claude/agents/g-forge-dev.md")
 check "project-local *-dev.md agent classification" "PROJECT_LOCAL_DEV" "$CLASSIFICATION"
 
 cd / && rm -rf "$FIXTURE11"
+
+# ────────────────────────────────────────────────────────────────────────────
+# Check 21 Stray-Doc Scan Tests (Tests 12-14)
+# M-audit finding #23 / BUG-4: the old Check 21 used a fixed 6-name dir allowlist
+# (decisions|retros|forecasts|telemetry|blast-radius|alignment), so a parallel docs/
+# tree (agent-output/, plans/, qa-scope/) slipped through undetected. The fix inverts
+# the check: canonical dir names are derived from whatever already lives directly
+# under g-docs/ in the project, then any directory sharing one of those names anywhere
+# outside g-docs/ or g-wiki/ is flagged as a stray.
+
+# old_stray_check — mimics the OLD (pre-fix) Check 21 bash snippet: a fixed 6-name
+# dir allowlist. Must be run with cwd at the fixture root. Prints stray dir paths found
+# (empty output = none found).
+old_stray_check() {
+    find . -type d \( -name decisions -o -name retros -o -name forecasts -o -name telemetry -o -name blast-radius -o -name alignment \) \
+      -not -path './g-docs/*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null
+}
+
+# new_stray_check — mimics the NEW (post-fix) Check 21 bash snippet: an inverted check.
+# Canonical dir names are derived from whatever already lives directly under g-docs/ in
+# this fixture, then any directory sharing one of those names anywhere outside g-docs/ or
+# g-wiki/ is a stray. Must be run with cwd at the fixture root.
+new_stray_check() {
+    for canon in $(find g-docs -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs -n1 basename); do
+        find . -type d -name "$canon" \
+          -not -path './g-docs*' -not -path './g-wiki*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null
+    done
+}
+
+# Test 12: FAIL-BEFORE — OLD fixed 6-name allowlist misses a parallel docs/ tree
+# Scenario: canonical g-docs/plans/ and g-docs/agent-output/ exist (project record), and a
+# stray parallel tree docs/plans/ and docs/agent-output/ also exists (drifted copy). Neither
+# "plans" nor "agent-output" is in the OLD fixed 6-name list, so the old check misses both —
+# this is the exact M-audit #23/BUG-4 gap.
+# Expected: old_stray_check reports neither stray (empty for both).
+#
+# Trace:
+#   - Create g-docs/plans/f.md, g-docs/agent-output/f.md (canonical)
+#   - Create docs/plans/f.md, docs/agent-output/f.md (stray parallel tree)
+#   - old_stray_check searches only for decisions|retros|forecasts|telemetry|blast-radius|alignment
+#   - "plans" and "agent-output" are not in that list → docs/plans, docs/agent-output NOT reported ✓ (bug reproduced)
+
+echo "Test 12: OLD fixed-allowlist check misses agent-output/plans strays (fail-before)"
+FIXTURE12=$(mktemp -d)
+cd "$FIXTURE12" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p g-docs/plans g-docs/agent-output docs/plans docs/agent-output
+printf '%s\n' "canonical plan" > g-docs/plans/f.md
+printf '%s\n' "canonical agent output" > g-docs/agent-output/f.md
+printf '%s\n' "stray plan" > docs/plans/f.md
+printf '%s\n' "stray agent output" > docs/agent-output/f.md
+
+OLD_RESULT=$(old_stray_check)
+
+FOUND_PLANS_OLD="no"
+echo "$OLD_RESULT" | grep -q "docs/plans" && FOUND_PLANS_OLD="yes"
+check "OLD allowlist misses docs/plans/ (bug reproduced)" "no" "$FOUND_PLANS_OLD"
+
+FOUND_AGENT_OUTPUT_OLD="no"
+echo "$OLD_RESULT" | grep -q "docs/agent-output" && FOUND_AGENT_OUTPUT_OLD="yes"
+check "OLD allowlist misses docs/agent-output/ (bug reproduced)" "no" "$FOUND_AGENT_OUTPUT_OLD"
+
+# Test 13: PASS-AFTER — NEW inverted check catches the same strays
+# Scenario: same fixture as Test 12. The NEW check derives canonical names from what
+# actually lives under g-docs/ (here: "plans" and "agent-output"), then flags any directory
+# sharing those names found outside g-docs/ or g-wiki/.
+# Expected: new_stray_check reports both docs/plans and docs/agent-output as strays.
+#
+# Trace:
+#   - Same fixture tree as Test 12 (cwd unchanged)
+#   - new_stray_check derives canonical names {"plans", "agent-output"} from g-docs/ subdirs
+#   - Searches repo for dirs named "plans" or "agent-output" outside g-docs/ or g-wiki/
+#   - Finds ./docs/plans and ./docs/agent-output → reported as strays ✓ (bug fixed)
+
+echo "Test 13: NEW inverted check catches agent-output/plans strays (pass-after)"
+
+NEW_RESULT=$(new_stray_check)
+
+FOUND_PLANS_NEW="no"
+echo "$NEW_RESULT" | grep -q "docs/plans" && FOUND_PLANS_NEW="yes"
+check "NEW inverted check flags docs/plans/ (bug fixed)" "yes" "$FOUND_PLANS_NEW"
+
+FOUND_AGENT_OUTPUT_NEW="no"
+echo "$NEW_RESULT" | grep -q "docs/agent-output" && FOUND_AGENT_OUTPUT_NEW="yes"
+check "NEW inverted check flags docs/agent-output/ (bug fixed)" "yes" "$FOUND_AGENT_OUTPUT_NEW"
+
+cd / && rm -rf "$FIXTURE12"
+
+# Test 14: NEW check produces no false positive on a clean tree (regression guard)
+# Scenario: canonical-only tree — g-docs/plans/ and g-docs/decisions/ exist, no parallel
+# stray tree anywhere else. The NEW inverted check must report zero strays (it must not
+# flag g-docs/ contents against themselves, nor invent false matches).
+# Expected: new_stray_check reports nothing.
+#
+# Trace:
+#   - Create g-docs/plans/f.md, g-docs/decisions/f.md only (no stray copies elsewhere)
+#   - new_stray_check derives canonical names {"plans", "decisions"} from g-docs/ subdirs
+#   - Searches repo for dirs named "plans" or "decisions" outside g-docs/ or g-wiki/ → none exist
+#   - Reports empty ✓ (no false positive)
+
+echo "Test 14: NEW inverted check has no false positive on a clean tree"
+FIXTURE14=$(mktemp -d)
+cd "$FIXTURE14" || { echo "FAIL: could not create fixture"; exit 1; }
+
+mkdir -p g-docs/plans g-docs/decisions
+printf '%s\n' "canonical plan" > g-docs/plans/f.md
+printf '%s\n' "canonical decision" > g-docs/decisions/f.md
+
+NEW_RESULT_CLEAN=$(new_stray_check)
+check "NEW inverted check: clean tree produces no strays" "" "$NEW_RESULT_CLEAN"
+
+cd / && rm -rf "$FIXTURE14"
 
 # ────────────────────────────────────────────────────────────────────────────
 # Summary

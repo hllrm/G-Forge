@@ -1,5 +1,11 @@
 # React + Tauri Architecture Rules
 
+## Layer map (seam)
+- **Rust backend (`src-tauri/`)** — owns system resources, OS APIs, and `State<T>`; the source of truth.
+- **Typed API layer (`src/api/`)** — the seam: wraps `invoke()`/`listen()` calls with TS types mirroring the Rust command signatures; the only permitted crossing point.
+- **React components** — the UI projection layer; call into `src/api/` only, never `invoke()`/`listen()` directly, and subscribe to events inside `useEffect` with cleanup.
+- **Import direction:** Rust (`src-tauri/`) → Tauri IPC → `src/api/` → React component, one-way; React never imports Rust modules or bypasses `src/api/`.
+
 ## IPC boundary
 - All Rust command calls use `invoke()` from `@tauri-apps/api/core` — never attempt to call Rust directly or access undocumented internals
 - Create a typed API layer at `src/api/` — one file per domain (e.g. `src/api/files.ts`). Each export wraps `invoke()` with TypeScript types matching the Rust command signature

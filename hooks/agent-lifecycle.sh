@@ -46,7 +46,7 @@ IS_LINKED_WORKTREE=0
 # field.
 WT_KEY=""
 if [ "$IS_LINKED_WORKTREE" -eq 1 ]; then
-    WT_KEY=$(gf_worktree_key 2>/dev/null | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r')
+    WT_KEY=$(gf_worktree_key 2>/dev/null | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\000-\037')
 fi
 
 LOG_FILE="$GF_CLAUDE_DIR/g-forge-agent-log.jsonl"
@@ -177,13 +177,15 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
     esac
 }
 
-# JSON-escape (backslash, then quote, then strip CR/LF) — same treatment
-# already applied to WT_KEY above, extended here to every field derived from
-# payload content so a stray quote/backslash in an id or a RESULT line can
-# never break the emitted JSON (journal control-char minor #W3 — don't add
-# to it).
+# JSON-escape (backslash, then quote, then strip the full C0 control-char
+# range 0x00-0x1F) — same treatment already applied to WT_KEY above, extended
+# here to every field derived from payload content so a stray quote/backslash
+# in an id or a RESULT line can never break the emitted JSON. CR/LF alone
+# used to be the only control chars stripped; a bare tab or other C0 byte
+# (e.g. embedded in an agent name) passed through raw and made the emitted
+# line fail strict JSON parsing (`jq -e .`) — M-audit W3 sub-task 7 fix.
 json_escape() {
-    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r'
+    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\000-\037'
 }
 
 AGENT_TYPE_RAW=$(extract_agent_type "$INPUT")
@@ -214,8 +216,14 @@ DETAIL="$AGENT $EVENT"
 [ -n "$RESULT_VAL" ] && DETAIL="$DETAIL $RESULT_VAL"
 
 # Mirror into the unified journal (skip on `light` tier — observer is off).
-_tier=""
-[ -f "$GF_CLAUDE_DIR/integration-tier" ] && _tier=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
+# Same idiom as observe.sh's tier check (hooks/observe.sh:47-48): no local
+# -f guard is needed here either — gf_guard_claude_dir above already requires
+# $GF_CLAUDE_DIR/integration-tier to exist before GF_CLAUDE_DIR is ever set
+# (see gf_guard_claude_dir's own -f check, hooks/lib/worktree-resolve.sh:124),
+# so the file's presence at this point is guaranteed for both hooks alike
+# (M-audit W3 sub-task 8: the two idioms were never behaviorally divergent —
+# this drops agent-lifecycle's redundant belt-and-suspenders guard to match).
+_tier=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
 if [ "$_tier" != "light" ]; then
     mkdir -p "$JOURNAL_DIR" 2>/dev/null && \
     if [ "$IS_LINKED_WORKTREE" -eq 1 ] && [ -n "$WT_KEY" ]; then

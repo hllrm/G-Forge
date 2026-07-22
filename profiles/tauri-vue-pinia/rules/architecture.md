@@ -1,5 +1,12 @@
 # Tauri + Vue 3 + Pinia Architecture Rules
 
+## Layer map (seam)
+- **Rust backend (`src-tauri/`)** — owns system resources, OS APIs, and `State<T>`; the source of truth.
+- **Typed API layer (`src/api/`)** — the seam: wraps `invoke()` calls with TS types mirroring the Rust command signatures.
+- **Pinia stores** — the state-projection layer; own the `listen()` subscriptions and mirror backend state reactively.
+- **Components (Vue SFCs)** — the render layer; read store state and call store actions only, never call `invoke()`/`listen()` directly.
+- **Import direction:** Rust → Tauri IPC → `src/api/` → Pinia store → component, one-way; components never import `src/api/` or Rust modules directly.
+
 ## IPC boundary
 - All Rust command calls use `invoke()` from `@tauri-apps/api/core` — never attempt to call Rust directly or access undocumented internals
 - Create a typed API layer at `src/api/` — one file per domain, each export wraps `invoke()` with TypeScript types matching the Rust command signature

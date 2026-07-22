@@ -2,6 +2,8 @@
 
 These rules extend the base Astro and SvelteKit profiles with patterns that only emerge when Svelte components are used as Astro islands. Both the `astro` and `sveltekit` profiles must be installed alongside this combo.
 
+**Layer map (seam):** Astro pages/layouts (`.astro`) are the server/orchestration layer — they own routing, data fetching, and layout composition. Svelte islands (`src/islands/`) are the interactive leaf layer — they own client-side interaction and rendering only. Import direction across the seam is one-way: Astro → island, via JSON-serializable props passed at render time. Islands never import `.astro` files or `Astro.*` globals — those are server-only and absent from the browser bundle. `$app/*` (SvelteKit router/page-store APIs) is also absent in this context — see the SvelteKit-specific note below.
+
 **Island placement rule:** Interactive Svelte components live in `src/islands/`, not `src/components/`. Static `.astro` components live in `src/components/`. A `.svelte` file in `src/components/` is a violation.
 
 **Prop serialization contract:** Props passed from Astro pages to Svelte islands must be JSON-serializable. Permitted: strings, numbers, booleans, plain objects, arrays, null. Forbidden: functions, class instances, Dates (convert to ISO string first), Maps, Sets. Svelte receives props as standard component props (`export let propName`).

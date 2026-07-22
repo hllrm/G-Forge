@@ -26,7 +26,15 @@
 # case-statement — do not extend or "improve" without a corresponding update
 # to every caller and to tests/test-check-commit.sh):
 #   g-docs/* | g-wiki/* | docs/*        → DOC
-#   README* | CHANGELOG* | LICENSE*     → DOC
+#   README* | CHANGELOG* | LICENSE* at repo root (no slash) → DOC
+#   README* | CHANGELOG* | LICENSE* nested (contains a slash) → CODE
+#     (M-audit W3 task 12: a bare `README*` glob matches the *entire* path
+#     string, not just a basename, so a non-root path whose top-level
+#     component merely starts with "README" — e.g. `README-archive/notes.txt`,
+#     a directory, not the doc file — was over-matching into DOC. Narrowed to
+#     mirror the existing root-vs-nested split already used for *.md below.
+#     Root-level oddities like `README_extended` intentionally stay DOC —
+#     that pinned case is unchanged.)
 #   *.md at repo root (no slash)        → DOC
 #   *.md nested (contains a slash)      → CODE
 #   hooks/* | skills/* | agents/* | commands/* | profiles/* | tests/* |
@@ -61,8 +69,14 @@ gf_classify_changeset() {
             g-docs/*|g-wiki/*|docs/*) HAS_DOC=1 ;;
             # Root-level documentation files (README*, CHANGELOG*, LICENSE*)
             # and any root-level *.md (no slash in the path = repo root)
-            # treated as docs.
-            README*|CHANGELOG*|LICENSE*) HAS_DOC=1 ;;
+            # treated as docs. A bare README*/CHANGELOG*/LICENSE* glob matches
+            # the whole path string, so without the root check a non-root path
+            # whose top-level component merely starts with one of these words
+            # (e.g. README-archive/notes.txt) would over-match into DOC; narrow
+            # to root-only, same split already used for *.md below (M-audit W3
+            # task 12). Non-matches fall through to the unmatched→CODE default,
+            # keeping fail-toward-deny polarity unchanged.
+            README*|CHANGELOG*|LICENSE*) case "$_f" in */*) HAS_CODE=1 ;; *) HAS_DOC=1 ;; esac ;;
             *.md) case "$_f" in */*) HAS_CODE=1 ;; *) HAS_DOC=1 ;; esac ;;
             # CODE paths — plugin executable/instruction surface. .claude/rules/
             # is instruction surface (code); anything under it gates as code.

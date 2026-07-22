@@ -209,17 +209,20 @@ The `.gitignore` is the boundary between the project record (tracked) and runtim
   → Remove or scope the over-broad pattern so the `g-docs/` project record stays tracked.
 
 **21. No stray G-Forge documents** (advisory)
-Every G-Forge document belongs under `g-docs/` (project record) or `g-wiki/` (human-facing). This check finds strays that drifted elsewhere — usually tracking files left at the project root from before the `g-docs/` migration, or ADR/retro folders created in the wrong place. Look for:
+Every G-Forge document belongs under `g-docs/` (project record) or `g-wiki/` (human-facing). This check finds strays that drifted elsewhere — usually tracking files left at the project root from before the `g-docs/` migration, or ADR/retro/agent-output folders created in a parallel tree (e.g. `docs/decisions/`, `docs/plans/`). It is **inverted, not a fixed allowlist**: rather than checking a short hardcoded list of dir names (which misses any canonical dir not on the list — the M-audit #23/BUG-4 gap, where `agent-output/`, `plans/`, and `qa-scope/` slipped through a 6-name allowlist), the canonical dir-name set is derived from whatever already lives one level under `g-docs/` in *this* project — every name found there is a G-Forge tracking convention, so that same name found **anywhere else** in the repo is a stray, full stop. This self-updates as new `g-docs/` subdirectories are added (per G-RULES §I: `decisions/`, `retros/`, `forecasts/`, `plans/`, `blast-radius/`, `telemetry/`, `alignment/`, `agent-output/`, `qa-scope/`, `milestones/`, etc.) — no manual list maintenance here. Look for:
 - `ROADMAP.md`, `todo.md`, `todo-done.md`, or `project_brief.md` at the **project root** (canonical home is `g-docs/`).
 - A `milestones/` directory at the **project root** (canonical home is `g-docs/milestones/`).
-- `decisions/`, `retros/`, `forecasts/`, `telemetry/`, `blast-radius/`, or `alignment/` directories anywhere **outside** `g-docs/` (e.g. a root `decisions/`, or `docs/decisions/`).
+- Any directory sharing a name with a top-level `g-docs/` subdirectory, found anywhere **outside** `g-docs/` and `g-wiki/` (e.g. a root `decisions/`, or a parallel `docs/plans/`, `docs/agent-output/`, `docs/qa-scope/` tree).
 ```bash
 # strays at root
 for f in ROADMAP.md todo.md todo-done.md project_brief.md; do [ -f "$f" ] && echo "stray: $f"; done
 [ -d milestones ] && echo "stray: milestones/"
-# g-forge doc folders living outside g-docs/
-find . -type d \( -name decisions -o -name retros -o -name forecasts -o -name telemetry -o -name blast-radius -o -name alignment \) \
-  -not -path './g-docs/*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null
+# canonical dir-name set = whatever already lives directly under g-docs/ in this project
+# (inverted check: any of those names found outside g-docs/ or g-wiki/ is a stray, not a fixed allowlist)
+for canon in $(find g-docs -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs -n1 basename); do
+  find . -type d -name "$canon" \
+    -not -path './g-docs*' -not -path './g-wiki*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null
+done
 ```
 - Pass (none found): ✓ No stray G-Forge documents — all tracking lives under g-docs/
 - Advisory (strays found): ⚠ [N] stray G-Forge document(s) outside g-docs/: [list]

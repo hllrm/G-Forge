@@ -10,9 +10,11 @@
 # W1.6-18: sed-tier escaped-quote truncation behavior regression pin.
 # W2-20: SessionStart `source` field journaled — one pin per platform source
 # value (startup/resume/compact) + absent-field fallback + null-artifact pin.
-# Total assertions: 30 (16 original observe tests + 6 W2-20 session-source
-# tests + 8 agent-lifecycle extraction/regression tests). Runner-observed
-# count (M-audit finding #20 discipline) — see this task's output file.
+# W3-10/W3-11: control-char sanitize + UTF-8-safe truncation fixtures.
+# Total assertions: 33 (16 original observe tests + 2 W3-10 control-char pins
+# + 1 W3-11 UTF-8-boundary pin + 6 W2-20 session-source tests + 8 agent-
+# lifecycle extraction/regression tests). Runner-observed count (M-audit
+# finding #20 discipline) — see this task's output file.
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/observe.sh"
 PASS=0
@@ -21,6 +23,41 @@ FAIL=0
 check() { # name expected actual
     if [ "$2" = "$3" ]; then echo "PASS: $1"; PASS=$((PASS+1));
     else echo "FAIL: $1 (expected '$2', got '$3')"; FAIL=$((FAIL+1)); fi
+}
+
+# json_line_valid <file> — portable JSON validity check for a single-line
+# journal entry. Prefers jq (not always installed — stock git-bash lacks it,
+# same caveat as kind_of()'s sed-based extraction above), falls back to
+# python3/node, and as a last resort the same structural brace/quote shape
+# check already used by the "journal is valid JSONL" pin below. Mirrors
+# observe.sh's own hardened parser cascade (extract_cmd) rather than hard-
+# depending on any single tool.
+json_line_valid() {
+    local f="$1" line
+    line=$(head -1 "$f" 2>/dev/null)
+    [ -z "$line" ] && { echo no; return; }
+    if command -v jq >/dev/null 2>&1; then
+        if printf '%s' "$line" | jq -e . >/dev/null 2>&1; then echo yes; else echo no; fi
+        return
+    fi
+    if command -v python3 >/dev/null 2>&1 && python3 -c 'import sys' >/dev/null 2>&1; then
+        if printf '%s' "$line" | python3 -c '
+import sys, json
+try:
+    json.loads(sys.stdin.buffer.read())
+except Exception:
+    sys.exit(1)
+' >/dev/null 2>&1; then echo yes; else echo no; fi
+        return
+    fi
+    if command -v node >/dev/null 2>&1; then
+        if printf '%s' "$line" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{JSON.parse(s);process.exit(0);}catch(e){process.exit(1);}});" >/dev/null 2>&1; then echo yes; else echo no; fi
+        return
+    fi
+    case "$line" in
+        '{"ts":"'*'","kind":"'*'"'*'}') echo yes ;;
+        *) echo no ;;
+    esac
 }
 
 # kind_of <command> [PATH-override] — run observe.sh on a payload, return the
@@ -88,6 +125,47 @@ else
     echo "FAIL: journal is not valid JSONL"; FAIL=$((FAIL+1))
 fi
 rm -rf "$SDIR"
+
+# W3-10 — control-char sanitize (M-audit W3 task 10). The detail sanitize
+# chain previously stripped only CR/LF (tr -d '\n\r'); any other C0 control
+# byte (tab, \x01-\x1F) passed raw into the journal JSONL line and broke
+# JSON decode. Fixed fixture: a literal tab embedded in an otherwise-
+# recognized "npm test" command.
+CTRLDIR=$(mktemp -d)
+( cd "$CTRLDIR" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier )
+printf '{"tool_input":{"command":"npm test\t--verbose"}}' | ( cd "$CTRLDIR" && bash "$SCRIPT" log )
+CTRLFILE=$(ls "$CTRLDIR"/.claude/journal/*.jsonl 2>/dev/null | head -1)
+CTRL_VALID=$(json_line_valid "$CTRLFILE")
+CTRL_DETAIL=$(sed -n 's/.*"detail":"\([^"]*\)".*/\1/p' "$CTRLFILE" 2>/dev/null | head -1)
+rm -rf "$CTRLDIR"
+check "control char (tab) in detail -> journal line parses as valid JSON" "yes" "$CTRL_VALID"
+case "$CTRL_DETAIL" in
+    *"$(printf '\t')"*)
+        echo "FAIL: control char (tab) leaked raw into detail field"; FAIL=$((FAIL+1)) ;;
+    *)
+        echo "PASS: control char (tab) stripped from detail field"; PASS=$((PASS+1)) ;;
+esac
+
+# W3-11 — UTF-8-safe truncation (M-audit W3 task 11). `cut -c1-300` truncates
+# by BYTES on this platform's userland regardless of locale, splitting a
+# multi-byte UTF-8 sequence mid-character when the 300-byte boundary lands
+# inside one and emitting invalid UTF-8 that breaks JSON decode. Fixed
+# fixture: 299 ASCII 'x' bytes (so byte 300 is the first byte of the next
+# character) + 5 repeated 'e-acute' (U+00E9, 2-byte UTF-8) straddling the
+# cut point. Built from raw bytes via bash ANSI-C quoting ($'\xC3\xA9'),
+# not a literal source character, so the fixture's byte layout is explicit
+# and independent of this file's own on-disk encoding; deterministic/fixed,
+# never random, per the task's positioning requirement.
+EACUTE=$'\xc3\xa9'
+PAD290=$(printf 'x%.0s' $(seq 1 290))
+UTF8_CMD_DETAIL="npm test ${PAD290}${EACUTE}${EACUTE}${EACUTE}${EACUTE}${EACUTE}"
+UTF8DIR=$(mktemp -d)
+( cd "$UTF8DIR" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier )
+printf '{"tool_input":{"command":"%s"}}' "$UTF8_CMD_DETAIL" | ( cd "$UTF8DIR" && bash "$SCRIPT" log )
+UTF8FILE=$(ls "$UTF8DIR"/.claude/journal/*.jsonl 2>/dev/null | head -1)
+UTF8_VALID=$(json_line_valid "$UTF8FILE")
+rm -rf "$UTF8DIR"
+check "multi-byte char straddling 300-byte cut -> journal line parses as valid JSON/UTF-8" "yes" "$UTF8_VALID"
 
 # W2-20 — SessionStart `source` field journaled (M-audit W2 task 20). W1.7
 # Task-18 ruled multi-fire-per-source PLATFORM-EXPECTED; journaling source

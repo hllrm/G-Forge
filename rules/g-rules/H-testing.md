@@ -12,6 +12,8 @@ E2E, integration, contract tests. If infrastructure is missing and the task touc
 **Tier 3 — Human-Driven** (user owns the verdict · Claude never infers pass from output)
 Smoke tests · acceptance · design review · business logic correctness. User exercises the real app and reports findings in chat. Claude cannot substitute judgement here.
 
+**Tier 3 native-app fallback** — for native/desktop apps (e.g. Tauri), computer-use `request_access` cannot grant permissions to an unregistered running binary (M-audit finding #24 / BUG-5), so a mid-session smoke test on a freshly built app is silently impossible. The app must be **installed before the session starts** (so the OS permission grant already exists) **or run in dev-mode** (which runs under an already-registered/trusted host process). If neither holds, flag the gap explicitly and fall back to the manual protocol below rather than assume computer-use can drive the app.
+
 ---
 
 **Tier 3 Instrument — QA Panel or Test Plan**

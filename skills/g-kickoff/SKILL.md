@@ -61,7 +61,7 @@ If the derived profile is `eli5` or `mid`, ask — once, no pressure:
 > Would you like to use training mode for this project? (You can say no and just build normally — the workflow is the same either way.)"
 
 Wait for the answer.
-- If yes: stop kickoff and hand off to `/g-train [any project idea already mentioned]`. Tell the developer: "Switching to training mode — `/g-train` will take it from here. Everything you've told me so far carries over."
+- If yes: stop kickoff and hand off to `/g-forge train [any project idea already mentioned]`. Tell the developer: "Switching to training mode — `/g-forge train` will take it from here. Everything you've told me so far carries over."
 - If no: continue to Step 1 as normal. No further mention of training mode.
 
 If the profile is `dev`: skip the training offer entirely — proceed directly to Step 1.

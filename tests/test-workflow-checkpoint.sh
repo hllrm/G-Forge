@@ -8,7 +8,7 @@
 # exit-0 contract. Nudges tested: coverage, trim, align, handoff, roundtable,
 # listen mode.
 #
-# Total assertions: 66
+# Total assertions: 77
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
@@ -640,6 +640,141 @@ fi
 
 # Return to fixture root for cleanup
 cd "$FIXTURE" || true
+
+# ============================================================================
+# § 25. Session-scoped prompt counter (M-audit W3 task 14)
+# ============================================================================
+
+echo "§ 25. Session-scoped prompt counter"
+
+printf 'full\n' > .claude/integration-tier
+rm -f .claude/session-prompt-count .claude/session-prompt-count.*
+
+# 25.1 With a session_id in the UserPromptSubmit payload, increments land in
+# the SESSION-KEYED file, not the legacy bare one.
+OUTPUT=$( printf '{"session_id":"sess-x"}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
+if [ -f ".claude/session-prompt-count.sess-x" ]; then
+    COUNT=$(cat .claude/session-prompt-count.sess-x 2>/dev/null)
+    check "session_id present: keyed counter file created and set to 1" "1" "$COUNT"
+else
+    echo "FAIL: keyed counter file .claude/session-prompt-count.sess-x not created"; FAIL=$((FAIL+1))
+fi
+if [ -f ".claude/session-prompt-count" ]; then
+    echo "FAIL: legacy bare counter file should not be touched when session_id is present"; FAIL=$((FAIL+1))
+else
+    echo "PASS: legacy bare counter file untouched when session_id is present"; PASS=$((PASS+1))
+fi
+
+# 25.2 Two CONCURRENT sessions on the same project keep independent counts —
+# incrementing session A's counter must never touch session B's (pre-fix, a
+# single project-wide session-prompt-count file was shared/clobbered).
+rm -f .claude/session-prompt-count.sess-x
+printf '5\n' > .claude/session-prompt-count.sess-a
+printf '9\n' > .claude/session-prompt-count.sess-b
+OUTPUT=$( printf '{"session_id":"sess-a"}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
+A_COUNT=$(cat .claude/session-prompt-count.sess-a 2>/dev/null)
+B_COUNT=$(cat .claude/session-prompt-count.sess-b 2>/dev/null)
+check "concurrent sessions: session A's counter increments independently" "6" "$A_COUNT"
+check "concurrent sessions: session B's counter untouched by A's prompt" "9" "$B_COUNT"
+
+# 25.3 No session_id in payload — graceful fallback to the legacy bare
+# filename (matches session-start.sh's fallback; single-session behavior
+# identical to before this fix).
+rm -f .claude/session-prompt-count .claude/session-prompt-count.sess-a .claude/session-prompt-count.sess-b
+OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
+if [ -f ".claude/session-prompt-count" ]; then
+    COUNT=$(cat .claude/session-prompt-count 2>/dev/null)
+    check "no session_id: falls back to legacy bare counter filename" "1" "$COUNT"
+else
+    echo "FAIL: legacy bare counter file not created when session_id absent"; FAIL=$((FAIL+1))
+fi
+
+rm -f .claude/session-prompt-count .claude/session-prompt-count.*
+
+# ============================================================================
+# § 26. Self-update check — plugin-cache path resolution (M-audit W3 task 13)
+# ============================================================================
+
+echo "§ 26. Self-update check — plugin-cache path resolution"
+
+# The self-update nudge used to hardcode a bare two-segment path
+# ($HOME/.claude/plugins/cache/g-forge/g-forge/.claude-plugin/plugin.json)
+# with NO version-directory segment — but the real installed cache always
+# nests plugin content under a version dir (e.g. .../g-forge/g-forge/0.3.3/
+# .claude-plugin/plugin.json, per skills/g-update/SKILL.md Step 2), so the
+# old path never matched a real install and the whole nudge was silently
+# dead on every consumer project. These fixtures override HOME so
+# $HOME/.claude is an isolated scratch dir, independent of the project
+# fixture's own .claude/ (GF_CLAUDE_DIR) used by every other assertion here.
+FAKE_HOME="$(mktemp -d)"
+mkdir -p "$FAKE_HOME/.claude"
+# Pre-touch the check-stamp so the hook never fires a real background curl
+# during these fixtures (avoids network flakiness/latency in the suite).
+touch "$FAKE_HOME/.claude/g-forge-check-stamp"
+
+# 26.1 Realistic install shape (version dir present), versions MATCH — no
+# update-available line.
+mkdir -p "$FAKE_HOME/.claude/plugins/cache/g-forge/g-forge/0.3.3/.claude-plugin"
+printf '{"name":"g-forge","version":"0.3.3"}' > "$FAKE_HOME/.claude/plugins/cache/g-forge/g-forge/0.3.3/.claude-plugin/plugin.json"
+printf '0.3.3' > "$FAKE_HOME/.claude/g-forge-latest-version"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+if printf '%s' "$OUTPUT" | grep -q "update available"; then
+    echo "FAIL: matching versions should not show update-available line"; FAIL=$((FAIL+1))
+else
+    echo "PASS: matching versions show no update-available line"; PASS=$((PASS+1))
+fi
+
+# 26.2 FAIL-BEFORE/PASS-AFTER pin: same realistic shape, versions DIFFER —
+# under the pre-fix hardcoded bare path this manifest is never found (no
+# version dir in that path), so this line would never print regardless of
+# version mismatch. Under the fix, the highest-version dir is resolved and
+# the mismatch is correctly surfaced. (Verified empirically against the
+# pre-fix hook during implementation: this exact fixture produced no
+# update-available line at all before the fix.)
+printf '9.9.9' > "$FAKE_HOME/.claude/g-forge-latest-version"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+check_match "version mismatch (realistic install shape) surfaces update line" \
+    "g-forge update available: 0\\.3\\.3 → 9\\.9\\.9" "$OUTPUT"
+
+# 26.3 Multiple version dirs present — the HIGHEST semver is selected, not
+# an arbitrary/first one.
+mkdir -p "$FAKE_HOME/.claude/plugins/cache/g-forge/g-forge/0.3.2/.claude-plugin"
+printf '{"name":"g-forge","version":"0.3.2"}' > "$FAKE_HOME/.claude/plugins/cache/g-forge/g-forge/0.3.2/.claude-plugin/plugin.json"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+check_match "multiple version dirs: highest semver (0.3.3) is used, not 0.3.2" \
+    "g-forge update available: 0\\.3\\.3 → 9\\.9\\.9" "$OUTPUT"
+
+# 26.4 Legacy/malformed shape (manifest directly at the bare path, no
+# version dir at all — the shape the OLD hardcoded path expected) must NOT
+# be picked up: only a version-directory-nested manifest is recognized.
+FAKE_HOME2="$(mktemp -d)"
+mkdir -p "$FAKE_HOME2/.claude/plugins/cache/g-forge/g-forge/.claude-plugin"
+printf '{"name":"g-forge","version":"0.3.3"}' > "$FAKE_HOME2/.claude/plugins/cache/g-forge/g-forge/.claude-plugin/plugin.json"
+printf '9.9.9' > "$FAKE_HOME2/.claude/g-forge-latest-version"
+touch "$FAKE_HOME2/.claude/g-forge-check-stamp"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME2" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+if printf '%s' "$OUTPUT" | grep -q "update available"; then
+    echo "FAIL: bare non-versioned manifest path should not be recognized"; FAIL=$((FAIL+1))
+else
+    echo "PASS: bare non-versioned manifest path is correctly ignored"; PASS=$((PASS+1))
+fi
+
+# 26.5 No plugin cache at all (self-host / no consumer install) — exits 0,
+# no update line, no crash.
+FAKE_HOME3="$(mktemp -d)"
+mkdir -p "$FAKE_HOME3/.claude"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME3" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+check_exit "no plugin cache: exits 0" 0 bash -c "printf '{}' | HOME='$FAKE_HOME3' bash '$CHECKPOINT_SCRIPT' >/dev/null 2>&1"
+if printf '%s' "$OUTPUT" | grep -q "update available"; then
+    echo "FAIL: no plugin cache should not show update-available line"; FAIL=$((FAIL+1))
+else
+    echo "PASS: no plugin cache shows no update-available line"; PASS=$((PASS+1))
+fi
+
+rm -rf "$FAKE_HOME" "$FAKE_HOME2" "$FAKE_HOME3"
+
+# Restore fixture's own integration-tier for anything that follows.
+printf 'full\n' > .claude/integration-tier
 
 # ============================================================================
 # § Cleanup and results

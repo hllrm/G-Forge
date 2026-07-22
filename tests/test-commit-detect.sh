@@ -8,7 +8,10 @@
 # W2.2 additions: +9 tests (HEREDOC group — M-audit finding #21 residual fix:
 # heredoc-content false positive, characterized in
 # g-docs/agent-output/wave-w2-1/heredoc-characterization.md).
-# Total assertions: 58. Runner-attested (W2.2: 58/58).
+# W3.2 additions: +7 tests (ALIAS group — ad-hoc `-c alias.NAME=VALUE` argv
+# sub-case, M-audit W3 task 2; HEREDOC-h/i/j — opener-line suffix scan,
+# M-audit W3 task 16).
+# Total assertions: 65. Runner-attested (W3.2: 65/65).
 
 LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/commit-detect.sh"
 source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
@@ -131,6 +134,16 @@ test_detected "KNOWN-BUG-envS: env -S 'git commit -m x' (quoted -S value, not re
 test_detected "KNOWN-BUG-singlecharvar: A=1 git commit -m x" "A=1 git commit -m x"
 test_detected "KNOWN-BUG-singlecharvar: A=1 B=2 git commit -m x" "A=1 B=2 git commit -m x"
 
+# ── Group ALIAS — ad-hoc `-c alias.NAME=VALUE` argv sub-case (M-audit W3 task 2) ─
+# Zero-cost, argv-string-only resolution — no git config read, no subprocess
+# spawn. Full `.git/config` [alias] resolution stays DEFERRED (spike doc:
+# g-docs/agent-output/wave-w3-1/alias-resolution-characterization.md).
+
+test_detected "ALIAS: git -c alias.co=commit co (ad-hoc argv alias, zero-cost)" "git -c alias.co=commit co"
+test_detected "ALIAS: git -c alias.cm=\"commit -m\" cm test2 (alias value carries embedded flag)" 'git -c alias.cm="commit -m" cm test2'
+test_not_detected "ALIAS: git -c alias.co=status co (alias value is not commit)" "git -c alias.co=status co"
+test_not_detected "ALIAS: git -c alias.co=commit status (alias defined but not invoked)" "git -c alias.co=commit status"
+
 # ── Group PS — pathspec extraction contract, all pass today ──────────────────────
 
 test_pathspecs "PS: git commit -m msg -- path1 path2" "git commit -m msg -- path1 path2" $'path1\npath2'
@@ -182,6 +195,22 @@ test_detected "HEREDOC: eval <<EOF interpreter guard, commit body stays detected
     $'eval <<EOF\ngit commit -m "test"\nEOF'
 test_detected "HEREDOC: sh <<EOF interpreter guard, commit body stays detected" \
     $'sh <<EOF\ngit commit -m "test"\nEOF'
+
+# (h) M-audit W3 task 16: opener-line SUFFIX scan — a heredoc piped to an
+# interpreter AFTER the operator (never in the prefix) must still keep the
+# body scanned. Prefix alone (`cat`) would misclassify this as
+# non-interpreter and strip the commit line; the suffix scan catches it.
+test_detected "HEREDOC-h: cat <<EOF | bash (opener-line suffix interpreter) stays detected" \
+    $'cat <<EOF | bash\ngit commit -m "test"\nEOF'
+
+# Regression guard: a non-interpreter suffix (e.g. piped to grep) must NOT
+# flip the verdict — only a real interpreter token in the suffix does.
+test_not_detected "HEREDOC-i: cat <<EOF | grep foo (non-interpreter suffix) stays not detected" \
+    $'cat <<EOF | grep foo\ngit commit -m "test"\nEOF'
+
+# Path-qualified interpreter in the suffix (*/bash glob) also caught.
+test_detected "HEREDOC-j: cat <<EOF | /bin/bash (path-qualified suffix interpreter) stays detected" \
+    $'cat <<EOF | /bin/bash\ngit commit -m "test"\nEOF'
 
 # ── Summary ───────────────────────────────────────────────────────────────────────
 

@@ -9,6 +9,8 @@
 # polarity note on that case; lib header corrected in the same pass).
 # W1.6 additions: +5 tests (shadowed .md dirs, pathspec fidelity, pre-commit scan).
 # Total assertions: 47. Runner-attested (W1.6 Wave 7 r2: 47/47).
+# M-audit W3 task 12 additions: +3 tests (README*/CHANGELOG*/LICENSE* non-root
+# over-match fix). Total assertions: 50.
 
 LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/classify-changeset.sh"
 source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
@@ -67,6 +69,16 @@ test_classify "DOC: CHANGELOG.md" "CHANGELOG.md" 0 1
 test_classify "DOC: CHANGELOG.txt" "CHANGELOG.txt" 0 1
 test_classify "DOC: LICENSE" "LICENSE" 0 1
 test_classify "DOC: LICENSE.txt" "LICENSE.txt" 0 1
+
+# CODE bucket: non-root paths whose top-level component merely starts with
+# README/CHANGELOG/LICENSE — a bare `README*` glob matches the whole path
+# string, so without a root check these were over-matching into DOC even
+# though they are not the root doc file (M-audit W3 task 12). Pre-fix these
+# failed (classified DOC, 0 1); post-fix they fall through to the unmatched
+# CODE default (fail-toward-deny polarity unchanged).
+test_classify "CODE: non-root path, top dir merely starts with README" "README-archive/notes.txt" 1 0
+test_classify "CODE: non-root path, top dir merely starts with CHANGELOG" "CHANGELOGS/2020-01-01.md" 1 0
+test_classify "CODE: non-root path, top dir merely starts with LICENSE" "LICENSE-checker/scan.sh" 1 0
 
 # DOC bucket: *.md at repo root (no slash in path)
 test_classify "DOC: root-level *.md (no slash)" "example.md" 0 1

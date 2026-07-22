@@ -239,7 +239,7 @@ Build the next-steps list based on what's actually missing — don't suggest ste
 - Include `/g-forge specialize` only if: no stack-specific architect agent is installed yet (or developer chose overlay/replace in Step 4)
 - Always include `/g-forge plan` when ready to start the work described in the brief
 
-If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-plan`, consider addressing the architecture issues code-lead flagged."
+If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-forge plan`, consider addressing the architecture issues code-lead flagged."
 
 ---
 

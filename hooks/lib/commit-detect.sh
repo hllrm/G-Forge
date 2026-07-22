@@ -112,6 +112,21 @@ _commit_detect_walk_core() {
     esac
     i=$((i + 1))
 
+    # M-audit W3 task 2 (finding #6b split — full `.git/config` [alias]
+    # resolution is DEFERRED, see g-docs/agent-output/wave-w3-1/*; only this
+    # zero-cost argv-visible sub-case is implemented): `-c alias.NAME=VALUE`
+    # defines an alias entirely on the command line, no config file read and
+    # no git subprocess spawn needed — the definition already sits in the
+    # tokenized argv this loop already walks. If VALUE's first word is
+    # literally `commit` (bare, or with embedded flags e.g. `commit -m`),
+    # remember NAME so that if it's later invoked in subcommand position it
+    # is treated exactly like the literal `commit`. Shell-form (`!...`)
+    # alias values are intentionally NOT resolved here — recognizing a
+    # commit hidden inside one requires recursive re-entry into the whole
+    # chain/heredoc detection pipeline, which is part of the DEFERRED
+    # config-file case, not this narrow argv sub-case.
+    local _cd_alias_name=""
+
     # Walk forward skipping global flags: value-taking -C/-c/--git-dir/
     # --work-tree/--namespace (separate-value or `=`-glued), and boolean
     # --no-pager/-p. Unknown `-*` tokens intentionally break the loop — the
@@ -120,7 +135,20 @@ _commit_detect_walk_core() {
     # positives on flags we haven't verified.
     while [ "$i" -lt "$_CD_N" ]; do
         case "${_CD_TOKENS[$i]}" in
-            -C | -c | --git-dir | --work-tree | --namespace) i=$((i + 2)) ;;
+            -c)
+                if [ "$((i + 1))" -lt "$_CD_N" ]; then
+                    case "${_CD_TOKENS[$((i + 1))]}" in
+                        alias.*=*)
+                            local _cd_adef="${_CD_TOKENS[$((i + 1))]#alias.}"
+                            local _cd_aname="${_cd_adef%%=*}"
+                            local _cd_aval="${_cd_adef#*=}"
+                            [ "${_cd_aval%% *}" = "commit" ] && _cd_alias_name="$_cd_aname"
+                            ;;
+                    esac
+                fi
+                i=$((i + 2))
+                ;;
+            -C | --git-dir | --work-tree | --namespace) i=$((i + 2)) ;;
             --git-dir=* | --work-tree=* | --namespace=*) i=$((i + 1)) ;;
             --no-pager | -p) i=$((i + 1)) ;;
             *) break ;;
@@ -131,8 +159,12 @@ _commit_detect_walk_core() {
 
     # The first non-flag token after `git` (and its global flags) must be
     # exactly the literal `commit` — not a substring, not a quoted fragment
-    # of some other argument.
+    # of some other argument — OR exactly the ad-hoc alias name captured
+    # above from a `-c alias.NAME=commit...` definition earlier in argv.
     if [ "${_CD_TOKENS[$i]}" = "commit" ]; then
+        _CD_OK=1
+        _CD_IDX=$((i + 1))
+    elif [ -n "$_cd_alias_name" ] && [ "${_CD_TOKENS[$i]}" = "$_cd_alias_name" ]; then
         _CD_OK=1
         _CD_IDX=$((i + 1))
     fi
@@ -261,7 +293,12 @@ _commit_detect_scan_segments() {
 #      that body really executes, so `bash <<EOF ... git commit ... EOF`
 #      must stay detected. Checked by tokenizing everything on the opener
 #      line before the heredoc operator and scanning every token — not just
-#      the first — so `x && bash <<EOF` is still caught.
+#      the first — so `x && bash <<EOF` is still caught. Also checked on the
+#      opener-line SUFFIX (tokens after the heredoc operator on the same
+#      line, M-audit W3 task 16): `cat <<EOF | bash` pipes the body to an
+#      interpreter that never appears in the prefix, so the suffix is
+#      scanned too and an interpreter match there overrides a
+#      non-interpreter prefix verdict.
 #   3. The opener line itself is never removed — a real `git commit <<EOF`
 #      on the opener line is still scanned normally by the caller.
 # Only one heredoc form is recognised per opener: `<<[-]?WORD`,
@@ -332,11 +369,17 @@ _commit_detect_strip_heredocs() {
             fi
 
             local _cd_prefix="${_cd_opener%%"${_cd_full_match}"*}"
+            local _cd_suffix="${_cd_opener#*"${_cd_full_match}"}"
             local -a _cd_ptoks=()
             local _cd_ptok
             while IFS= read -r _cd_ptok; do
                 _cd_ptoks+=("$_cd_ptok")
             done < <(_commit_detect_tokenize "$_cd_prefix")
+            local -a _cd_stoks=()
+            local _cd_stok
+            while IFS= read -r _cd_stok; do
+                _cd_stoks+=("$_cd_stok")
+            done < <(_commit_detect_tokenize "$_cd_suffix")
 
             local _cd_is_interp=1
             local _cd_k=0
@@ -352,6 +395,25 @@ _commit_detect_strip_heredocs() {
                     _cd_k=$((_cd_k + 1))
                 done
             fi
+            # M-audit W3 task 16: tokens AFTER the heredoc operator on the
+            # SAME opener line (e.g. `cat <<EOF | bash` — the body is piped
+            # to bash, which really executes it) were never scanned before
+            # this fix, only PREFIX tokens were — so a heredoc fed to an
+            # interpreter via a trailing pipe/redirect was misclassified as
+            # a non-interpreter and its commit-containing body silently
+            # stripped. An interpreter token anywhere in the suffix
+            # overrides a non-interpreter prefix verdict; it never overrides
+            # an already-interpreter prefix verdict downward.
+            local _cd_k2=0
+            while [ "$_cd_k2" -lt "${#_cd_stoks[@]}" ]; do
+                case "${_cd_stoks[$_cd_k2]}" in
+                    bash | sh | zsh | dash | ksh | eval | source | . | */bash | */sh | */zsh | */dash | */ksh)
+                        _cd_is_interp=1
+                        break
+                        ;;
+                esac
+                _cd_k2=$((_cd_k2 + 1))
+            done
 
             _cd_out+=("$_cd_opener")
             if [ "$_cd_is_interp" -eq 1 ]; then

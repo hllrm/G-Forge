@@ -54,7 +54,7 @@ _t=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
 # Escaped the same way as the "detail" field below for JSON safety.
 WT_KEY=""
 if [ "$IS_LINKED_WORKTREE" -eq 1 ]; then
-    WT_KEY=$(gf_worktree_key 2>/dev/null | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r')
+    WT_KEY=$(gf_worktree_key 2>/dev/null | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\000-\037')
 fi
 
 JOURNAL_DIR="$GF_CLAUDE_DIR/journal"
@@ -62,12 +62,55 @@ JOURNAL="$JOURNAL_DIR/$DAY.jsonl"
 
 mkdir -p "$JOURNAL_DIR" 2>/dev/null || exit 0
 
+# utf8_safe_truncate <string> <max-bytes> — truncate to at most max-bytes
+# without splitting a UTF-8 multi-byte sequence mid-character. `cut -c1-N`
+# truncates by BYTES on this platform's userland regardless of locale (git-
+# bash GNU cut under C.UTF-8 confirmed live), so a boundary landing inside a
+# multi-byte sequence emits invalid UTF-8 that breaks downstream `jq -e .`
+# decode. Built on head/tail/od/wc — byte-exact, locale-independent POSIX
+# tools — rather than bash's own string indexing (`${s:0:n}`), which on at
+# least one observed bash build stays character-aware even under LC_ALL=C
+# and so cannot be trusted to truncate by raw byte count.
+utf8_safe_truncate() {
+    local s="$1" max="$2" tmp n i back ord need have
+    tmp=$(printf '%s' "$s" | head -c "$max")
+    n=$(printf '%s' "$tmp" | wc -c | tr -d ' ')
+    back=0
+    i="$n"
+    while [ "$back" -lt 4 ] && [ "$i" -gt 0 ]; do
+        ord=$(printf '%s' "$tmp" | head -c "$i" | tail -c1 | od -An -tu1 | tr -d ' ')
+        if [ "$ord" -ge 128 ] && [ "$ord" -lt 192 ]; then
+            # continuation byte — walk back to find its lead byte.
+            back=$((back + 1))
+            i=$((i - 1))
+            continue
+        fi
+        if [ "$ord" -ge 192 ]; then
+            # Lead byte at position i — determine its sequence length and
+            # compare against how many continuation bytes actually survived
+            # the truncation; drop the whole sequence if it was cut short.
+            need=1
+            [ "$ord" -ge 224 ] && need=2
+            [ "$ord" -ge 240 ] && need=3
+            have=$((n - i))
+            [ "$have" -lt "$need" ] && tmp=$(printf '%s' "$tmp" | head -c $((i - 1)))
+        fi
+        break
+    done
+    printf '%s' "$tmp"
+}
+
 append() {
-    # $1 = kind, $2 = detail. Escape for JSON, strip newlines, cap length.
+    # $1 = kind, $2 = detail. Escape for JSON, strip ALL control chars
+    # (0x00-0x1F, not just CR/LF — a raw tab or other C0 control byte left
+    # in the JSON string value breaks `jq -e .` the same way a bare quote
+    # would), then cap length UTF-8-safely so the cut can never split a
+    # multi-byte character and emit invalid UTF-8 downstream.
     # Primary-tree events stay byte-identical to the historical format; only
     # linked-worktree events (with a resolved WT_KEY) gain the "wt" field.
     local kind="$1" detail="$2"
-    detail=$(printf '%s' "$detail" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r' | cut -c1-300)
+    detail=$(printf '%s' "$detail" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\000-\037')
+    detail=$(utf8_safe_truncate "$detail" 300)
     if [ "$IS_LINKED_WORKTREE" -eq 1 ] && [ -n "$WT_KEY" ]; then
         printf '{"ts":"%s","kind":"%s","detail":"%s","wt":"%s"}\n' "$TS" "$kind" "$detail" "$WT_KEY" >> "$JOURNAL" 2>/dev/null || true
     else

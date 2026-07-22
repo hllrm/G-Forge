@@ -2,6 +2,8 @@
 
 These rules extend the base Astro and Vue/Pinia profiles with patterns that only emerge when Vue 3 SFCs are used as Astro islands. Both the `astro` and `vue-pinia` profiles must be installed alongside this combo.
 
+**Layer map (seam):** Astro pages/layouts (`.astro`) are the server/orchestration layer — they own routing, data fetching, and layout composition. Vue islands (`src/islands/`) are the interactive leaf layer — they own client-side interaction and rendering only, including any Pinia store scoped to that island's own `createApp()` instance. Import direction across the seam is one-way: Astro → island, via JSON-serializable props (`defineProps()`). Islands never import `.astro` files or `Astro.*` globals — those are server-only and absent from the browser bundle. Cross-island state is owned by nanostores, a neutral layer outside both the Astro and Vue/Pinia layers.
+
 **Island placement rule:** Interactive Vue SFCs live in `src/islands/`, not `src/components/`. Static `.astro` components live in `src/components/`. A `.vue` file in `src/components/` is a violation — it implies it is a static component, which Vue files are not.
 
 **Prop serialization contract:** Props passed from Astro pages to Vue islands must be JSON-serializable. Permitted: strings, numbers, booleans, plain objects, arrays, null. Forbidden: functions, class instances, Dates (convert to ISO string first), Maps, Sets, Symbols, reactive refs. Props are received as `defineProps()` in the SFC — the Composition API applies inside the island.

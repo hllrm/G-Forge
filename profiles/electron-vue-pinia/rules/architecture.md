@@ -1,5 +1,12 @@
 # Electron + Vue 3 + Pinia Architecture Rules
 
+## Layer map (seam)
+- **Main process** — owns system resources, OS APIs, and file access; the source of truth for shared app state.
+- **Preload (`preload.ts`)** — the seam: exposes a typed API surface via `contextBridge`; owns no state of its own, only translates.
+- **Pinia stores** — the state-projection layer; own the `window.electronAPI.on()` subscriptions and mirror main-process state reactively.
+- **Components (Vue SFCs)** — the render layer; read store state and call store actions only, never call `window.electronAPI.*` directly.
+- **Import direction:** main → (IPC) → store → component, one-way; components never import Electron APIs directly, and cross-window communication always routes through main — never renderer-to-renderer.
+
 ## Context bridge (IPC boundary)
 - All main-process capabilities exposed via `contextBridge.exposeInMainWorld()` in `preload.ts` — never use the `remote` module or set `contextIsolation: false`
 - Declare the exposed API as a TypeScript interface and augment the global `Window` type in `src/types/global.d.ts` — no bare `(window as any)` casts in renderer code

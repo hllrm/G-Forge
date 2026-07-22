@@ -2,6 +2,8 @@
 
 These rules extend the base Astro and React profiles with patterns that only emerge when React components are used as Astro islands. Both the `astro` and `react` profiles must be installed alongside this combo.
 
+**Layer map (seam):** Astro pages/layouts (`.astro`) are the server/orchestration layer — they own routing, data fetching, and layout composition. React islands (`src/islands/`) are the interactive leaf layer — they own client-side interaction and rendering only. Import direction across the seam is one-way: Astro → island, via JSON-serializable props at build/render time. Islands never import `.astro` files or `Astro.*` globals — those are server-only and absent from the browser bundle. Cross-island state is owned by nanostores, a neutral layer outside both the Astro and React layers.
+
 **Island placement rule:** Interactive React components live in `src/islands/`, not `src/components/`. Static `.astro` components live in `src/components/`. The distinction is enforced by directory, not by convention alone — a React file in `src/components/` is a violation.
 
 **Prop serialization contract:** Props passed from Astro pages to React islands must be JSON-serializable. Permitted: strings, numbers, booleans, plain objects, arrays, null. Forbidden: functions, class instances, Dates (convert to ISO string first), Maps, Sets, Symbols. A prop type that cannot survive `JSON.stringify → JSON.parse` will silently fail at runtime.

@@ -53,13 +53,41 @@ fi
 
 # SessionStart carries a `source`: startup | resume | clear | compact.
 # A `compact` start is NOT a fresh session — it's the same session continuing
-# after context compression. Treating it as fresh (and resetting the context-depth
-# counter) is what let a deep session compact over and over without ever tripping
-# the §A7 reset gate. Only `compact` is special-cased; an unknown/absent source
-# falls through to the normal reset (backward-compatible).
+# after context compression. `resume` reloads a PRIOR transcript back into the
+# window too — per the 2026-07-22 decision (see
+# g-docs/agent-output/wave-w3-1/characterize-resume-counter.md), it gets the
+# same treatment as `compact`: resetting the depth counter on either is what
+# let a deep/resumed session climb back toward the limit without ever
+# re-tripping the §A7 gate. Only `compact`/`resume` are special-cased; `clear`
+# and an unknown/absent source fall through to the normal reset
+# (backward-compatible) — `clear` is an explicit context wipe, unlike resume's
+# reload, so resetting on it is the intentionally correct behavior.
 SESSION_SOURCE=$(printf '%s' "${_STDIN_PAYLOAD:-}" \
     | grep -oE '"source"[[:space:]]*:[[:space:]]*"[a-zA-Z]+"' | head -1 \
     | grep -oE '"[a-zA-Z]+"$' | tr -d '"')
+
+# Session identity — the prompt counter is keyed per-session (M-audit W3
+# task 14) so a startup/clear reset in ONE session can never clobber a
+# CONCURRENT session's depth tracking on the same project (previously both
+# sessions shared one project-wide session-prompt-count file). Claude Code's
+# SessionStart/UserPromptSubmit payloads carry a stable `session_id` for the
+# life of the session — unchanged across `compact` (same running process)
+# and reused across `resume` (the platform resumes BY session id, so the
+# resumed process keeps the same id), which is exactly what makes "preserve"
+# above continue to work without any extra plumbing. If a payload omits
+# `session_id` (older Claude Code, manual invocation, most of this suite's
+# synthetic fixtures) there is no disambiguating signal available to a bash
+# hook — falling back to the legacy bare filename is the graceful degrade:
+# single-session behavior identical to before this fix, not a crash or a
+# silent miscount, just no concurrent-session isolation without an id.
+# session-compaction-count stays project-scoped on purpose (unchanged below)
+# — the §A7 auto-calibration offset it feeds is a project-wide learning
+# signal, not a per-session one.
+SESSION_ID=$(printf '%s' "${_STDIN_PAYLOAD:-}" \
+    | grep -oE '"session_id"[[:space:]]*:[[:space:]]*"[a-zA-Z0-9_-]+"' | head -1 \
+    | grep -oE '"[a-zA-Z0-9_-]+"$' | tr -d '"')
+PROMPT_COUNT_FILE="$GF_CLAUDE_DIR/session-prompt-count"
+[ -n "$SESSION_ID" ] && PROMPT_COUNT_FILE="$GF_CLAUDE_DIR/session-prompt-count.$SESSION_ID"
 
 # Only meaningful inside a git repo.
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -75,8 +103,19 @@ if [ "$TIER" != "light" ]; then
     echo "[G-Forge Session Start]"
     echo "  Branch: $BRANCH"
 
-    # Kick off a background fetch so local checks run in parallel.
-    timeout 5 git fetch origin --quiet --no-tags 2>/dev/null &
+    # Kick off a background fetch so local checks run in parallel. `timeout`
+    # isn't guaranteed to be on PATH everywhere (minimal containers, some
+    # BusyBox/Alpine images) — guard it explicitly (M-audit W3 task 15)
+    # rather than let a missing binary silently swallow the whole fetch
+    # attempt (an unguarded `timeout 5 …` simply fails to exec when
+    # `timeout` is absent, so `git fetch` never runs at all, with no signal
+    # to the developer). Fall back to an untimed background fetch instead —
+    # still non-blocking, only the hard 5s cap is lost.
+    if command -v timeout >/dev/null 2>&1; then
+        timeout 5 git fetch origin --quiet --no-tags 2>/dev/null &
+    else
+        git fetch origin --quiet --no-tags 2>/dev/null &
+    fi
     FETCH_PID=$!
 
     # --- Local state (no network required) ---
@@ -109,12 +148,17 @@ if [ "$TIER" != "light" ]; then
 fi
 
 # Reset the per-session counters so workflow-checkpoint tracks context depth from
-# session open — but ONLY on a genuinely new session. A `compact` SessionStart is
-# the same session continuing, so its counters must carry across (the depth counter
-# keeps climbing toward the §A7 threshold; the compaction count keeps accumulating).
-if [ "$SESSION_SOURCE" = "compact" ]; then
-    : # same session post-compaction — preserve counters
+# session open — but ONLY on a genuinely new session. Both `compact` (same
+# process continuing after context compression) and `resume` (same session id,
+# prior transcript reloaded — see the SESSION_SOURCE comment above) carry their
+# counters across instead of resetting: the depth counter keeps climbing toward
+# the §A7 threshold; the compaction count keeps accumulating. PROMPT_COUNT_FILE
+# is keyed per-session (SESSION_ID, above), so this reset only ever touches
+# THIS session's own counter file, never a concurrent session's on the same
+# project. session-compaction-count stays project-scoped (unchanged/unkeyed).
+if [ "$SESSION_SOURCE" = "compact" ] || [ "$SESSION_SOURCE" = "resume" ]; then
+    : # same session continuing — preserve counters
 else
-    printf '0\n' > "$GF_CLAUDE_DIR/session-prompt-count" 2>/dev/null || true
+    printf '0\n' > "$PROMPT_COUNT_FILE" 2>/dev/null || true
     printf '0\n' > "$GF_CLAUDE_DIR/session-compaction-count" 2>/dev/null || true
 fi
