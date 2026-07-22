@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-07-23
+
 ### Added
 
 - **Native git `pre-commit` hook — the commit gate's authoritative enforcement site (ADR-004/005, M-audit W1.2).** New `hooks/pre-commit` runs under git itself, so it fires on **every** commit — including raw-terminal commits and `git commit -a`/`-p`, which the PreToolUse gate architecturally cannot see. It re-derives `git write-tree` of the staged index and denies unless the review sentinel's stamp (`commit_sentinel_ts`/`_head`/`_worktree`, written by `/g-review`//`/g-doc-review` on MERGE READY/DOCS READY) matches tree, HEAD, and per-worktree key exactly — edits after review, stale approvals, and cross-worktree sentinel bleed all deny; a valid pass consumes the sentinel. First-commit (no HEAD) fails toward deny. Mixed commits require both sentinels. Not yet installed by `/g-init`/`/g-update` — install wiring lands with W1.4.

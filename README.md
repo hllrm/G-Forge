@@ -2,6 +2,8 @@
 
 > **Educated, enforced project management for AI development.** Make any model ship like a senior team — planned, reviewed, and context-clean.
 
+**Version 2.3.0** · [Changelog](CHANGELOG.md) · [Roadmap](g-docs/ROADMAP.md)
+
 G-Forge installs a structured engineering *process* into any Claude Code project: a project-manager layer that challenges scope and sequences risk, parallel implementation waves, and a commit gate that **can't be skipped** — only opened by a full multi-agent review. The point isn't a smarter model; it's discipline that lets the model you already have punch above its weight.
 
 ---
@@ -347,6 +349,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `code-lead` | Opus | Technical sign-off, merge gate verdict |
 | `test-writer` | Haiku | Unit, integration, and e2e tests from specs; fixed data only |
 | `doc-writer` | Haiku | Inline docs explaining WHY not WHAT |
+| `doc-reviewer` | Opus | Documentation-review gate — accuracy-vs-code, currency, completeness; DOCS READY / DOCS HOLD verdict |
 | `pr-writer` | Haiku | PR descriptions from git diff |
 | `refactor-executor` | Haiku | Spec-exact refactoring, no scope creep |
 | `feature-implementer` | Sonnet | Generic wave implementer — the fallback executor when no stack implementer matches |
@@ -354,7 +357,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 
 ### Agent output architecture
 
-All 16 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`g-docs/agent-output/wave-N/<task-slug>.md` for wave agents; `g-docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
+All 17 specialist agents that use the compact-return format — every agent except the two user-facing ones (`project-manager`, `pr-writer`) — write their full findings to disk (`g-docs/agent-output/wave-N/<task-slug>.md` for wave agents; `g-docs/agent-output/review/<agent>-YYYY-MM-DD.md` for review agents) and return a compact summary to the calling session:
 
 ```
 RESULT: DONE|FAILED|BLOCKED  (or PASS|HOLD for review agents)
