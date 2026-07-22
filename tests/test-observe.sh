@@ -8,7 +8,11 @@
 # plus a forced-node-path regression pin for JSON null agent_type (W1.5f/W1.6-15).
 # W1.6-17: json_escape hostile-input coverage with adversarial chars on line 1.
 # W1.6-18: sed-tier escaped-quote truncation behavior regression pin.
-# Total assertions: 24 (16 original observe tests + 8 agent-lifecycle extraction/regression tests).
+# W2-20: SessionStart `source` field journaled — one pin per platform source
+# value (startup/resume/compact) + absent-field fallback + null-artifact pin.
+# Total assertions: 30 (16 original observe tests + 6 W2-20 session-source
+# tests + 8 agent-lifecycle extraction/regression tests). Runner-observed
+# count (M-audit finding #20 discipline) — see this task's output file.
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/observe.sh"
 PASS=0
@@ -84,6 +88,53 @@ else
     echo "FAIL: journal is not valid JSONL"; FAIL=$((FAIL+1))
 fi
 rm -rf "$SDIR"
+
+# W2-20 — SessionStart `source` field journaled (M-audit W2 task 20). W1.7
+# Task-18 ruled multi-fire-per-source PLATFORM-EXPECTED; journaling source
+# makes each event self-explanatory for /g-retro mining instead of looking
+# like a duplicate-event bug. Fixed hardcoded SessionStart-shaped payloads,
+# one per platform source value plus one absent-field fallback.
+#
+# session_source_of <stdin-payload> — run observe.sh session with a given
+# stdin payload, extract only the "(source: X)" token from the journaled
+# detail (branch name in the fixture repo is not asserted here — the
+# existing "session marker written" pin above already covers that field).
+session_source_of() {
+    local dir; dir=$(mktemp -d); ( cd "$dir" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier )
+    printf '%s' "$1" | ( cd "$dir" && bash "$SCRIPT" session )
+    local f; f=$(ls "$dir"/.claude/journal/*.jsonl 2>/dev/null | head -1)
+    local out=""
+    if [ -n "$f" ]; then out=$(sed -n 's/.*(source: \([a-zA-Z]*\)).*/\1/p' "$f" | head -1); fi
+    rm -rf "$dir"
+    printf '%s' "$out"
+}
+
+PAYLOAD_SESSION_STARTUP='{"session_id":"s1","source":"startup","hook_event_name":"SessionStart"}'
+PAYLOAD_SESSION_RESUME='{"session_id":"s1","source":"resume","hook_event_name":"SessionStart"}'
+PAYLOAD_SESSION_COMPACT='{"session_id":"s1","source":"compact","hook_event_name":"SessionStart"}'
+PAYLOAD_SESSION_NULL='{"session_id":"s1","source":null,"hook_event_name":"SessionStart"}'
+
+check "session source startup journaled"  "startup" "$(session_source_of "$PAYLOAD_SESSION_STARTUP")"
+check "session source resume journaled"   "resume"  "$(session_source_of "$PAYLOAD_SESSION_RESUME")"
+check "session source compact journaled"  "compact" "$(session_source_of "$PAYLOAD_SESSION_COMPACT")"
+check "session source absent → no suffix" ""        "$(session_source_of "")"
+check "session source null → no suffix"   ""        "$(session_source_of "$PAYLOAD_SESSION_NULL")"
+
+# W1.6 F-node lesson pin: a JSON `null` source must never leak into the
+# journal as the literal string "null", and an absent/unparseable source
+# must never leave a dangling empty "(source: )" artifact.
+NULLDIR=$(mktemp -d); ( cd "$NULLDIR" && git init -q && mkdir -p .claude && printf 'full\n' > .claude/integration-tier )
+printf '%s' "$PAYLOAD_SESSION_NULL" | ( cd "$NULLDIR" && bash "$SCRIPT" session )
+NULLFILE=$(ls "$NULLDIR"/.claude/journal/*.jsonl 2>/dev/null | head -1)
+NULL_DETAIL=""
+[ -n "$NULLFILE" ] && NULL_DETAIL=$(sed -n 's/.*"detail":"\([^"]*\)".*/\1/p' "$NULLFILE" | head -1)
+rm -rf "$NULLDIR"
+case "$NULL_DETAIL" in
+    *null*|*"(source: )"*|*"(source:)"*)
+        echo "FAIL: null-source detail has a null/empty artifact (got '$NULL_DETAIL')"; FAIL=$((FAIL+1)) ;;
+    *)
+        echo "PASS: null-source detail has no null/empty artifact"; PASS=$((PASS+1)) ;;
+esac
 
 # ============================================================================
 # Agent-lifecycle extraction tests (M-audit finding #22 fix).

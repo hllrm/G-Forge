@@ -1,7 +1,6 @@
 ---
 name: g-docs
 description: Documentation audit and generation. Scans for missing or stale code docs, missing README sections, undocumented env vars, CHANGELOG gaps, and architectural decisions without ADRs. Targeted scope fixes gaps immediately via doc-writer. Whole-codebase scope produces a prioritised documentation debt report and optional roadmap entry.
-argument-hint: [path/to/scope | all]
 ---
 
 **Announce:** "Using g-docs to audit and fill documentation gaps."

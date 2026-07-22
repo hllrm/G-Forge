@@ -77,7 +77,25 @@ append() {
 
 if [ "$MODE" = "session" ]; then
     BRANCH=$(git branch --show-current 2>/dev/null || echo unknown)
-    append "session" "session opened on $BRANCH"
+    # SessionStart carries a `source`: startup | resume | clear | compact.
+    # Journaling it disambiguates the platform's documented multi-fire-per-source
+    # behavior (W1.7 Task-18 characterization) from a genuine duplicate-event bug
+    # when mining the journal for /g-retro. Same grep-only extraction idiom as
+    # hooks/session-start.sh (lines 60-62) reading the same field off the same
+    # event — kept identical rather than reinventing extract_cmd's heavier
+    # jq/python3/node cascade below, which exists only for the PostToolUse
+    # command payload this branch never sees.
+    # A bare unquoted `"source":null` never matches the quoted-value pattern, so
+    # SESSION_SRC stays empty and the suffix is omitted entirely (W1.6 F-node
+    # lesson: never stringify an absent/null field into the journal as "null").
+    SESSION_SRC=$(cat 2>/dev/null \
+        | grep -oE '"source"[[:space:]]*:[[:space:]]*"[a-zA-Z]+"' | head -1 \
+        | grep -oE '"[a-zA-Z]+"$' | tr -d '"')
+    if [ -n "$SESSION_SRC" ]; then
+        append "session" "session opened on $BRANCH (source: $SESSION_SRC)"
+    else
+        append "session" "session opened on $BRANCH"
+    fi
     exit 0
 fi
 

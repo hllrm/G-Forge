@@ -34,7 +34,7 @@ A set of changed files, or a description of the proposed change with the project
 
 ---
 
-**Verdict:** PASS | FAIL
+**Verdict:** PASS | HOLD
 **Summary:** N violations found.
 
 ## Return format

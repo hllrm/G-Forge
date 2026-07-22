@@ -48,9 +48,9 @@ Wait for the answer. Derive the profile using this table:
 Write the profile name to `.claude/voice-profile`.
 
 Tell the developer (rendered in the profile just written):
-- `eli5`: "Got it — I'll explain things in plain language as we go. You can run `/g-voice` any time to change this."
-- `mid`: "Got it — brief context alongside results. Run `/g-voice` to recalibrate any time."
-- `dev`: "Got it. Run `/g-voice` to recalibrate."
+- `eli5`: "Got it — I'll explain things in plain language as we go. You can run `/g-forge voice` any time to change this."
+- `mid`: "Got it — brief context alongside results. Run `/g-forge voice` to recalibrate any time."
+- `dev`: "Got it. Run `/g-forge voice` to recalibrate."
 
 **Training mode offer (eli5 and mid profiles only):**
 
@@ -259,7 +259,7 @@ Once the developer approves (or amends and approves), write `g-docs/project_brie
 - [Unresolved decisions that affect scope, stack, or sequencing]
 ```
 
-Tell the developer: "Brief locked. Run /g-init to scaffold the project — it will read this brief to pre-fill g-docs/ROADMAP.md and milestones. After init completes, run /g-specialize to install the right architect agent for your stack. The workflow auto-trigger is then active: when you describe a feature or task, Claude will automatically run /g-plan, /g-execute, and /g-review without you typing those commands."
+Tell the developer: "Brief locked. Run /g-forge init to scaffold the project — it will read this brief to pre-fill g-docs/ROADMAP.md and milestones. After init completes, run /g-forge specialize to install the right architect agent for your stack. The workflow auto-trigger is then active: when you describe a feature or task, Claude will automatically run /g-forge plan, /g-forge execute, and /g-forge review without you typing those commands."
 
 ## Rules
 - Never write g-docs/project_brief.md before the developer approves.

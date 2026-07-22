@@ -241,6 +241,146 @@ _commit_detect_scan_segments() {
     return 1
 }
 
+# _commit_detect_strip_heredocs <raw> — remove well-formed heredoc BODY
+# lines from <raw> before the newline-suffix walk in _commit_detect_parse
+# (M-audit finding #21 residual, characterized in
+# g-docs/agent-output/wave-w2-1/heredoc-characterization.md). The suffix
+# walk has no heredoc awareness: every embedded newline starts a fresh scan
+# suffix, so a heredoc BODY line that happens to read like `git commit ...`
+# (e.g. a `cat > report.md <<EOF` reviewer write, or a script being authored
+# via heredoc) is indistinguishable from a real standalone command and gets
+# falsely DETECTED. Three conservative guards, in this order:
+#   1. Only a WELL-FORMED heredoc is stripped — an opener token found AND a
+#      matching terminator line found later in the string. An unterminated
+#      heredoc returns the ENTIRE input untouched (not just that region):
+#      fail-toward-deny, same direction as the malformed-input handling
+#      already documented at _commit_detect_tokenize (:16-28).
+#   2. Never strip when the heredoc's own command is (or might be — an
+#      UNIDENTIFIABLE prefix is treated the same as a positive match, not
+#      stripped) a shell interpreter (bash/sh/zsh/dash/ksh/eval/source/.):
+#      that body really executes, so `bash <<EOF ... git commit ... EOF`
+#      must stay detected. Checked by tokenizing everything on the opener
+#      line before the heredoc operator and scanning every token — not just
+#      the first — so `x && bash <<EOF` is still caught.
+#   3. The opener line itself is never removed — a real `git commit <<EOF`
+#      on the opener line is still scanned normally by the caller.
+# Only one heredoc form is recognised per opener: `<<[-]?WORD`,
+# `<<[-]?'WORD'`, or `<<[-]?"WORD"`. Anything else on a `<<` line (e.g. a
+# non-heredoc bitshift `1 << 2`, where `2` isn't a valid heredoc word) simply
+# never matches and that line is passed through unchanged.
+_commit_detect_strip_heredocs() {
+    local raw="$1"
+
+    case "$raw" in
+        *'<<'*) ;;
+        *)
+            printf '%s' "$raw"
+            return 0
+            ;;
+    esac
+
+    local -a _cd_lines=()
+    local _cd_line
+    while IFS= read -r _cd_line || [ -n "$_cd_line" ]; do
+        _cd_lines+=("$_cd_line")
+    done <<<"$raw"
+
+    local _cd_n=${#_cd_lines[@]}
+    local -a _cd_out=()
+    local i=0
+    local _cd_re="<<(-)?[[:space:]]*('([A-Za-z_][A-Za-z0-9_]*)'|\"([A-Za-z_][A-Za-z0-9_]*)\"|([A-Za-z_][A-Za-z0-9_]*))"
+
+    while [ "$i" -lt "$_cd_n" ]; do
+        local _cd_opener="${_cd_lines[$i]}"
+        local _cd_dash=0
+        local _cd_word=""
+
+        if [[ "$_cd_opener" =~ $_cd_re ]]; then
+            [ -n "${BASH_REMATCH[1]}" ] && _cd_dash=1
+            if [ -n "${BASH_REMATCH[3]}" ]; then
+                _cd_word="${BASH_REMATCH[3]}"
+            elif [ -n "${BASH_REMATCH[4]}" ]; then
+                _cd_word="${BASH_REMATCH[4]}"
+            else
+                _cd_word="${BASH_REMATCH[5]}"
+            fi
+            local _cd_full_match="${BASH_REMATCH[0]}"
+
+            # Find a matching terminator line among the remaining lines. A
+            # `<<-` terminator may be indented with leading tabs; a plain
+            # `<<` terminator must match with no leading whitespace at all
+            # (real heredoc semantics — matches shell behaviour exactly).
+            local _cd_term_idx=-1
+            local j=$((i + 1))
+            while [ "$j" -lt "$_cd_n" ]; do
+                local _cd_tline="${_cd_lines[$j]}"
+                if [ "$_cd_dash" -eq 1 ]; then
+                    while [ "${_cd_tline:0:1}" = $'\t' ]; do
+                        _cd_tline="${_cd_tline:1}"
+                    done
+                fi
+                if [ "$_cd_tline" = "$_cd_word" ]; then
+                    _cd_term_idx=$j
+                    break
+                fi
+                j=$((j + 1))
+            done
+
+            if [ "$_cd_term_idx" -eq -1 ]; then
+                printf '%s' "$raw"
+                return 0
+            fi
+
+            local _cd_prefix="${_cd_opener%%"${_cd_full_match}"*}"
+            local -a _cd_ptoks=()
+            local _cd_ptok
+            while IFS= read -r _cd_ptok; do
+                _cd_ptoks+=("$_cd_ptok")
+            done < <(_commit_detect_tokenize "$_cd_prefix")
+
+            local _cd_is_interp=1
+            local _cd_k=0
+            if [ "${#_cd_ptoks[@]}" -gt 0 ]; then
+                _cd_is_interp=0
+                while [ "$_cd_k" -lt "${#_cd_ptoks[@]}" ]; do
+                    case "${_cd_ptoks[$_cd_k]}" in
+                        bash | sh | zsh | dash | ksh | eval | source | . | */bash | */sh | */zsh | */dash | */ksh)
+                            _cd_is_interp=1
+                            break
+                            ;;
+                    esac
+                    _cd_k=$((_cd_k + 1))
+                done
+            fi
+
+            _cd_out+=("$_cd_opener")
+            if [ "$_cd_is_interp" -eq 1 ]; then
+                # Interpreter-fed (or unidentifiable) — keep the body, it
+                # really executes (or we can't prove it doesn't).
+                local _cd_m=$((i + 1))
+                while [ "$_cd_m" -le "$_cd_term_idx" ]; do
+                    _cd_out+=("${_cd_lines[$_cd_m]}")
+                    _cd_m=$((_cd_m + 1))
+                done
+            else
+                # Positively identified as a non-interpreter command — strip
+                # the body, keep only the terminator line.
+                _cd_out+=("${_cd_lines[$_cd_term_idx]}")
+            fi
+
+            i=$((_cd_term_idx + 1))
+            continue
+        fi
+
+        _cd_out+=("$_cd_opener")
+        i=$((i + 1))
+    done
+
+    local _cd_result
+    _cd_result=$(printf '%s\n' "${_cd_out[@]}")
+    printf '%s' "$_cd_result"
+}
+
 # _commit_detect_parse <cmd> — internal shared walk, used by both public
 # functions so they classify a command identically (never two implementations
 # that could disagree). A raw multi-line command string is one or more
@@ -252,7 +392,10 @@ _commit_detect_scan_segments() {
 # fix), then each suffix starting right after an embedded newline, so a
 # `git commit` that only appears standalone on a later line is still caught.
 # Stops at the first entry point that yields a committing segment (leftmost
-# wins). Sets globals:
+# wins). Runs _commit_detect_strip_heredocs on <cmd> first (M-audit finding
+# #21 residual) so a well-formed, non-interpreter-fed heredoc body is never
+# a source of newline-suffix entry points — see that function's header for
+# the full guard rationale. Sets globals:
 #   _CD_TOKENS  — array of argv tokens for the COMMITTING segment
 #   _CD_N       — token count of that segment
 #   _CD_OK      — 1 if <cmd> is confirmed `git commit`, 0 otherwise
@@ -265,7 +408,10 @@ _commit_detect_parse() {
     _CD_OK=0
     _CD_IDX=0
 
-    local _cd_rest="$cmd"
+    local _cd_stripped
+    _cd_stripped=$(_commit_detect_strip_heredocs "$cmd")
+
+    local _cd_rest="$_cd_stripped"
     local _cd_next
     while :; do
         if _commit_detect_scan_segments "$_cd_rest"; then

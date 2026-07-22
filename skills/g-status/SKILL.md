@@ -3,18 +3,22 @@ name: g-status
 description: Quick one-shot snapshot of current workflow state: active plan, wave progress, review gate, current milestone.
 ---
 
+**Announce:** "Using g-status to snapshot project state."
+
 Produce a single structured status block. Fast — no interviews, no back-and-forth.
 
-**Step 1.** Announce: "Using g-status to snapshot project state."
+## Step 1 — Read project files
 
-**Step 2.** Read the following files from the project root (skip gracefully if any are missing):
+Read the following files from the project root (skip gracefully if any are missing):
 
 - `g-docs/ROADMAP.md` — extract the current milestone name and its status (in progress / done)
 - `g-docs/plans/` — find the most recently modified `.md` file; extract wave count and task list if present
 - `g-docs/ROADMAP.md` — extract the `## Active Session` handoff, specifically the first "Next up" line
 - `.claude/g-forge-approved` — note whether this file exists
 
-**Step 3.** Output exactly this block, filling each field or writing "—" if the information is unavailable:
+## Step 2 — Output the status block
+
+Output exactly this block, filling each field or writing "—" if the information is unavailable:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -27,7 +31,8 @@ Handoff:      [first "Next up" line from ROADMAP `## Active Session` / —]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**Rules:**
+## Rules
+
 - Output only the status block — no extra explanation unless a critical misconfiguration is detected (e.g. hooks not installed)
 - If `.claude/g-forge-approved` exists → review gate is "open (MERGE READY)"; otherwise → "locked"
 - If a plan file exists → show its filename and wave info if parseable; otherwise → "none"

@@ -1,7 +1,6 @@
 ---
 name: g-train
 description: Activates training mode. Establishes the learner profile, confirms or generates a project idea, and writes .claude/training-mode. PM then takes the session from there — in training mode, PM is the mentor: explains why each step exists, assigns tasks alongside waves, and runs post-wave check-ins. The full G-Forge workflow applies unchanged.
-argument-hint: [project idea]
 ---
 
 **Announce:** "Using g-train to activate training mode."

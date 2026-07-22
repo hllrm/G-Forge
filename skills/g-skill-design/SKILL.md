@@ -1,6 +1,6 @@
 ---
 name: g-skill-design
-description: Design a new G-Forge skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, creates the companion command file, and adds it to the g-forge router.
+description: Design a new G-Forge skill from scratch. Gathers requirements, drafts SKILL.md with correct structure, and adds a single bare-token routing line to the g-forge router.
 ---
 
 **Announce:** "Using g-skill-design to design the new skill."
@@ -14,7 +14,7 @@ Ask the developer:
 > "What should this skill do? Describe:
 > 1. The trigger — what user action or workflow state invokes it?
 > 2. The output — what does running this skill produce? (files, reports, modified state, user guidance)
-> 3. The name — what will the slash command be? (e.g. `foo` → command `/g-foo`, files `commands/g-foo.md` + `skills/g-foo/SKILL.md`)"
+> 3. The name — what will the skill be called? (e.g. `foo` → `skills/g-foo/SKILL.md`, invoked directly as its own entry or via `/g-forge foo`)"
 
 Wait for answers before continuing.
 
@@ -76,36 +76,24 @@ description: [One sentence: what it does and when to use it.]
 - No Skill() tool invocations anywhere in the file
 - No hardcoded absolute paths (use Glob to discover dynamic paths)
 
-## Step 5 — Write the command file
+## Step 5 — Add a bare-token routing line to the g-forge router
 
-Write `commands/g-[name].md` with this content:
-
-```
----
-description: [Same one-sentence description as in SKILL.md.]
----
-
-Use Glob to find `skills/g-[name]/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.
-```
-
-## Step 6 — Add to the g-forge router
-
-Read `commands/g-forge.md`. Make three additions:
+Read `commands/g-forge.md`. Make two additions only — no per-skill prose (ADR-007: prose in the router re-opens the drift axis the ADR closed):
 
 1. In the `argument-hint` value: append `|[name]` to the pipe-separated list
-2. In the routing table: add a new line `- \`[name]\`       → \`skills/g-[name]/SKILL.md\``
-3. In the subcommand description list at the bottom: add `- \`[name]\` — [one-line description]`
+2. In the routing table: add a new bare-token line `- \`[name]\`       → \`skills/g-[name]/SKILL.md\`` — no description, no prose
+
+Do not add anything to the subcommand description list at the bottom for the new skill.
 
 Write the updated file.
 
-## Step 7 — Report
+## Step 6 — Report
 
 ```
 Skill created ✓
 
   ✓ skills/g-[name]/SKILL.md — skill workflow written
-  ✓ commands/g-[name].md    — command routing file written
-  ✓ commands/g-forge.md          — router updated
+  ✓ commands/g-forge.md      — bare-token router line added
 
 Run /g-skill-validate [name] to validate the new skill's structure.
 ```
@@ -115,5 +103,6 @@ Run /g-skill-validate [name] to validate the new skill's structure.
 - Never use Skill() tool invocations in the generated SKILL.md.
 - Never add argument-hint to SKILL.md frontmatter.
 - If a similar skill already exists, surface it before drafting — do not create duplicates.
-- The command file must use the Glob+Read pattern — never embed instructions directly.
+- Never create a companion `commands/g-[name].md` file — per ADR-007, `skills/g-[name]/SKILL.md` is the sole authored source; only a bare-token routing line is added to `commands/g-forge.md`.
+- The router addition must be a bare token — no prose, no description — and must not touch the subcommand description list.
 - Router update must preserve all existing entries — read before writing.

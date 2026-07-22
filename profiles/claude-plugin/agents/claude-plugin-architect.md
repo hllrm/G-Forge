@@ -58,7 +58,7 @@ Report findings in this exact format:
 ## Claude Plugin Architecture Review
 
 ### BLOCKING
-- `commands/g-foo.md:3` — hardcoded skill instructions instead of Glob+Read pattern
+- `commands/g-foo.md` — standalone per-skill command shim exists; per ADR-007, `commands/` may hold only `commands/g-forge.md` — any other `commands/<name>.md` file is itself the violation, regardless of its contents
 - `skills/g-bar/SKILL.md:44` — Skill() invocation found — remove, use Read on SKILL.md directly
 
 ### WARNING

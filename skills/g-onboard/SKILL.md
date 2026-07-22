@@ -235,9 +235,9 @@ Suggested next steps:
 
 Build the next-steps list based on what's actually missing — don't suggest steps that are already done:
 
-- Include `/g-init` only if: commit gate not registered OR CLAUDE.md is missing OR g-docs/ROADMAP.md is missing
-- Include `/g-specialize` only if: no stack-specific architect agent is installed yet (or developer chose overlay/replace in Step 4)
-- Always include `/g-plan` when ready to start the work described in the brief
+- Include `/g-forge init` only if: commit gate not registered OR CLAUDE.md is missing OR g-docs/ROADMAP.md is missing
+- Include `/g-forge specialize` only if: no stack-specific architect agent is installed yet (or developer chose overlay/replace in Step 4)
+- Always include `/g-forge plan` when ready to start the work described in the brief
 
 If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-plan`, consider addressing the architecture issues code-lead flagged."
 
@@ -247,7 +247,7 @@ If architecture audit found BLOCKING or HIGH issues, add: "Before `/g-plan`, con
 
 - Never write `g-docs/project_brief.md` before Steps 4 and 5 are complete.
 - Never ask for information already visible in the project files.
-- Never suggest `/g-init` or `/g-specialize` steps that are already done.
+- Never suggest `/g-forge init` or `/g-forge specialize` steps that are already done.
 - Never overwrite existing `.claude/agents/` or `.claude/rules/` files without explicit developer permission from Step 4.
 - Mature project interview is targeted — not a script. Only ask what you genuinely don't know.
 - If the developer corrects your Step 3 reading, update before continuing.

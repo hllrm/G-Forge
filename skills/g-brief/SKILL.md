@@ -65,3 +65,12 @@ g-docs/project_brief.md updated ✓
 Changes:
   · [bullet list of what changed vs the previous brief]
 ```
+
+## Rules
+
+- If `g-docs/project_brief.md` doesn't exist, stop and tell the developer to run `/g-kickoff` or `/g-onboard` first — never fabricate a brief from scratch.
+- Ask only questions that are genuinely uncertain after Step 1 — never re-ask something the existing brief already answers. Maximum 4 questions, one at a time.
+- Preserve the original project name, one-line description, tech decisions table, and stack/architecture notes when rewriting.
+- Never drop information from the previous brief without asking first.
+- Keep the brief concise — add only what's new, don't inflate it.
+- Always stamp `Last updated: [today's date]` at the top of the rewritten brief.

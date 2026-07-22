@@ -1,7 +1,6 @@
 ---
 name: g-optimize
 description: Full-codebase or targeted performance audit. Detects algorithmic complexity problems, N+1 queries, re-render waste, resource leaks, and caching opportunities. Targeted scope produces an inline report. Whole-codebase scope produces a prioritised roadmap milestone.
-argument-hint: [path/to/scope]
 ---
 
 **Announce:** "Using g-optimize to scan for performance issues."

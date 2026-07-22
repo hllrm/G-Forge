@@ -1,7 +1,6 @@
 ---
 name: g-audit
 description: Full-codebase or targeted code quality audit. Detects SOLID violations, code smells, architectural drift, dead code, and test coverage gaps. Targeted scope produces an inline report. Whole-codebase scope produces a prioritised roadmap milestone.
-argument-hint: [path/to/scope]
 ---
 
 **Announce:** "Using g-audit to scan for code quality issues."

@@ -1,6 +1,6 @@
 ---
 name: g-skill-validate
-description: Validate a skill or agent file against G-Forge structural rules. Checks SKILL.md format, command file, router registration, and agent frontmatter. Issues VALID or NEEDS FIXES verdict.
+description: Validate a skill or agent file against G-Forge structural rules. Checks SKILL.md format, retired-shim absence, router registration, and agent frontmatter. Issues VALID or NEEDS FIXES verdict.
 ---
 
 **Announce:** "Using g-skill-validate to validate the skill."
@@ -28,7 +28,9 @@ Run these checks and record ✓ or ✗ for each:
 **Frontmatter checks:**
 - `name:` field present
 - `description:` field present
+- `context:` field (memory-layer declaration, G-RULES §J) is optional — its presence or absence is ✓ either way
 - `argument-hint:` is NOT present (its presence is a violation — breaks skill loading)
+- No frontmatter fields beyond `name`, `description`, and optionally `context` (any other field is a violation — flag it by name)
 
 **Body checks:**
 - `**Announce:**` line present (must appear before the first step)
@@ -37,20 +39,19 @@ Run these checks and record ✓ or ✗ for each:
 - No `Skill()` invocations anywhere in the file (search for `Skill(`)
 - No hardcoded absolute paths starting with `/home/`, `/Users/`, `C:\`, `D:\` (use Glob to discover paths instead)
 
-## Step 3 — Validate command file (skills only)
+## Step 3 — Validate shim absence (skills only)
 
-Locate `commands/[name].md`. If absent, record: ✗ command file missing.
+Per ADR-007, `skills/[name]/SKILL.md` is the sole authored source for a skill — standalone `commands/[name].md` shims are retired.
 
-If present, check and record ✓ or ✗:
-- YAML frontmatter with `description:` present
-- File uses Glob+Read pattern to load SKILL.md (contains "Glob" and "SKILL.md")
-- No Skill() invocations (search for `Skill(`)
+Check whether `commands/[name].md` exists:
+- If it exists, record: ✗ retired shim present — `commands/[name].md` must be deleted (ADR-007: SKILL.md is the sole authored source; the shim produces a second, independently-drifting description surface).
+- If it does not exist, record: ✓ no retired shim present.
 
 ## Step 4 — Validate router registration (skills only)
 
 Read `commands/g-forge.md`. Check and record ✓ or ✗:
-- Subcommand name appears in the routing table (the `- \`[name]\`` lines)
-- Subcommand name appears in the description list at the bottom
+- A bare-token routing line exists for this skill's subcommand (`- \`[token]\` → \`skills/g-[name]/SKILL.md\`` format)
+- No per-skill prose or description accompanies that routing line or its subcommand token elsewhere in the router (the router carries bare tokens only — per-skill prose is a violation, ADR-007: it is the third description surface that drifted)
 
 ## Step 5 — Validate agent file (agents only)
 
@@ -86,14 +87,12 @@ Output the full checklist, then issue the verdict:
 ✗ Skill() invocation found on line 23 (remove — causes infinite loop)
 ✓ No hardcoded absolute paths
 
-### Command file (commands/[name].md)
-✓ description: in frontmatter
-✓ Glob+Read pattern used
-✓ No Skill() invocations
+### Shim absence (commands/[name].md)
+✓ no retired shim present
 
 ### Router (commands/g-forge.md)
-✓ Routing table entry present
-✗ Description list entry missing
+✓ Bare-token routing line present
+✗ Per-skill prose found alongside the subcommand token (must be removed — ADR-007)
 
 ---
 VERDICT: NEEDS FIXES — 3 issues found
@@ -110,5 +109,5 @@ VERDICT: VALID — all checks passed
 - Run all checks before issuing the verdict — do not stop at the first failure.
 - Never fix the issues yourself — report only. The developer fixes and re-runs validation.
 - If the target file does not exist, the verdict is NEEDS FIXES with "file not found" as the finding.
-- For skills: validate SKILL.md + command file + router together — not just SKILL.md alone.
+- For skills: validate SKILL.md + shim absence + router bare-token line together — not just SKILL.md alone (ADR-007: no per-skill command file; `commands/[name].md` existing is a violation, not a requirement).
 - For agents: validate agent file only (no command file or router check needed).

@@ -5,7 +5,10 @@
 # No temp repos — all tests call shell functions on fixed strings only.
 #
 # W1.6 additions: +6 tests (newline-boundary cases, quoted pathspec fidelity).
-# Total assertions: 49. Runner-attested (W1.6 Wave 7 r2: 49/49).
+# W2.2 additions: +9 tests (HEREDOC group — M-audit finding #21 residual fix:
+# heredoc-content false positive, characterized in
+# g-docs/agent-output/wave-w2-1/heredoc-characterization.md).
+# Total assertions: 58. Runner-attested (W2.2: 58/58).
 
 LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/commit-detect.sh"
 source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
@@ -139,6 +142,46 @@ test_pathspecs "PS: git commit -m msg file1.txt (positional pathspec without --)
 
 test_pathspecs "PS-QUOTED: git commit -- \"file with spaces.txt\"" 'git commit -- "file with spaces.txt"' "file with spaces.txt"
 test_pathspecs "PS-QUOTED: git commit with quoted pathspec containing shell chars" "git commit -- \"path/with\$vars.txt\"" "path/with\$vars.txt"
+
+# ── Group HEREDOC — heredoc-content false positive, M-audit finding #21 residual ─
+# Characterized in g-docs/agent-output/wave-w2-1/heredoc-characterization.md;
+# fixed in hooks/lib/commit-detect.sh via _commit_detect_strip_heredocs.
+# Letters (a)-(g) match the characterization's enumerated test plan.
+
+# (a) fail-before: heredoc to cat/file-write containing a commit line — now NOT detected
+test_not_detected "HEREDOC-a: cat heredoc body contains commit line (fail-before, fixed)" \
+    $'cat > report.md <<EOF\ngit commit -m "test"\nEOF'
+
+# (b) fail-before: heredoc with quoted delimiter <<'EOF' — now NOT detected
+test_not_detected "HEREDOC-b: quoted delimiter <<'EOF' heredoc body contains commit line" \
+    $'cat > report.md <<\'EOF\'\ngit commit -m "test"\nEOF'
+
+# (c) fail-before: <<- indented terminator — now NOT detected
+test_not_detected "HEREDOC-c: <<- indented terminator heredoc body contains commit line" \
+    $'cat > report.md <<-EOF\n\tgit commit -m "test"\n\tEOF'
+
+# (d) regression pin: bash <<EOF with commit body — interpreter guard, stays DETECTED
+test_detected "HEREDOC-d: bash <<EOF interpreter-fed heredoc stays detected" \
+    $'bash <<EOF\ngit commit -m "test"\nEOF'
+
+# (e) regression pin: unterminated heredoc containing commit line — stays DETECTED
+test_detected "HEREDOC-e: unterminated heredoc stays detected (fail-toward-deny)" \
+    $'cat > report.md <<EOF\ngit commit -m "test"'
+
+# (f) regression pin: plain newline evasion unaffected by heredoc fix (existing #25 class)
+test_detected "HEREDOC-f: plain x\\ngit commit newline evasion unaffected" \
+    $'x\ngit commit -m x'
+
+# (g) regression pin: real git commit <<EOF on the opener line stays DETECTED
+test_detected "HEREDOC-g: real git commit <<EOF on opener line stays detected" \
+    $'git commit -m "hi" <<EOF\nbody text\nEOF'
+
+# Additional interpreter-guard coverage beyond the enumerated (d): other
+# shell interpreters/eval must also keep a heredoc body scanned.
+test_detected "HEREDOC: eval <<EOF interpreter guard, commit body stays detected" \
+    $'eval <<EOF\ngit commit -m "test"\nEOF'
+test_detected "HEREDOC: sh <<EOF interpreter guard, commit body stays detected" \
+    $'sh <<EOF\ngit commit -m "test"\nEOF'
 
 # ── Summary ───────────────────────────────────────────────────────────────────────
 

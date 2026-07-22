@@ -1,7 +1,6 @@
 ---
 name: g-refactor
 description: Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review. Accepts a scope path, an audit milestone file, or runs interactively. Safe-by-default: checks test coverage before execution and runs the full review gate after.
-argument-hint: [path/to/scope | g-docs/milestones/M-audit-*.md]
 ---
 
 **Announce:** "Using g-refactor to run the guided refactor workflow."

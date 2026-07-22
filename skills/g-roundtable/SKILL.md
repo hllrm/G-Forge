@@ -1,7 +1,6 @@
 ---
 name: g-roundtable
 description: Bind the session to "the Roundtable" — a shared live Doc that is the human-facing communication layer between you, non-programmers (PMs, collaborators), and the session. start binds a Doc (create-from-template or attach-by-URL); sync reads the Roundtable at a boundary and writes only salient deltas; close distills the live Doc into the durable record (handoff + ADRs + action list) on a human nod. Works solo or shared. Off by default — when no Roundtable is configured every path is a no-op and behaviour is byte-identical to today.
-argument-hint: "start [doc-url] | sync | close"
 ---
 
 **Announce:** "Using g-roundtable to [start|sync|close] the Roundtable."

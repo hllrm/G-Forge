@@ -1,5 +1,0 @@
----
-description: Realign all G-Forge-managed files (CLAUDE.md rules block, architect agents, architecture rules, commit hooks) to the current plugin version.
----
-
-Use Glob to find `skills/g-update/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it, then follow its instructions exactly.

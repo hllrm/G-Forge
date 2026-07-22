@@ -3,11 +3,13 @@ name: g-doctor
 description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel, and no installed-copy drift (hashes the installed hooks, hooks/lib/ scripts, native pre-commit hook, g-rules section files, and installed agents — under a three-class rule — against plugin source to catch silently stale copies). Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
 ---
 
-Announce: "Using g-doctor to check project health."
+**Announce:** "Using g-doctor to check project health."
+
+## Step 1 — Run all checks
 
 Run all 22 checks below against the current working directory, then output the report in the exact format specified. Checks 1–16 are required (✓/✗). Checks 17–21 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total. Check 22 (Roundtable security) is advisory/conditional — it only runs when a Roundtable is bound.
 
-## Checks
+### Checks
 
 **1. commit hook**
 Check if `.claude/hooks/check-commit.sh` exists.
@@ -243,7 +245,7 @@ grep -qiE '^(token|secret|password|api[_-]?key)=' .claude/roundtable 2>/dev/null
 
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook, rules, and document-layout infrastructure only.
 
-## Output format
+## Step 2 — Output the report
 
 Print the report exactly as shown:
 
@@ -304,3 +306,12 @@ After the summary count line, add one blank line, then:
 - If all 16 required checks passed and no advisories: `All checks passed. Project is healthy.`
 - If all 16 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact and the document layout clean.`
 - If any required check failed: `Fix the issues above, then re-run /g-doctor.`
+
+## Rules
+
+- Checks 1–16 are required (✓/✗) and count toward the pass/fail total; checks 17–21 are advisory (✓/⚠) and never count toward it; check 22 is advisory and runs only when `.claude/roundtable` exists.
+- Every failing or advisory check must include a `→ ` fix instruction, indented four spaces — never leave a fail/advisory line unexplained.
+- Hash comparisons use the portable `hash_file` cascade (`sha256sum` → `shasum -a 256` → `cksum`) so the check works across platforms.
+- Installed-agent drift (check 16) classifies each `.claude/agents/` file into one of three provenance classes — profile-copied, template-instantiated, or project-local — before applying that class's rule; never apply one rule to all three.
+- Print the report exactly in the specified format — no extra commentary before or after it beyond the closing summary line.
+- Milestone alignment is not a numbered check here — it's covered by `/g-status` instead.

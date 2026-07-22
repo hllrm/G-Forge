@@ -1,7 +1,6 @@
 ---
 name: g-wiki
 description: Build and maintain a human-facing project wiki in g-wiki/ — narrative documentation of what the project is, how it's architected, how each major area works, and how to use it. Synthesizes from the codebase, ROADMAP, ADRs, and brief via the doc-writer agent. Run anytime; queued as a task at the end of every milestone so the wiki tracks the product. Distinct from /g-docs (which audits code-level doc hygiene — docstrings, READMEs, env vars, ADRs).
-argument-hint: "[area or topic | full]"
 ---
 
 **Announce:** "Using g-wiki to update the project wiki."

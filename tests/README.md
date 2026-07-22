@@ -37,3 +37,21 @@ were re-derived after a fixture `cd` (W1.5g finding, ADR-008 clause 6).
 Attestation runs use the canonical invocation form (repo-root relative,
 `bash tests/test-<name>.sh`); only an attested runner table is authoritative
 for pass counts.
+
+## PostToolUse skip-on-error boundary (characterized, accepted)
+
+Claude Code does not fire PostToolUse hooks when the tool call exits non-zero.
+Consequence: a real commit buried in a failing chain (`git commit … && false`)
+lands in git but is invisible to the argv-based PostToolUse sites —
+`observe.sh` never journals it and `post-commit-cleanup.sh` never clears
+sentinels for it. `g-dev/fixtures/posttooluse-skip-boundary.sh` proves both
+halves that are provable outside the platform: the class exists at git level,
+and the hooks are correct when actually fed the payload (the gap is upstream,
+not a parsing bug). Live evidence for the skip itself: W1.7's gated commits
+absent from the 2026-07-22 journal (M-audit ledger W1.7ii, Task 28).
+
+Decision (W2 task 21): **accepted, no code fix.** The sentinel lifecycle is
+covered by the authoritative native `pre-commit` hook (consume-on-pass fires
+in-process with the commit, immune to this skip); the journal is best-effort
+by design (non-gating observer). Standing probe-hygiene rule: never chain
+proof-steps into commit commands — run the commit as its own tool call.
