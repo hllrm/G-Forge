@@ -13,9 +13,10 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/../hooks" && pwd)"
 # blocking. The gating pair (hooks/check-commit.sh, hooks/pre-commit) is explicitly
 # out of scope and must never silently migrate into the non-gating class.
 #
-# Total assertions: 26
+# Total assertions: 38
 # - Structural: 2 (gating pair exclusion, hook list completeness)
 # - Exit-code invariant: 24 (all six hooks × 4 payload types: 1 representative + 3 garbage)
+# - Abandoned-stdin invariant: 12 (all six hooks × 2 assertions: exit 0 + bounded wait time)
 
 # ============================================================================
 # § Structural assertions — gating pair exclusion
@@ -91,6 +92,36 @@ test_hook_exit_code() {
         echo "PASS: $name — $desc (exit 0)"; PASS=$((PASS+1))
     else
         echo "FAIL: $name — $desc (exit $rc, expected 0)"; FAIL=$((FAIL+1))
+    fi
+}
+
+# test_hook_abandoned_stdin <name> <hook-script> <description>
+# Invoke hook with stdin attached to an open pipe with NO writer and NO EOF
+# (simulates orphaned tool call). Assert: exit 0 + return within guard window.
+# Window = 5s guard + 15s epsilon: MSYS subprocess-spawn overhead in the hook
+# body after the read can add 3-5s (worst observed 9.9s total on Windows);
+# 20s stays 15x under the 300s no-writer fixture, so the bound is still decisive.
+GUARD_WINDOW_MS=20000
+test_hook_abandoned_stdin() {
+    local name="$1" script="$2" desc="$3"
+    local start_time end_time elapsed
+
+    start_time=$(date +%s%3N)
+    bash "$script" >/dev/null 2>&1 < <(sleep 300)
+    local rc=$?
+    end_time=$(date +%s%3N)
+    elapsed=$((end_time - start_time))
+
+    if [ "$rc" -eq 0 ]; then
+        echo "PASS: $name — $desc (abandoned stdin, exit 0)"; PASS=$((PASS+1))
+    else
+        echo "FAIL: $name — $desc (abandoned stdin, exit $rc, expected 0)"; FAIL=$((FAIL+1))
+    fi
+
+    if [ "$elapsed" -lt "$GUARD_WINDOW_MS" ]; then
+        echo "PASS: $name — $desc (abandoned stdin, returned in ${elapsed}ms, <${GUARD_WINDOW_MS}ms)"; PASS=$((PASS+1))
+    else
+        echo "FAIL: $name — $desc (abandoned stdin, took ${elapsed}ms, expected <${GUARD_WINDOW_MS}ms)"; FAIL=$((FAIL+1))
     fi
 }
 
@@ -225,6 +256,47 @@ test_hook_exit_code "post-commit-cleanup.sh/nontext" "$POSTCOMMIT_SCRIPT" "$GARB
 # Garbage: truncated JSON
 test_hook_exit_code "post-commit-cleanup.sh/truncated" "$POSTCOMMIT_SCRIPT" "$GARBAGE_TRUNCATED" \
     "truncated JSON"
+
+# ============================================================================
+# § 7. Abandoned-stdin fixture — all six hooks tolerate orphaned stdin
+# ============================================================================
+#
+# Verifies the orphan-process class (66-min hangs on abandoned stdin found in
+# field) is dead. Each hook sources hooks/lib/stdin-read.sh and calls
+# gf_read_stdin_timeout 5, which bounds the wait via `read -t 5 -d ''`.
+# This fixture invokes each hook with stdin attached to an open pipe with NO
+# writer and NO EOF, simulating a harness crash or timeout that leaves stdin
+# stranded. Assert: exit 0 + return within guard window (timeout 5s + overhead).
+
+# ── 1. observe.sh with abandoned stdin ─────────────────────────────────────
+
+test_hook_abandoned_stdin "observe.sh/abandoned" "$OBSERVE_SCRIPT" \
+    "abandoned stdin (no writer, no EOF)"
+
+# ── 2. agent-lifecycle.sh with abandoned stdin ─────────────────────────────
+
+test_hook_abandoned_stdin "agent-lifecycle.sh/abandoned" "$AGENT_SCRIPT" \
+    "abandoned stdin (no writer, no EOF)"
+
+# ── 3. session-start.sh with abandoned stdin ───────────────────────────────
+
+test_hook_abandoned_stdin "session-start.sh/abandoned" "$SESSION_SCRIPT" \
+    "abandoned stdin (no writer, no EOF)"
+
+# ── 4. pre-compact.sh with abandoned stdin ────────────────────────────────
+
+test_hook_abandoned_stdin "pre-compact.sh/abandoned" "$COMPACT_SCRIPT" \
+    "abandoned stdin (no writer, no EOF)"
+
+# ── 5. workflow-checkpoint.sh with abandoned stdin ────────────────────────
+
+test_hook_abandoned_stdin "workflow-checkpoint.sh/abandoned" "$CHECKPOINT_SCRIPT" \
+    "abandoned stdin (no writer, no EOF)"
+
+# ── 6. post-commit-cleanup.sh with abandoned stdin ─────────────────────────
+
+test_hook_abandoned_stdin "post-commit-cleanup.sh/abandoned" "$POSTCOMMIT_SCRIPT" \
+    "abandoned stdin (no writer, no EOF)"
 
 # ============================================================================
 # § Cleanup and results

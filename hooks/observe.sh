@@ -23,6 +23,12 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$_GF_HOOK_DIR/lib/commit-detect.sh"
 # shellcheck source=lib/worktree-resolve.sh
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+# shellcheck source=lib/stdin-read.sh
+# Bounds stdin reads so an abandoned tool call can never hang this hook forever.
+[ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
+if ! command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    gf_read_stdin_timeout() { cat 2>/dev/null; return 0; }
+fi
 
 MODE="${1:-log}"
 TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -131,7 +137,9 @@ if [ "$MODE" = "session" ]; then
     # A bare unquoted `"source":null` never matches the quoted-value pattern, so
     # SESSION_SRC stays empty and the suffix is omitted entirely (W1.6 F-node
     # lesson: never stringify an absent/null field into the journal as "null").
-    SESSION_SRC=$(cat 2>/dev/null \
+    # Bounded read (see hooks/lib/stdin-read.sh) before feeding the payload downstream.
+    _SESSION_INPUT=$(gf_read_stdin_timeout 5)
+    SESSION_SRC=$(printf '%s' "$_SESSION_INPUT" \
         | grep -oE '"source"[[:space:]]*:[[:space:]]*"[a-zA-Z]+"' | head -1 \
         | grep -oE '"[a-zA-Z]+"$' | tr -d '"')
     if [ -n "$SESSION_SRC" ]; then
@@ -178,7 +186,8 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
     printf '%s' "$cmd"
 }
 
-INPUT=$(cat 2>/dev/null)
+# Bounded read (see hooks/lib/stdin-read.sh) so an abandoned tool call can't hang this hook.
+INPUT=$(gf_read_stdin_timeout 5)
 CMD=$(extract_cmd "$INPUT")
 [ -z "$CMD" ] && CMD="$INPUT"
 [ -z "$CMD" ] && exit 0

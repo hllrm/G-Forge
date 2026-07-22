@@ -25,6 +25,11 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$_GF_HOOK_DIR/lib/commit-detect.sh"
 # shellcheck source=lib/worktree-resolve.sh
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+# shellcheck source=lib/stdin-read.sh
+# Guarded — see the fallback at the INPUT= read site below if this is missing.
+if [ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ]; then
+    . "$_GF_HOOK_DIR/lib/stdin-read.sh"
+fi
 
 # deny <reason> — block the commit. Belt-and-suspenders across Claude Code
 # versions: stdout JSON deny + stderr reason + exit 2. Reasons are fixed,
@@ -73,7 +78,26 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
     printf '%s' "$cmd"
 }
 
-INPUT=$(cat)
+# Bounded stdin read (hooks/lib/stdin-read.sh) — an abandoned tool call can
+# leave stdin open with no EOF, hanging a bare `cat` forever (see that file's
+# header for the field-observed 66-minute-orphan case). DECIDED POLARITY,
+# FAIL-OPEN: on timeout, INPUT is empty/partial, extract_cmd() below then
+# yields "", is_git_commit("") is false, and the script falls through its
+# existing exit-0 path (no explicit exit after the `if is_git_commit` block
+# => bash exits 0) — i.e. a stdin stall on THIS layer never blocks the tool
+# call. This is safe because hooks/pre-commit (ADR-004) is the authoritative,
+# payload-independent enforcement at the git level regardless of what this
+# PreToolUse hook saw, and this hook fires on EVERY Bash call, not just
+# commits — fail-closed here would deny arbitrary non-commit commands
+# whenever stdin merely lags. If the shared lib failed to load (missing
+# file/source error), fall back to the original blocking `cat` rather than
+# silently skipping the read, since an unread stdin would mean empty INPUT
+# on every invocation and this layer of the gate would never fire.
+if command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    INPUT=$(gf_read_stdin_timeout 5)
+else
+    INPUT=$(cat)
+fi
 
 CMD=$(extract_cmd "$INPUT")
 # extract_cmd() itself already falls back to a portable sed extraction when

@@ -17,6 +17,8 @@
 _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/worktree-resolve.sh
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+# shellcheck source=lib/stdin-read.sh
+[ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
 
 EVENT="${1:-unknown}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -55,7 +57,13 @@ JOURNAL="$JOURNAL_DIR/$(date -u +%Y-%m-%d).jsonl"
 
 mkdir -p "$GF_CLAUDE_DIR"
 
-INPUT=$(cat)
+# Bounded read (hooks/lib/stdin-read.sh) — a bare `cat` here left this hook
+# orphaned for 66 minutes in the field when stdin had no writer and no EOF.
+if command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    INPUT=$(gf_read_stdin_timeout 5)
+else
+    INPUT=""
+fi
 
 # Extract agent_type / agent_id / (on stop) the leading RESULT: line, from
 # the REAL SubagentStart/SubagentStop payload shape (captured live from this

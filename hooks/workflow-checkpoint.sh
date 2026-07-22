@@ -2,13 +2,6 @@
 # G-Forge workflow checkpoint — UserPromptSubmit hook.
 # Outputs current workflow state so Claude can auto-trigger the right step.
 
-# Consume stdin payload — UserPromptSubmit delivers tool_input JSON here.
-# We don't use it, but reading it prevents broken-pipe edge cases on some shells.
-if [ ! -t 0 ]; then
-    _STDIN_PAYLOAD=$(cat - 2>/dev/null || true)
-    : "${_STDIN_PAYLOAD:=}"
-fi
-
 # Sources shared lib helpers so this hook's project guard and review-sentinel
 # read agree with the ADR-004/005 commit gate (hooks/check-commit.sh,
 # hooks/pre-commit) on how to find the governing .claude/, instead of
@@ -22,6 +15,18 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
 # shellcheck source=lib/sentinel-read.sh
 . "$_GF_HOOK_DIR/lib/sentinel-read.sh"
+# shellcheck source=lib/stdin-read.sh
+[ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
+
+# Consume stdin payload — UserPromptSubmit delivers tool_input JSON here. We
+# don't use it, but reading it prevents broken-pipe edge cases on some
+# shells. Moved below lib-sourcing so it can use the bounded
+# hooks/lib/stdin-read.sh helper instead of a bare blocking `cat`; missing
+# lib degrades to an unset/empty _STDIN_PAYLOAD via the guard below.
+if [ ! -t 0 ]; then
+    _STDIN_PAYLOAD=$(gf_read_stdin_timeout 5)
+    : "${_STDIN_PAYLOAD:=}"
+fi
 
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the checkpoint inert

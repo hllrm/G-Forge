@@ -17,6 +17,8 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$_GF_HOOK_DIR/lib/commit-detect.sh"
 # shellcheck source=lib/worktree-resolve.sh
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+# shellcheck source=lib/stdin-read.sh
+[ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
 
 # Extract the tool command from a PostToolUse JSON payload.
 # Never trust a lone interpreter whose failure we've silenced: probe each
@@ -50,7 +52,13 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
     printf '%s' "$cmd"
 }
 
-INPUT=$(cat)
+# Bounded read (hooks/lib/stdin-read.sh) — a bare `cat` here left this hook
+# orphaned for 66 minutes in the field when stdin had no writer and no EOF.
+if command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    INPUT=$(gf_read_stdin_timeout 5)
+else
+    INPUT=""
+fi
 
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere

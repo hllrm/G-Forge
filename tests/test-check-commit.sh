@@ -4,7 +4,7 @@
 # repo's own .claude/ (an earlier version deleted .claude/integration-tier in
 # the repo root, silently disabling the hooks for the project).
 #
-# Total assertions: 22
+# Total assertions: 25
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
@@ -295,6 +295,58 @@ run "git commit with explicit code pathspec blocked when only doc sentinel prese
     '{"tool_name":"Bash","tool_input":{"command":"git commit hooks/thing.sh -m \"fix: code via pathspec\""}}' \
     2
 rm -f "$DOCS_SENTINEL"
+
+# 23: Abandoned-stdin fixture — timeout mechanism returns within guard window,
+# exits 0 (fail-open polarity), and produces no deny JSON on stdout. This verifies
+# that stdin-read.sh guards against indefinite hangs on orphaned stdin without
+# incorrectly blocking legitimate commits.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+
+START_TIME=$(date +%s%3N)
+OUT=$(bash "$SCRIPT" < <(sleep 300) 2>&1)
+CODE=$?
+END_TIME=$(date +%s%3N)
+ELAPSED=$((END_TIME - START_TIME))
+
+if [ "$CODE" -eq 0 ] && ! printf '%s' "$OUT" | grep -q 'deny'; then
+    if [ "$ELAPSED" -lt 8000 ]; then
+        echo "PASS: stdin timeout (abandoned pipe) — exit 0, no deny, ${ELAPSED}ms <8s"; PASS=$((PASS+1))
+    else
+        echo "FAIL: stdin timeout took ${ELAPSED}ms, expected <8000ms (5s timeout + epsilon)"; FAIL=$((FAIL+1))
+    fi
+else
+    DENY_STATUS=$(printf '%s' "$OUT" | grep -q deny && echo "PRESENT" || echo "absent")
+    echo "FAIL: stdin timeout (exit $CODE, deny $DENY_STATUS) — expected exit 0, no deny"; FAIL=$((FAIL+1))
+fi
+
+# 24: Guard regression — stdin-read.sh timeout wiring must not weaken the gate.
+# Verify that a normal well-formed PreToolUse JSON payload with a git commit
+# (no abandoned stdin) still produces deny behavior, proving the timeout
+# mechanism didn't inadvertently open the gate for legitimate payloads.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+stage "hooks/thing.sh"
+OUT=$(echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: guard regression test\""}}' | bash "$SCRIPT" 2>/dev/null)
+CODE=$?
+if [ "$CODE" -eq 2 ] && printf '%s' "$OUT" | grep -q '"permissionDecision":"deny"'; then
+    echo "PASS: guard regression — normal commit JSON still blocks (exit 2 + deny JSON)"; PASS=$((PASS+1))
+else
+    DENY_STATUS=$(printf '%s' "$OUT" | grep -q deny && echo "present" || echo "ABSENT")
+    echo "FAIL: guard regression — timeout wiring weakened gate (exit $CODE, deny-JSON $DENY_STATUS)"; FAIL=$((FAIL+1))
+fi
+rm -f "$SENTINEL"
+
+# 25: Regression — stdin timeout on non-commit commands must allow pass-through.
+# When stdin is abandoned but the command is not a git commit, the hook should
+# exit 0 (because non-commits always pass). Verify this holds even with timeout.
+rm -f "$SENTINEL" "$DOCS_SENTINEL"
+OUT=$(bash "$SCRIPT" < <(sleep 300) 2>&1)
+CODE=$?
+if [ "$CODE" -eq 0 ]; then
+    echo "PASS: stdin timeout on non-commit command — exit 0 (no sentinel needed)"; PASS=$((PASS+1))
+else
+    echo "FAIL: stdin timeout on non-commit (exit $CODE, expected 0)"; FAIL=$((FAIL+1))
+fi
 
 # Reset the index so any later cases see a clean (empty) staged set.
 stage

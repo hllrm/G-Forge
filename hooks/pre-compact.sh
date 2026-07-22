@@ -3,9 +3,6 @@
 # Fires before context compression. Writes .claude/compact-state.md so the
 # next session can recover context without re-briefing. Must never exit 1.
 
-# Consume stdin to avoid broken pipe (PreCompact may or may not send JSON)
-cat > /dev/null 2>&1
-
 # Sources the shared worktree-resolution lib so the project guard below can
 # resolve a linked worktree's PRIMARY .claude/ the same way check-commit.sh
 # does (ADR-005). Resolved relative to this script's own location so the
@@ -15,6 +12,10 @@ cat > /dev/null 2>&1
 _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/worktree-resolve.sh
 . "$_GF_HOOK_DIR/lib/worktree-resolve.sh"
+
+# Consume stdin to avoid broken pipe (PreCompact may or may not send JSON), bounded so a
+# hung pipe can't stall this non-gating hook — degrades to a no-op drain if the lib is missing.
+[ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh" && gf_read_stdin_timeout 5 > /dev/null
 
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
