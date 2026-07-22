@@ -4,6 +4,10 @@
 # .claude/g-forge-docs-approved) are removed after a git commit.
 # Runs entirely inside a throwaway fixture dir so the suite never mutates
 # the repo's own .claude/ state.
+#
+# Total assertions: 6
+# Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
+# finding-#20 cross-check that catches a suite silently dropping cases.
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/post-commit-cleanup.sh"
 SENTINEL_CODE=".claude/g-forge-approved"

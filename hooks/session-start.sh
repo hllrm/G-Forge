@@ -30,8 +30,11 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # working tree's .claude/ dir and check its integration-tier instead. Any
 # resolution failure or empty result is treated as "not a G-Forge project"
 # and exits silently — this guard is NON-GATING and must never block a
-# session start. GF_CLAUDE_DIR is activation-only here — this hook keeps
-# reading/writing the LOCAL .claude/ below, unchanged.
+# session start. GF_CLAUDE_DIR is the resolved base this hook reads/writes
+# throughout below — tier read and counter reset/preserve alike (W1.6
+# counter-path unification) — not merely activation-only followed by a bare
+# LOCAL .claude/ path; a linked worktree's counters live alongside its
+# resolved primary tree's .claude/, same as the tier read.
 GF_CLAUDE_DIR=$(gf_guard_claude_dir) || exit 0
 
 # Integration tier — mirrors the read idiom in hooks/workflow-checkpoint.sh

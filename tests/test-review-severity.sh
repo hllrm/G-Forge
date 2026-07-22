@@ -6,6 +6,10 @@
 # emits an AXES line; code-lead honours that AXES line; and every auditor's
 # return-block scale matches the shared Critical/Major/Minor vocabulary it feeds.
 # A future edit that reopens the mismatch fails these greps — that's the point.
+#
+# Total assertions: 9
+# Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
+# finding-#20 cross-check that catches a suite silently dropping cases.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PASS=0

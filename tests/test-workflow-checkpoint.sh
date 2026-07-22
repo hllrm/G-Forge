@@ -8,7 +8,7 @@
 # exit-0 contract. Nudges tested: coverage, trim, align, handoff, roundtable,
 # listen mode.
 #
-# Total assertions: 64
+# Total assertions: 66
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
@@ -478,6 +478,16 @@ check_match "tier line: balanced tier" "Tier:.*balanced" "$OUTPUT"
 printf 'light\n' > .claude/integration-tier
 OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
 check_match "tier line: light tier" "Tier:.*light" "$OUTPUT"
+
+# Garbage/corrupted tier file: must default to full (never gate on it — this
+# hook is non-gating) but surface the unrecognized value distinctly instead
+# of silently reading identically to a clean, deliberate "full".
+printf 'garbage\n' > .claude/integration-tier
+OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
+check_match "tier line: unrecognized value defaults to full and surfaces distinctly" \
+    "Tier:.*full (unrecognized value 'garbage' — defaulting)" "$OUTPUT"
+check_exit "tier line: garbage tier value never exits non-zero" 0 \
+    bash -c "printf '{}' | bash '$CHECKPOINT_SCRIPT'"
 
 # ============================================================================
 # § 20. Roundtable heartbeat (M33)

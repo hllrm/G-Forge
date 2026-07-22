@@ -57,8 +57,12 @@ to_int() {
 }
 
 # Integration tier — `full` (default) emits everything; `balanced` skips the
-# auto-trigger advisory; `light` emits only Branch + Tier.
+# auto-trigger advisory; `light` emits only Branch + Tier. _t is kept (not
+# just TIER) so the § Tier line display below can tell "file absent/empty,
+# defaulted to full" apart from "file holds an unrecognized value, defaulted
+# to full" and surface the latter distinctly instead of silently collapsing it.
 TIER="full"
+_t=""
 if [ -f "$GF_CLAUDE_DIR/integration-tier" ]; then
     _t=$(tr -d '[:space:]' < "$GF_CLAUDE_DIR/integration-tier" 2>/dev/null)
     case "$_t" in
@@ -283,8 +287,14 @@ fi
 
 # Tier line — surfaces the integration tier so the LLM knows whether
 # auto-triggers are permitted (only on `full`). `light` already exited above.
+# A garbage/corrupted tier file (non-empty, unrecognized) still defaults TIER
+# to "full" above — but must surface that distinctly here rather than reading
+# identically to a clean, deliberate "full" (missing/empty file, or the
+# literal value "full", both keep the plain line below unchanged).
 if [ "$TIER" = "balanced" ]; then
     echo "  Tier:   balanced — no auto-triggers; invoke skills manually"
+elif [ -n "$_t" ] && [ "$_t" != "full" ] && [ "$_t" != "balanced" ] && [ "$_t" != "light" ]; then
+    echo "  Tier:   full (unrecognized value '$_t' — defaulting)"
 else
     echo "  Tier:   full"
 fi

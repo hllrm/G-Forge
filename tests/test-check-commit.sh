@@ -3,6 +3,10 @@
 # Runs entirely inside a throwaway fixture dir so the suite never mutates the
 # repo's own .claude/ (an earlier version deleted .claude/integration-tier in
 # the repo root, silently disabling the hooks for the project).
+#
+# Total assertions: 22
+# Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
+# finding-#20 cross-check that catches a suite silently dropping cases.
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/check-commit.sh"
 SENTINEL=".claude/g-forge-approved"

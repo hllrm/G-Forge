@@ -38,6 +38,10 @@
 #     survive intact
 #   - an empty commit_sentinel_head value is legitimate (first-commit stamp)
 #     and still yields rc 0
+#
+# Total assertions: 16
+# Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
+# finding-#20 cross-check that catches a suite silently dropping cases.
 
 SUITE_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SUITE_DIR/.." && pwd)"

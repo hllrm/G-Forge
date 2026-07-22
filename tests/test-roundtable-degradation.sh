@@ -4,6 +4,10 @@
 # is byte-identical to before the Roundtable existed (null adapter). These tests pin
 # that — plus the tier gate (off on light) and the bound-Roundtable nudge — inside a
 # throwaway fixture so the repo's own .claude/ is never touched.
+#
+# Total assertions: 5
+# Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
+# finding-#20 cross-check that catches a suite silently dropping cases.
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/workflow-checkpoint.sh"
 PASS=0
