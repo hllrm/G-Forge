@@ -1,7 +1,7 @@
 # M46 — Update Integrity: detect / diagnose / fix split
 
 **Generated:** 2026-07-23
-**Status:** ⬜ Not started
+**Status:** 🔄 In progress (planned + approved 2026-07-23 — 19 tasks / 6 waves / 3-pass split)
 **Version:** v2.4.0 (minor — contract change across two skills + one hook; slots ahead of M41 per developer call 2026-07-23: small, high impact over time — every consumer touches the update path on every release)
 **Goal:** The update path can never silently realign a project from a stale plugin cache, and exactly one skill writes while exactly one diagnoses. Three verbs, three owners, one writer: **detect** (workflow-checkpoint hook) → **diagnose** (/g-doctor, read-only) → **fix** (/g-update, sole writer).
 
