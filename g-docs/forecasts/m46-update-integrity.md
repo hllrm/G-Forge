@@ -34,8 +34,8 @@ Re-scope before approving. Cut the highest-impact items or move to a follow-up m
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | no (git) | Attestation stayed clean throughout — real per-suite runner output at every gate (26/26, 80/80, 13/13, 522/522), HQ-summed totals, task 18's CLAUDE.md row/total (77→80, 493→522) sourced only from the attested tables. No confabulated total shipped. |
+| 2 | yes | no (git) | Wave-3-close repo-wide compare-idiom grep came back clean with one documented WHY-commented exception (checkpoint `sort -V` cache-dir selection). The consolidation held — no divergent compare re-entered. |
+| 3 | yes | no (git) | Wave 4 progress note: "integrity clean." The one Wave-4 friction point (README doc-writer interrupted mid-task) was resolved via the §C resume-not-redeploy carve-out, not a same-file collision/overreach. |
+| 4 | yes | no (git) | Task 10's fixture did hit a real BLOCKED on first attempt, but the cause was a fixture call site missing a `detail` arg tripping a `set -u` crash at line 54 — a plain authoring bug, not the MSYS timestamp-granularity/subprocess-timing false-red/green mechanism this scenario predicted. |
+| 5 | yes | no (journal) | The pre-approved 3-pass split (already the plan's own mitigation) was honored exactly as scheduled — three session-opens (16:23:44, 17:25:43, 19:35:48) align 1:1 with the three planned pass boundaries. No *unplanned* mid-wave handoff was forced, despite one ~55-minute code-lead review running long. |
