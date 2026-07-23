@@ -6,8 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`hooks/lib/semver-compare.sh` — shared sourced-only semver comparison lib.** Provides `gf_semver_compare` function that prints -1/0/1 to compare versions; implements suffix ordering (`2.3.3` < `2.3.3a`); malformed input returns 0 and exits 1 for graceful caller no-op handling. The sole version-ordering contract for all G-Forge components.
+- **`/g-update` Step-0 staleness preflight — marketplace cache version detection.** Checks whether the cached plugin is older than the latest known version; if so, stops with zero writes and prints the version triple (installed / cache / latest) plus a `/plugins` update instruction. Offline degrades to cache-vs-installed comparison; self-hosted dev repo exempt. Prevents silent stale-cache propagation.
+- **`/g-doctor` Check 23 — plugin version lag (advisory).** Reads the version triple via the shared semver lib and recommends `/plugins` vs `/g-update` by update direction; prints an ℹ info line on dev-repo (self-hosted) installations.
+
+### Fixed
+
+- **workflow-checkpoint update nudge now direction-aware (M46).** Previously nudged `/g-update` blindly regardless of cache age; now nudges only when cache is newer than installed, stays silent when equal, and shows "cache lags repo" note when older. Malformed or missing semver lib fails open silently.
+
 ### Changed
 
+- **Update-path contract split across hook, doctor, and updater (M46).** Three verbs, three owners, one writer: detect (workflow-checkpoint hook, read-only) → diagnose (/g-doctor, read-only) → fix (/g-update, sole writer). Closes the `/g-update` diagnostic overlap with `/g-doctor`, establishing a clean detection→diagnosis→remediation pipeline.
 - **M-audit close-swarm pattern edits (/g-patterns, 2026-07-23) — six recurring failure classes promoted from retro observations to shipped rules.** §C agent discipline: record/report files are written with the Write tool, never Bash heredocs (2 permission-layer stalls); whole-surface claims require a whole-file read or exhaustive grep (claim-vs-whole-file ×2); Interrupted ≠ FAILED — a dispatch killed mid-task with context intact is resumed, not discarded (session-limit kill class). `/g-review` Step 1 + §H Tier 1: HQ sums the attestation's per-suite table independently — a summary total disagreeing with its own table is confabulated and the summed table wins (claim-vs-data ×3, mitigation now rule-text). `code-lead` granted Write scoped to review records (both heredoc stalls were code-lead record writes). claude-plugin profile: timing assertions get ≥2× worst-observed MSYS headroom in a named `*_MS` constant (GUARD_WINDOW_MS class). §I: never chain verification commands onto a gated commit invocation (PostToolUse-skip journaling gap).
 
 ## [2.3.0] — 2026-07-23

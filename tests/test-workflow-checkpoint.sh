@@ -6,9 +6,10 @@
 # detection (conversation vs implementation), compaction escalation, milestone-
 # health assembly, worktree-bound sentinel read (ADR-004/005), and non-gating
 # exit-0 contract. Nudges tested: coverage, trim, align, handoff, roundtable,
-# listen mode.
+# listen mode. Direction-aware update-nudge cases (M46 W1 task 5): LATEST
+# newer/equal/older, pinning post-fix semver-comparison behavior.
 #
-# Total assertions: 77
+# Total assertions: 80
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
@@ -775,6 +776,77 @@ rm -rf "$FAKE_HOME" "$FAKE_HOME2" "$FAKE_HOME3"
 
 # Restore fixture's own integration-tier for anything that follows.
 printf 'full\n' > .claude/integration-tier
+
+# ============================================================================
+# § 27. Direction-aware update nudge — semver comparison (M46 W1 task 5)
+# ============================================================================
+#
+# Post-fix (Wave-2 task 4): hook sources hooks/lib/semver-compare.sh and uses
+# direction-aware semver comparison to decide update-line presence:
+# - LATEST newer than INSTALLED → print update nudge line
+# - LATEST equal to INSTALLED → no update line
+# - LATEST older than INSTALLED → no update line + "cache lags repo" note instead
+#
+# These cases PIN that behavior. Case 27.3 (LATEST older) is authored to FAIL
+# against the current (pre-fix) hook, which checks inequality without direction —
+# it would incorrectly print "update available: 0.3.3 → 0.3.1" (backwards nudge).
+# After Wave-2 task 4 lands, case 27.3 will PASS. Cases 27.1 and 27.2 PASS
+# both pre- and post-fix (though pre-fix for different reasons: inequality vs
+# semver-newer).
+
+echo "§ 27. Direction-aware update nudge"
+
+# Setup fresh fixture
+FAKE_HOME_DIR_NEW="$(mktemp -d)"
+mkdir -p "$FAKE_HOME_DIR_NEW/.claude"
+touch "$FAKE_HOME_DIR_NEW/.claude/g-forge-check-stamp"
+
+# 27.1 LATEST newer than INSTALLED — update line present
+# Pre-fix: inequality check catches this → update line prints ✓
+# Post-fix: semver-newer check catches this → update line prints ✓
+mkdir -p "$FAKE_HOME_DIR_NEW/.claude/plugins/cache/g-forge/g-forge/0.3.3/.claude-plugin"
+printf '{"name":"g-forge","version":"0.3.3"}' > "$FAKE_HOME_DIR_NEW/.claude/plugins/cache/g-forge/g-forge/0.3.3/.claude-plugin/plugin.json"
+printf '0.4.0\n' > "$FAKE_HOME_DIR_NEW/.claude/g-forge-latest-version"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME_DIR_NEW" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+check_match "27.1: LATEST newer (0.3.3 → 0.4.0) — update line present" \
+    "g-forge update available: 0\\.3\\.3 → 0\\.4\\.0" "$OUTPUT"
+
+# 27.2 LATEST equal to INSTALLED — no update line
+# Pre-fix: inequality check rejects (equal) → no line ✓
+# Post-fix: equal check rejects → no line ✓
+printf '0.3.3\n' > "$FAKE_HOME_DIR_NEW/.claude/g-forge-latest-version"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME_DIR_NEW" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+if printf '%s' "$OUTPUT" | grep -q "update available"; then
+    echo "FAIL: 27.2 — equal versions should not show update line"; FAIL=$((FAIL+1))
+else
+    echo "PASS: 27.2 — equal versions (0.3.3 == 0.3.3) show no update line"; PASS=$((PASS+1))
+fi
+
+# 27.3 LATEST older than INSTALLED — FAIL-BEFORE/PASS-AFTER pin
+# Pre-fix: inequality check catches (0.3.1 != 0.3.3) → prints backwards "update available: 0.3.3 → 0.3.1" ✗ THIS FAILS
+# Post-fix: semver-older check detects direction → no update line + "cache lags repo" note ✓
+# This case is authored to RED/FAIL pre-fix; HQ captures this as fail-before evidence.
+printf '0.3.1\n' > "$FAKE_HOME_DIR_NEW/.claude/g-forge-latest-version"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME_DIR_NEW" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+
+# Pre-fix expectation: this SHOULD FAIL (update line wrongly present)
+if printf '%s' "$OUTPUT" | grep -q "update available: 0\\.3\\.3 → 0\\.3\\.1"; then
+    # This is the EXPECTED FAIL pre-fix (backwards update nudge)
+    echo "FAIL: 27.3 — LATEST older (0.3.3 > 0.3.1) — update line wrongly present (expected to fail pre-fix, pass post-fix after semver-compare.sh lands)"
+    FAIL=$((FAIL+1))
+else
+    # Post-fix expectation: no update line + cache-lags-repo note
+    if printf '%s' "$OUTPUT" | grep -q "cache lags repo"; then
+        echo "PASS: 27.3 — LATEST older (0.3.1 < 0.3.3) — no update line, 'cache lags repo' note present (post-fix behavior)"
+        PASS=$((PASS+1))
+    else
+        # Neither update line nor note — this means neither the pre-fix bug nor post-fix fix is in place
+        echo "FAIL: 27.3 — LATEST older (0.3.1 < 0.3.3) — neither update line nor 'cache lags repo' note present (unexpected state)"
+        FAIL=$((FAIL+1))
+    fi
+fi
+
+rm -rf "$FAKE_HOME_DIR_NEW"
 
 # ============================================================================
 # § Cleanup and results

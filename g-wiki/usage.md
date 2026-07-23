@@ -219,7 +219,7 @@ Read `ROADMAP.md` first — the `## Active Session` block has everything for a c
 | Need | Command |
 |------|---------|
 | Where am I? | `/g-forge status` (fast snapshot) or `/g-forge help` (with guidance) |
-| Health check | `/g-forge doctor` (22-point verification) |
+| Health check | `/g-forge doctor` (23-point verification) |
 | Plugin update | `/g-forge update` (pull latest + realign project files) |
 | Pause auto-triggers | `/g-forge tier balanced` (state info only, no auto-trigger) |
 | Unattended run | `/g-forge afk` (all pending waves + review, no check-ins) |

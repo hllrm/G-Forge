@@ -57,11 +57,11 @@ When in doubt, classify as New capability. One PM challenge costs nothing; bypas
 
 | Skill | Purpose |
 |-------|---------|
-| `/g-update` | Pull latest plugin from GitHub, realign all G-Forge-managed project files |
+| `/g-update` | Staleness preflight then realign — stops with zero writes on stale cache |
 | `/g-brief` | Refresh `g-docs/project_brief.md` from the current conversation |
 | `/g-status` | One-shot snapshot: branch, active milestone, next task |
 | `/g-help` | Context-aware help — reads project state and detects workflow phase |
-| `/g-doctor` | Health check: missing files, broken hooks, config drift, sentinel state |
+| `/g-doctor` | Read-only health detect+diagnose incl. plugin version lag |
 | `/g-listen` | Enter Tier 3 listen mode for smoke test collection |
 | `/g-retro` | Synthesize a session retrospective from the silent-observer journal — no interview; reads `.claude/journal/`, git, and g-docs/todo.md |
 | `/g-resume` | Re-hydrate a fresh session — selectively pull the relevant retro, ADRs, journal, and handoff into a clean window, then point at the first task. The read side of the §A7 reset |

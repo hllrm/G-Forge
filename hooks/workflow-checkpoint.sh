@@ -17,6 +17,8 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$_GF_HOOK_DIR/lib/sentinel-read.sh"
 # shellcheck source=lib/stdin-read.sh
 [ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
+# shellcheck source=lib/semver-compare.sh
+[ -f "$_GF_HOOK_DIR/lib/semver-compare.sh" ] && . "$_GF_HOOK_DIR/lib/semver-compare.sh"
 
 # Consume stdin payload — UserPromptSubmit delivers tool_input JSON here. We
 # don't use it, but reading it prevents broken-pipe edge cases on some
@@ -432,8 +434,23 @@ if [ -f "$INSTALLED_MANIFEST" ]; then
 
     if [ -f "$VERSION_CACHE" ]; then
         LATEST_VER=$(cat "$VERSION_CACHE")
-        if [ -n "$LATEST_VER" ] && [ "$LATEST_VER" != "$INSTALLED_VER" ]; then
-            echo "  ⚡ g-forge update available: $INSTALLED_VER → $LATEST_VER — run /g-update to pull and sync"
+        # Direction-aware comparison (M46 W2 task 4) — gf_semver_compare tells
+        # LATEST vs INSTALLED apart instead of a bare inequality, which fires
+        # backwards ("2.3.0 → 2.2.1") whenever the async-fetched cache lags
+        # behind the installed copy (e.g. right after a dev-repo release push,
+        # before the next daily GitHub fetch catches up). Malformed input or a
+        # missing lib both degrade to printing nothing — this hook is
+        # non-gating and must never surface a wrong-direction nudge.
+        if [ -n "$LATEST_VER" ] && command -v gf_semver_compare >/dev/null 2>&1; then
+            _GF_VER_CMP=$(gf_semver_compare "$LATEST_VER" "$INSTALLED_VER")
+            _GF_VER_CMP_RC=$?
+            if [ "$_GF_VER_CMP_RC" -eq 0 ]; then
+                if [ "$_GF_VER_CMP" -eq 1 ]; then
+                    echo "  ⚡ g-forge update available: $INSTALLED_VER → $LATEST_VER — run /g-update to pull and sync"
+                elif [ "$_GF_VER_CMP" -eq -1 ]; then
+                    echo "  ℹ g-forge cache ($INSTALLED_VER) is ahead of GitHub ($LATEST_VER) — dev repo: cache lags repo after release push"
+                fi
+            fi
         fi
     fi
 fi

@@ -79,7 +79,7 @@ Seven shell scripts registered in `.claude/settings.json` keep Claude oriented a
 
 The hooks are the reason you don't have to type commands for the day-to-day loop. Claude sees the state on every message and responds to it.
 
-They're registered in exactly one place — your project's `.claude/settings.json`, by `/g-init` (and realigned by `/g-update`) — **not** the plugin manifest, so they never double-fire. Each script also self-guards on `.claude/integration-tier`, so it stays completely inert in any repo that hasn't run `/g-init`: no commit gate, no output, nothing. `/g-doctor` flags any accidental duplicate registration.
+They're registered in exactly one place — your project's `.claude/settings.json`, by `/g-init` (and realigned by `/g-update`) — **not** the plugin manifest, so they never double-fire. Each script also self-guards on `.claude/integration-tier`, so it stays completely inert in any repo that hasn't run `/g-init`: no commit gate, no output, nothing. `/g-doctor` diagnoses issues read-only (Check 23 flags plugin version lag, directing to `/plugins` or `/g-update` by direction) and detects any accidental duplicate registration.
 
 ### 6. The silent observer
 
@@ -125,22 +125,16 @@ Then open the desktop app or IDE extension as normal — the agents and skills w
 
 Run `/g-forge update` inside any project that uses G-Forge. It does everything in one pass:
 
-1. Compares the installed cache version against GitHub
-2. `git pull`s the plugin cache if behind
-3. Syncs all project-level files (hooks, CLAUDE.md rules, G-RULES.md, architect agents, architecture rules) to the new version
+1. **Staleness preflight** (Step 0) — compares the plugin cache version against GitHub latest. If the cache is behind, `/g-update` **stops with zero writes** and directs you to `/plugins` → Installed → g-forge → Update now — then re-run `/g-update` to sync once the cache is current.
+2. Syncs all project-level files (hooks, CLAUDE.md rules, G-RULES.md, architect agents, architecture rules) to the current cache version.
 
-G-Forge also checks for updates automatically. The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
+The `workflow-checkpoint.sh` hook fetches the latest version from GitHub once per day (background, zero latency) and surfaces a notice in every session until you update:
 
 ```
 ⚡ G-Forge update available: 2.0.0 → 2.1.0 — run /g-update to pull and sync
 ```
 
-If `/g-update`'s git pull fails (cache is not a git clone), it will tell you to reinstall manually:
-
-```bash
-/plugin marketplace add hllrm/g-forge
-/plugin install g-forge
-```
+For a read-only diagnosis of version alignment at any time (not just before a sync) — including which leg is behind and why — run `/g-doctor` Check 23. It never writes and points at the right direction (`/plugins` or `/g-update`).
 
 #### Load per-session (without installing)
 
@@ -239,7 +233,7 @@ Project hygiene:
 /g-forge brief →   refresh g-docs/project_brief.md as project evolves
 /g-forge help  →   where am I + what to do next
 /g-forge status →   fast state snapshot
-/g-forge doctor →   verify hooks, settings, rules block, milestone alignment
+/g-forge doctor →   verify hooks, settings, rules block, and drift — 23 checks (16 required + 7 advisory)
 /g-forge update →   pull latest G-Forge rules into this project
 ```
 
@@ -291,7 +285,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-forge help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-forge status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-forge resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-forge doctor` | 22-point health check (16 required + 6 advisory): 7 hooks + 4 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection — ✓/✗/⚠ with fix instructions |
+| `/g-forge doctor` | 23-point health check (16 required + 7 advisory): 7 hooks + 4 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, and plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction) — ✓/✗/⚠/ℹ with fix instructions |
 | `/g-forge kickoff` | Interview → scope challenge → stack deep dive → g-docs/project_brief.md |
 | `/g-forge onboard` | Read existing repo → present findings → interview → optional architecture audit → g-docs/project_brief.md |
 | `/g-forge roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → g-docs/ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
@@ -304,7 +298,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-forge execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-forge review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
 | `/g-forge doc-review` | Standalone documentation-review gate — own verdict (DOCS READY / DOCS HOLD), distinct from code review. Read-only `doc-reviewer` lens: accuracy-vs-code, currency (docs that contradict the code), completeness (public exports, README sections, env vars, ADR/CHANGELOG coverage), clarity. Gates doc-only and mixed commits; may recommend `/g-docs`, never writes |
-| `/g-forge update` | Pull latest plugin from GitHub, then realign all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the new version |
+| `/g-forge update` | **Staleness preflight** — verifies plugin cache is current (if not, stops with zero writes and directs to `/plugins`); then realigns all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the current version. Self-host mode skips preflight. For read-only version diagnosis, see `/g-doctor` Check 23. |
 | `/g-forge afk` | Autonomous milestone executor — runs all pending waves + review unattended. Requires approved plan. Safety net blocks remote push, recursive delete, and publish commands. Structured cycle-break report on any stop. |
 | `/g-forge listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
 | `/g-forge skill-design` | Design a new G-Forge skill from scratch — requirements gathering, step drafting, SKILL.md (the sole authored source, ADR-007) + bare-token router line |
@@ -552,11 +546,12 @@ Auto-triggers:  — no g-docs/ROADMAP.md exists in the project
 /g-forge status Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-forge doctor 22-point health check (16 required, 6 advisory) — 7 hooks + 4 lib
+/g-forge doctor 23-point health check (16 required, 7 advisory) — 7 hooks + 4 lib
                      scripts + native pre-commit hook installed and registered in
                      settings.json, G-Forge Rules block, G-RULES.md present and
-                     referenced, no stale sentinel, installed-copy drift detection
-                     Reports ✓/✗/⚠ per check with fix instructions
+                     referenced, no stale sentinel, installed-copy drift detection,
+                     plugin version lag
+                     Reports ✓/✗/⚠/ℹ per check with fix instructions
 ```
 
 ### Planning a feature

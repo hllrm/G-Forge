@@ -1,6 +1,6 @@
 ---
 name: g-update
-description: Realign all G-Forge-managed files in this project to the current plugin version. Updates the G-Forge Rules block in CLAUDE.md, all installed architect and implementer agents, all installed architecture rules, all G-Forge hooks and their shared hooks/lib/ scripts, and the native git pre-commit gate. Safe — only touches content between G-Forge markers.
+description: Fix G-Forge-managed files via Step 0 staleness preflight (stops with zero writes if cache lags GitHub, directs to `/plugins` first), then realigns CLAUDE.md Rules, agents, architecture rules, hooks, and native pre-commit gate. Safe — G-Forge markers only.
 ---
 
 **Announce:** "Using g-update to pull the latest plugin from GitHub and realign project files."
@@ -9,35 +9,54 @@ You are first updating the plugin cache from GitHub, then syncing G-Forge-manage
 
 ---
 
-## Step 0 — Check plugin version
+## Step 0 — Staleness preflight
 
 **Self-host detection:** root `.claude-plugin/plugin.json` exists AND its `name` matches the plugin's own name (`g-forge`) → the source root flips from the plugin cache to the working tree (self-host mode); every plugin-cache Glob below resolves through this detected source root instead. Consumer projects (no root `.claude-plugin/plugin.json`) are structurally unaffected — detection cannot fire there, and the plugin-cache path is the fallback branch, unchanged.
 
 Check this now, before anything else in this skill. Read `.claude-plugin/plugin.json` at the project root (the working tree you are running in — not the cache) if it exists, and compare its `name` field. Store the result as **self-host mode: on/off** — every step below that references `[plugin-root]` or "the plugin cache" uses this result.
 
-- **Self-host mode on:** report `✓ Self-host mode detected — working tree is source, skipping cache version check.` and skip directly to Step 1 (which sets `[plugin-root]` to the project root, no Glob needed). Items 1–4 below do not apply — there is no separate cache copy to be behind GitHub.
-- **Self-host mode off (fallback branch — every consumer project):** proceed with the version check below, exactly as before.
+- **Self-host mode on:** report `✓ Self-host mode detected — working tree is source, skipping cache version check.` and skip directly to Step 1 (which sets `[plugin-root]` to the project root, no Glob needed). The staleness preflight below does not apply to self-host mode at all — there is no separate cache copy that can be behind GitHub; the working tree IS the source.
+- **Self-host mode off (fallback branch — every consumer project):** run the staleness preflight below before anything else in this skill.
 
-1. Fetch the latest version from GitHub:
-   ```bash
-   curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
+### The staleness preflight (consumer projects only)
+
+`/g-update` cannot update the plugin cache itself — the cache is owned by Claude Code's plugin manager (`/plugins`), not by this skill. If the cache is behind GitHub, syncing this project from it would silently install OLD files into the project while reporting success. This preflight exists to catch that *before* any write happens.
+
+1. **Resolve the version triple:**
+   - **Cache version** — Glob `~/.claude/plugins/cache/g-forge/g-forge/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract the version. If nothing is found, there is no cache to be stale — report so and continue to Step 0a (Step 1 will report the missing-plugin error).
+   - **GitHub latest version** — fetch it:
+     ```bash
+     curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
+     ```
+   - **Project-installed version** — what this project's G-Forge-managed files were last synced from. There is currently no version stamp recorded anywhere in the project (Step 2's inventory records file/block *presence*, not a version number) — report this as `unknown` unless a future manifest resolves it.
+
+2. **Cache found + GitHub reachable — compare cache vs. GitHub latest:**
+   - **Cache ≥ GitHub latest:** report `✓ Plugin cache already at latest (v[cache]) — proceeding with project sync.` and continue to Step 0a.
+   - **Cache < GitHub latest — STOP. Zero writes to the project this run.** Report the full version triple and stop *before* Step 0a or any later step runs — no file in this project is read for writing, no CLAUDE.md/agent/hook/rules content is touched:
+     ```
+     ⚠ Cannot sync — plugin cache is behind GitHub (v[cache] installed, v[latest] available).
+       Project-installed version: v[installed-or-unknown]
+
+     /g-update cannot fix this itself — it only syncs this project from the cache, and the
+     cache is behind. Syncing now would silently install OLD files into this project.
+
+     Update the plugin cache first:
+       /plugins  →  Installed  →  g-forge  →  Update now
+
+     Then re-run /g-update to sync your project files.
+     ```
+     For a standalone, read-only diagnosis of version alignment at any time (not just before a sync) — including which side is behind and why — see `/g-doctor` Check 23. This gate only decides whether *this run* may write.
+
+3. **GitHub unreachable (curl fails) — degrade loudly, never silently proceed:**
    ```
-   If curl fails (no network, timeout), report: "⚠ Could not reach GitHub — skipping version check, syncing from installed cache." and continue to Step 1.
+   ⚠ GitHub unreachable — cannot confirm the cache is current.
+     Cache version:              v[cache]
+     Project-installed version:  v[installed-or-unknown]
 
-2. Find the installed version: Glob `~/.claude/plugins/cache/g-forge/g-forge/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract the version. If nothing found, continue to Step 1.
-
-3. If versions match: report `✓ Plugin already at latest (v[version]) — proceeding with project sync.` and continue to Step 1.
-
-4. If they differ, stop immediately:
+   Proceeding from a cache-vs-installed comparison only — this cannot detect a stale cache.
+   If you suspect the cache is behind, update it via /plugins before trusting this sync.
    ```
-   ⚠ Plugin is at v[installed] — v[latest] is available.
-
-   Update it first:
-     /plugin  →  Installed  →  g-forge  →  Update now
-
-   Then re-run /g-update to sync your project files.
-   ```
-   Do not proceed to Step 1.
+   Continue to Step 0a and the rest of the skill, comparing the project's installed content against the cache only, exactly as Steps 2–7 already do.
 
 ---
 
@@ -311,4 +330,5 @@ If nothing needed updating (all content already matched): "All G-Forge-managed c
 - Never run without developer confirmation from Step 2.
 - If the plugin root cannot be found, stop and tell the developer.
 - Step 0's self-host detection is the single source-root resolution point — `[plugin-root]` is set once (Step 0/1) and reused everywhere; never hardcode `~/.claude/plugins/cache/...` outside that fallback branch.
+- Step 0's staleness preflight gates every write below it on consumer projects — a stale cache (cache < GitHub latest) means zero project writes this run; only `/plugins` can fix a stale cache, never this skill. Never sync a project against a cache known to be behind GitHub.
 - Read the plugin files fresh each time — never use cached or assumed content.

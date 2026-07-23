@@ -1,13 +1,13 @@
 ---
 name: g-doctor
-description: Health check for G-Forge project setup. Verifies all 7 hooks installed and registered in settings.json (and not double-registered by the plugin manifest), G-Forge Rules block in CLAUDE.md, G-RULES.md present and referenced, no stale sentinel, and no installed-copy drift (hashes the installed hooks, hooks/lib/ scripts, native pre-commit hook, g-rules section files, and installed agents — under a three-class rule — against plugin source to catch silently stale copies). Also vets the .gitignore (runtime artifacts ignored, project record tracked), flags stray G-Forge documents living outside g-docs/, and checks CLAUDE.md for inline rules bloat. Reports ✓/✗/⚠ per check with fix instructions.
+description: Read-only health diagnostics for G-Forge projects — 23 checks including hook registration, installed-copy drift, and Check 23 plugin-version-lag. Recommends `/plugins` or `/g-update` by direction. Never writes.
 ---
 
 **Announce:** "Using g-doctor to check project health."
 
 ## Step 1 — Run all checks
 
-Run all 22 checks below against the current working directory, then output the report in the exact format specified. Checks 1–16 are required (✓/✗). Checks 17–21 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total. Check 22 (Roundtable security) is advisory/conditional — it only runs when a Roundtable is bound.
+Run all 23 checks below against the current working directory, then output the report in the exact format specified. Checks 1–16 are required (✓/✗). Checks 17–21 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total. Check 22 (Roundtable security) is advisory/conditional — it only runs when a Roundtable is bound. Check 23 (plugin version lag) is advisory (✓/⚠/ℹ).
 
 ### Checks
 
@@ -246,6 +246,30 @@ grep -qiE '^(token|secret|password|api[_-]?key)=' .claude/roundtable 2>/dev/null
 - Advisory (secret in bind record): 🔴 A credential is stored in `.claude/roundtable` — move it to an environment variable and remove the line. Never commit a token.
 - Advisory (always, reminder): the bound Doc must be **link-restricted, never public** — `/g-roundtable` enforces this at bind, but confirm sharing hasn't been widened since.
 
+**23. Plugin version lag** (advisory)
+Resolve the same version triple `/g-update`'s Step 0 staleness preflight resolves, read-only — this check never writes anything and never runs `/g-update` itself, it only diagnoses and points at the right direction:
+- **GitHub latest** — fetch it, same idiom `/g-update` Step 0 already uses:
+  ```bash
+  curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
+  ```
+  If `curl` fails (offline), mark this leg `unreachable` and degrade gracefully — do not fail the check, compare only the legs you have.
+- **Cache version** — Glob `~/.claude/plugins/cache/g-forge/g-forge/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract `version`. If nothing is found, there is no cache to compare — treat as `unknown`.
+- **Project-installed version** — the same signal Check 16's drift comparison is already built on: if this project is self-hosting the plugin (root `.claude-plugin/plugin.json` exists and its `name` is `g-forge` — the same self-host detection `/g-update` Step 0 runs), read its `version` field directly. Otherwise, this project has no version stamp recorded anywhere in its installed copies (the same gap `/g-update` Step 0 documents) — report `unknown`.
+- **Compare — source every ordering from `hooks/lib/semver-compare.sh`'s `gf_semver_compare`, never hand-roll version ordering.** Source the lib and call it for each pair you have both legs for:
+  ```bash
+  . hooks/lib/semver-compare.sh   # or [plugin-root]/hooks/lib/semver-compare.sh
+  gf_semver_compare "$cache_version" "$latest_version"
+  ```
+  `gf_semver_compare A B` prints `-1`/`0`/`1` (A older/equal/newer than B) to stdout. On malformed input it prints `0` and returns exit status 1 — treat that as "cannot compare" for that pair, not as "equal", and report it as such rather than asserting alignment.
+- Pass (all resolvable legs aligned, i.e. every comparison returns `0`): ✓ Plugin versions aligned — cache v[cache], installed v[installed-or-unknown]
+- Advisory (cache < GitHub latest): ⚠ Plugin cache is stale — v[cache] installed, v[latest] available
+  → Update the cache first: `/plugins` → Installed → g-forge → Update now — then run `/g-update` to sync this project.
+- Advisory (installed < cache): ⚠ Project files are behind the plugin cache — v[installed-or-unknown] installed, v[cache] in cache
+  → Run `/g-update` to realign this project's G-Forge-managed files.
+- Info (cache > GitHub latest): ℹ Plugin cache (v[cache]) is ahead of the GitHub latest release (v[latest]) — expected on the plugin source repo when work is committed but not yet released; not actionable.
+- Advisory (GitHub unreachable): ⚠ Could not reach GitHub — staleness cannot be ruled out. Comparing cache (v[cache]) vs. installed (v[installed-or-unknown]) only.
+- Advisory (a comparison returned "cannot compare"): ⚠ [leg] version string is malformed — cannot compare against [other leg]
+
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook, rules, and document-layout infrastructure only.
 
 ## Step 2 — Output the report
@@ -299,6 +323,8 @@ G-Forge Doctor ─────────────────────�
     [→ fix instruction if advisory]
   [✓/⚠ line for check 22]
     [→ fix instruction if advisory]
+  [✓/⚠/ℹ line for check 23]
+    [→ fix instruction if advisory]
 ────────────────────────────────────────────────
 [N/16 required checks passed]
 ```
@@ -312,7 +338,8 @@ After the summary count line, add one blank line, then:
 
 ## Rules
 
-- Checks 1–16 are required (✓/✗) and count toward the pass/fail total; checks 17–21 are advisory (✓/⚠) and never count toward it; check 22 is advisory and runs only when `.claude/roundtable` exists.
+- Checks 1–16 are required (✓/✗) and count toward the pass/fail total; checks 17–21 are advisory (✓/⚠) and never count toward it; check 22 is advisory and runs only when `.claude/roundtable` exists; check 23 is advisory (✓/⚠/ℹ) and never counts toward the total.
+- Check 23 (plugin version lag) is read-only diagnosis — it must never write a file, and it must never invoke `/g-update` or `/plugins` itself, only recommend the right one by direction. Version ordering is always sourced from `hooks/lib/semver-compare.sh`'s `gf_semver_compare` — never hand-rolled.
 - Every failing or advisory check must include a `→ ` fix instruction, indented four spaces — never leave a fail/advisory line unexplained.
 - Hash comparisons use the portable `hash_file` cascade (`sha256sum` → `shasum -a 256` → `cksum`) so the check works across platforms.
 - Installed-agent drift (check 16) classifies each `.claude/agents/` file into one of three provenance classes — profile-copied, template-instantiated, or project-local — before applying that class's rule; never apply one rule to all three.
