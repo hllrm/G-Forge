@@ -1,7 +1,7 @@
 # M34 — Cross-session dependency tracking & pull/push orchestration
 
 **Status:** ⬜ Not started (scoped, awaiting go) — **hard-depends on M29** (register)
-**Version:** ships its own minor once M29 lands (v2.4.0+ arc)
+**Version:** ships its own minor once M29 lands (late-2.x arc — see ROADMAP Version Plan)
 **Depends on:** **M29** (claim/lease register — the substrate that carries claims) · **M33** (the Roundtable — the surface that renders the graph and the suggestions). Degrades cleanly to today's single-session flow when neither is configured.
 
 ## Goal

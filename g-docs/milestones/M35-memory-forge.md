@@ -1,7 +1,7 @@
 # M35 — Memory Forge (deep memory layer + optional Obsidian surface)
 
 **Status:** ⬜ Not started (scoped at roadmap level; `/g-plan` decomposes at start)
-**Version:** v2.4.0 (minor — new user-facing capability)
+**Version:** v2.9.0 (minor — new user-facing capability; synced 2026-07-23 to ROADMAP after M45+M46 insertions)
 **Goal:** The distilled durable record (retros, ADRs, handoff, brief, journal) becomes a *linked, layered, queryable* memory that `/g-resume` hydrates precisely and task-specifically — Obsidian-compatible by convention, never Obsidian-dependent.
 **Depends on:** M29 (shared-layer design only — single-session value stands alone); M-audit-2026-07 (enforcement substrate stable first).
 

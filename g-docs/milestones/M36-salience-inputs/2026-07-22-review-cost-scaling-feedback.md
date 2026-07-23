@@ -1,7 +1,7 @@
 # Field feedback — review-pipeline cost scaling + code-lead orchestration shape
 
 **Date:** 2026-07-22 (developer, at W3 review gate — mid code-lead run)
-**Status:** TRIAGED 2026-07-23 (`/g-intake` → developer chose roadmap slot). Outcome: **new M45 — Review Pipeline Rework, v2.5.0, sequenced M41 → M45 → M42** (the M38/M39 hint below did not survive contact with their actual scopes — outbound reporter / interview skill, neither owns review mechanics). Depth-by-change-class routed to M36 first-consumer contract + M37 propagation; stdin-hang piece shipped v2.3.0; record-write structural answer = M45 design-ADR question. Downstream versions renumbered +1 minor (M42 v2.6.0 … M43 v2.14.0).
+**Status:** TRIAGED 2026-07-23 (`/g-intake` → developer chose roadmap slot). Outcome: **new M45 — Review Pipeline Rework, v2.5.0, sequenced M41 → M45 → M42** (the M38/M39 hint below did not survive contact with their actual scopes — outbound reporter / interview skill, neither owns review mechanics). Depth-by-change-class routed to M36 first-consumer contract + M37 propagation; stdin-hang piece shipped v2.3.0; record-write structural answer = M45 design-ADR question. Downstream versions renumbered +1 minor (M42 v2.6.0 … M43 v2.14.0). *(Numbers as of triage date; superseded same day by the M46 insertion — M45 now v2.6.0, see ROADMAP Version Plan for current.)*
 **Triage:** done — see ROADMAP M45 entry.
 
 ## The observation (developer, verbatim gist)
