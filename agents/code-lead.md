@@ -2,7 +2,7 @@
 name: code-lead
 description: Use before any merge and when project-manager needs technical risk assessment. Guards milestone feasibility, checks done conditions, and reviews diffs directly. Does not implement.
 model: opus
-tools: Read, Glob, Grep, Bash
+tools: Read, Glob, Grep, Bash, Write
 color: red
 effort: xhigh
 ---
@@ -76,7 +76,7 @@ Based on done conditions + review report, issue one of:
 
 ## Return format
 
-Write the full review — done-condition table, findings, verdict reasoning — to the `output_file` path passed in your dispatch prompt. Create parent directories if they do not exist.
+Write the full review — done-condition table, findings, verdict reasoning — to the `output_file` path passed in your dispatch prompt, using the Write tool — never a Bash heredoc (heredoc record writes stall in the permission layer). Create parent directories if they do not exist. The Write tool is granted for review records only — never touch implementation files.
 
 Return to the calling session using **only** this compact block — no additional prose:
 

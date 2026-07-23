@@ -4,7 +4,7 @@
 
 **Tier 1 — Automated Gates** (Claude owns · blocking on every commit)
 Lint · type-check · unit tests · build verification. Any red = stop, do not commit, report and fix first.
-An agent reporting tests "written" or "done" is **not** evidence they pass — `test-writer` has no execution tool; it authors, it never verifies. Tier-1 green requires an **actual run with pasted output** (framework + pass/fail counts); MERGE READY is blocked until a real run is green. Whoever holds the execution tool runs the suite and owns the verdict (M-audit finding #20).
+An agent reporting tests "written" or "done" is **not** evidence they pass — `test-writer` has no execution tool; it authors, it never verifies. Tier-1 green requires an **actual run with pasted output** (framework + pass/fail counts); MERGE READY is blocked until a real run is green. Whoever holds the execution tool runs the suite and owns the verdict (M-audit finding #20). HQ sums the runner's per-suite table independently before accepting any total — a summary total disagreeing with its own table is confabulated; the summed table wins.
 
 **Tier 2 — Tooling-Assisted** (Claude runs when infrastructure exists)
 E2E, integration, contract tests. If infrastructure is missing and the task touches a critical path, flag the gap explicitly — never silently skip.

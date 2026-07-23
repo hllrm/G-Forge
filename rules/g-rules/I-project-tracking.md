@@ -48,7 +48,7 @@ Three hook scripts installed by `/g-init` under `.claude/hooks/`:
 - **`post-commit-cleanup.sh`** (PostToolUse) — deletes `.claude/g-forge-approved` after each successful commit. The gate resets automatically.
 - **`workflow-checkpoint.sh`** (UserPromptSubmit) — reads branch, milestone, review state, and Tier 3 listen mode on every prompt. Output appears as a system reminder at the top of each turn.
 
-Never bypass the commit gate with `--no-verify` or by manually writing the sentinel.
+Never bypass the commit gate with `--no-verify` or by manually writing the sentinel. Never chain verification commands onto a gated commit invocation — a failed trailing step makes PostToolUse skip, leaving the commit unjournaled.
 
 ### The handoff lives in g-docs/ROADMAP.md
 

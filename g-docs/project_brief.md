@@ -33,7 +33,8 @@ Shipped at **M15 / v1.0.0**: the end-to-end enforced loop — `/g-kickoff` → `
 | M1–M15 — Foundation → v1.0 | Agent roster, skills/orchestration, stack profiles, commit enforcement, intelligence (patterns/forecast/telemetry) | The enforced-PM MVP and its self-improvement loop |
 | M23 — Production audit → v2.0.0 | Hardening, self-guarded hooks, rename pass | Make it shippable and safe to install anywhere |
 | M27–M28 → v2.1–2.2 | Doc-review gate; `g-docs/` as canonical committed home | Docs gated like code; one tracking home |
-| M29 — the register *(next build)* | Claim/lease substrate for concurrent sessions | The collision-avoidance substrate the whole multiplayer arc stands on |
+| M46→M41→M45→M42 — process-integrity tranche *(current)* | Update integrity · release machinery + README currency · review-pipeline rework · cold-start | Incident-anchored hardening; recorded as override below, queue closed |
+| M29 — the register *(queued, after the tranche)* | Claim/lease substrate for concurrent sessions | The collision-avoidance substrate the whole multiplayer arc stands on |
 | M33 — the Roundtable *(built, Phase A)* | Shared-doc human communication layer (`/g-roundtable`) | The cooperation arc's human-facing interface; dual-surface validated (Confluence/Gmail) |
 | M34 — cross-session orchestration *(scoped)* | Dependency graph + pull/push suggestions (advised) | The arc's spine: run G-Forge orchestration across many sessions/users |
 | M30–M32 *(provisional)* | Membership · handoff · reconciliation | Consequences of M34's graph; reconcile against it |
@@ -62,6 +63,7 @@ Shipped at **M15 / v1.0.0**: the end-to-end enforced loop — `/g-kickoff` → `
 - **Positioning locked as "educated, enforced project management"** — context/hallucination control + the hard commit gate are the distinguishing capabilities (validated by deep research).
 - **Empowerment over automation** — recurring developer directive: the human is the most valuable part of the loop; reject anything that reads as replacing them.
 - **Multiplayer arc, human-first** — humans orchestrate; the Roundtable surfaces and records; the orchestrator seat is always human (ADR-002).
+- **Pre-arc process-integrity tranche (recorded 2026-07-23, /g-align follow-up)** — M46 (Update Integrity, v2.4.0) → M41 (Release Machinery + README Currency) → M45 (Review Pipeline Rework) → M42 precede the multiplayer arc; each was inserted on a dated, incident-anchored developer decision (G-Cash stale-cache update, hand-cut releases, review-cost stalls, G-Cash cold-start). Insertion queue is **closed ahead of M29** — the next field incident lands as a rider or backlog entry unless explicitly re-sequenced; another insertion reads as DRIFTING at the next alignment check.
 
 ## Open questions
 

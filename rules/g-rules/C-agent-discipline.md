@@ -18,11 +18,11 @@
 | Build / audit >2 min with clear done condition | Background agent |
 | Same bug class, 3rd attempt | Stop inline. Explore agent + escalate model + different mechanism. |
 
-**Agent prompt must include:** exact `file:line` refs for known things · scope boundary (what NOT to touch) · one specific verifiable done condition · enough WHY for judgment calls.
+**Agent prompt must include:** exact `file:line` refs for known things · scope boundary (what NOT to touch) · one specific verifiable done condition · enough WHY for judgment calls · **record/report files are written with the Write tool, never Bash heredocs** — heredocs stall in the permission layer and trip the commit-gate multi-line walk; an agent with Bash-only write ability returns content to HQ instead, or is granted Write scoped to its record path.
 
 **Out-of-scope edit recovery:** when any agent touches a file outside its stated scope, recovery is a full-file diff against git for every file it touched — never a spot-revert of the noticed line.
 
-**Results flow:** summary + `file:line` refs back to HQ — never raw file dumps.
+**Results flow:** summary + `file:line` refs back to HQ — never raw file dumps. A claim about a file's *whole* surface ("no other occurrences", "nothing else changed", "near-nil") requires a whole-file read or exhaustive grep — targeted reads support only targeted claims.
 
 **Caps:** Hard limit 7 agents/task. 4 agents in one wave = warning sign, restructure first.
 
@@ -30,7 +30,7 @@
 
 ### Single-use agents — one approach, one attempt
 
-**An agent is single-use. It gets one approach and one attempt. It is never continued, re-prompted, or reused for a retry.** If its approach works, it returns `DONE`. If the approach doesn't work, it does **not** thrash — it returns `FAILED` with a learnings report and is discarded. HQ owns every retry.
+**An agent is single-use. It gets one approach and one attempt. It is never continued, re-prompted, or reused for a retry.** (One carve-out: an agent stopped *externally* mid-attempt is resumed, not redeployed — see **Interrupted ≠ `FAILED`** below.) If its approach works, it returns `DONE`. If the approach doesn't work, it does **not** thrash — it returns `FAILED` with a learnings report and is discarded. HQ owns every retry.
 
 **Why — context poisoning.** A context window conditions the next token on its *entire* contents, not just the parts that were "accepted." When an agent explores options, hits dead-ends, makes a wrong first guess, and then keeps going in the same context, that crossed-out reasoning stays on the page it is reading from. The agent then anchors on options it already rejected, hedges because conflicting half-conclusions are still in-window, and clings to a wrong first guess even after correcting it. The residue of deliberation poisons execution — and the higher-stakes the task, the more exploration it needed, so the most consequential work gets the most poison. **Single-use agents make this structurally impossible: the failed exploration dies with the agent. Nothing crosses back to HQ except the distilled learnings.**
 
@@ -42,6 +42,8 @@
 4. **Bound = Three-Strikes (§A8).** Each strike is a fresh agent with a *different* mechanism. Escalate the model tier before attempt 3. After three failed approaches, **stop and escalate to the human** with the full learnings trail — do not deploy a fourth.
 
 `FAILED` (the approach didn't work — HQ analyzes and redeploys) is distinct from `BLOCKED` (an external dependency makes the task impossible to proceed — surface to the human immediately; redeploying a fresh agent won't help).
+
+**Interrupted ≠ `FAILED`.** A dispatch killed mid-task by a session limit or platform stop — context intact, approach not refuted — is **resumed to completion**, not discarded. The single-use rule bars re-prompting *failed* agents, whose dead-end exploration would poison a retry; it does not bar resuming *interrupted* ones that never finished their one attempt.
 
 This is the same airtight-contract discipline G-Forge already uses for *first* attempts — `spec-writer` produces a spec precise enough for a cheap executor to run without judgment calls — extended to *retries*. The learnings report is the fixed-contract value crossing the seam; thinking out loud inside a reused agent is mutating the shared object (the executor's window) in place. Keep the seam clean.
 

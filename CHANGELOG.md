@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **M-audit close-swarm pattern edits (/g-patterns, 2026-07-23) — six recurring failure classes promoted from retro observations to shipped rules.** §C agent discipline: record/report files are written with the Write tool, never Bash heredocs (2 permission-layer stalls); whole-surface claims require a whole-file read or exhaustive grep (claim-vs-whole-file ×2); Interrupted ≠ FAILED — a dispatch killed mid-task with context intact is resumed, not discarded (session-limit kill class). `/g-review` Step 1 + §H Tier 1: HQ sums the attestation's per-suite table independently — a summary total disagreeing with its own table is confabulated and the summed table wins (claim-vs-data ×3, mitigation now rule-text). `code-lead` granted Write scoped to review records (both heredoc stalls were code-lead record writes). claude-plugin profile: timing assertions get ≥2× worst-observed MSYS headroom in a named `*_MS` constant (GUARD_WINDOW_MS class). §I: never chain verification commands onto a gated commit invocation (PostToolUse-skip journaling gap).
+
 ## [2.3.0] — 2026-07-23
 
 ### Added

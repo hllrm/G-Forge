@@ -53,6 +53,7 @@ Before reviewing any code, verify the test suite passes.
 **Check for a project-local test-runner agent first.** Glob `.claude/agents/*-dev.md`. If exactly one file matches:
 - Dispatch that agent to run the project's test suite (and any project-specific gate fixtures it is described as covering) and return its runner output verbatim.
 - Its report must include real pass/fail counts and, on any failure, the actual failing lines from the runner output. A self-declared "tests pass" claim with no runner evidence attached is UNVERIFIED (finding #20 doctrine) and does not count as attested — treat a report with no verbatim runner output the same as a failed run below and stop until the developer resolves it.
+- HQ sums the report's per-suite table independently before accepting any total. A summary total that disagrees with its own table is treated as confabulated — the summed table wins, and the discrepancy is recorded in the review record (claim-vs-data doctrine, three occurrences through M-audit).
 - Include the agent's verbatim runner output as the attested test result passed to code-lead in Step 4.
 - Apply the same pass/fail branching described below: on a fully green report, continue to Step 2; on any red or partial report, follow the **If any tests fail** branch below, substituting the agent's verbatim output for directly-captured output.
 - If more than one `.claude/agents/*-dev.md` file matches, ask the developer which one to dispatch, then proceed as above.
