@@ -31,8 +31,8 @@ Apply at least the top-2 mitigations before approving. Consider splitting the la
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | did not happen (git) | Attestation honest: per-suite table summed 306=306 by HQ; remaining-6 187 matched. Mitigation (runner output pasted + HQ independent sum) applied and held. |
+| 2 | yes | happened — variant (git) | mkfifo avoided per mitigation (process-substitution fixtures); no hang/false-pass. But MSYS subprocess overhead broke the 8000ms timing bound (4 reds, worst 9896ms) — fixed by GUARD_WINDOW_MS 8000→20000ms recalibration, re-attested 38/0. Platform-semantics class fired at the assertion layer, not the fixture layer. |
+| 3 | yes | did not happen (git) | Post-install fix was test-file-only (GUARD_WINDOW_MS); hook copies stayed byte-identical — code-lead re-verified 7/7 hash MATCH at review time per mitigation. |
+| 4 | yes | did not happen in waves (journal) | Waves 1–5: 14/14 slots + attestations, zero mid-run stalls. Stall class fired at REVIEW layer instead: code-lead wedged on its heredoc record write (permission-layer heredoc class, distinct from the stdin-hang this plan fixed); developer killed it; verdict + record recovered verbatim from the in-flight call. |
+| 5 | yes | did not happen (git) | Terminal-attestation schedule held; no ad-hoc mid-wave suite runs. |

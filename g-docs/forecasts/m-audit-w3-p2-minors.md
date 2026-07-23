@@ -33,8 +33,8 @@ Re-scope before approving. Cut the highest-impact items or move to a follow-up m
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | did not happen (git) | W3 shipped; both live gates passed on the W3 commit and on the two subsequent stdin-guard/release commits — no gate brick, no fail-open. Fail-before/pass-after held on every gate-lib edit. |
+| 2 | yes | did not happen (journal) | No partial-read characterization miss in W3 tasks 2/6/9; task-1 spike was empirical (scratch-repo verified). Note: a claim-vs-DATA sibling fired at W3 Pass 3 (attestation agent's confabulated 568/650 summary, HQ-caught) — tracked as recurrence #3 for /g-patterns, distinct from this whole-file-read scenario. |
+| 3 | yes | did not happen (git) | W3 attestation 468/468 with header-vs-runner MATCH everywhere; parent-shell counting convention held. |
+| 4 | yes | happened — absorbed as designed (journal) | Task 9 re-confirmed no-change; task 5 adjudicated spec-asymmetry-not-bug and routed to decision (resume preserves counter). Probe-first mitigation worked; no forced diffs. |
+| 5 | yes | did not happen (git) | W3 Wave-4 attestation dispatch completed (its summary confabulation is scenario-2's note, not a dispatch kill). |
