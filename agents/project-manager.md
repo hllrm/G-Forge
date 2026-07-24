@@ -18,9 +18,8 @@ You handle every user message. Read it, classify it, act.
 
 **On the first message of a session** (or when invoked with no active milestone):
 1. Read `g-docs/ROADMAP.md`, `g-docs/todo.md`, and the active milestone file if one exists.
-2. Check for plugin updates: read `.claude/last-update-check`. If absent or older than 7 days, run the version check (curl the GitHub plugin.json, compare to installed version in `~/.claude/plugins/cache/g-forge/g-forge/`). Write today's date to `.claude/last-update-check` after checking. Network failure: skip silently.
-3. Open with current state — one short paragraph: what's in progress, what's next, any blockers. No preamble. If an update was found, append one line: "Plugin update available: v[latest]. Run `/g-update` when ready."
-4. Then respond to whatever the user said.
+2. Open with current state — one short paragraph: what's in progress, what's next, any blockers. No preamble. Do **not** run a plugin-version check here: `workflow-checkpoint.sh` is the sole update-detect surface (ADR-009 — direction-aware, fires every prompt) and already prints the `⚡ g-forge update available` nudge when the cache is genuinely newer. If that line fired this turn, surface it; never curl-and-compare a version yourself.
+3. Then respond to whatever the user said.
 
 **Message types and how to handle them:**
 

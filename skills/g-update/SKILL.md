@@ -30,9 +30,14 @@ Check this now, before anything else in this skill. Read `.claude-plugin/plugin.
      ```
    - **Project-installed version** — what this project's G-Forge-managed files were last synced from. There is currently no version stamp recorded anywhere in the project (Step 2's inventory records file/block *presence*, not a version number) — report this as `unknown` unless a future manifest resolves it.
 
-2. **Cache found + GitHub reachable — compare cache vs. GitHub latest:**
-   - **Cache ≥ GitHub latest:** report `✓ Plugin cache already at latest (v[cache]) — proceeding with project sync.` and continue to Step 0a.
-   - **Cache < GitHub latest — STOP. Zero writes to the project this run.** Report the full version triple and stop *before* Step 0a or any later step runs — no file in this project is read for writing, no CLAUDE.md/agent/hook/rules content is touched:
+2. **Cache found + GitHub reachable — compare cache vs. GitHub latest.** Source every ordering from `hooks/lib/semver-compare.sh`'s `gf_semver_compare` — never hand-roll the comparison (ADR-009: one ordering contract, shared by the checkpoint hook, `/g-doctor` Check 23, and this preflight):
+     ```bash
+     . [plugin-root]/hooks/lib/semver-compare.sh
+     gf_semver_compare "[cache]" "[latest]"
+     ```
+     `gf_semver_compare A B` prints `-1`/`0`/`1` (A older/equal/newer than B). On malformed input it prints `0` and returns exit status 1 — treat that as "cannot compare", degrade like the GitHub-unreachable branch below rather than assuming the cache is current.
+   - **Cache ≥ GitHub latest** (compare returns `0` or `1`)**:** report `✓ Plugin cache already at latest (v[cache]) — proceeding with project sync.` and continue to Step 0a.
+   - **Cache < GitHub latest** (compare returns `-1`)**— STOP. Zero writes to the project this run.** Report the full version triple and stop *before* Step 0a or any later step runs — no file in this project is read for writing, no CLAUDE.md/agent/hook/rules content is touched:
      ```
      ⚠ Cannot sync — plugin cache is behind GitHub (v[cache] installed, v[latest] available).
        Project-installed version: v[installed-or-unknown]
@@ -331,4 +336,5 @@ If nothing needed updating (all content already matched): "All G-Forge-managed c
 - If the plugin root cannot be found, stop and tell the developer.
 - Step 0's self-host detection is the single source-root resolution point — `[plugin-root]` is set once (Step 0/1) and reused everywhere; never hardcode `~/.claude/plugins/cache/...` outside that fallback branch.
 - Step 0's staleness preflight gates every write below it on consumer projects — a stale cache (cache < GitHub latest) means zero project writes this run; only `/plugins` can fix a stale cache, never this skill. Never sync a project against a cache known to be behind GitHub.
+- Step 0's cache-vs-latest comparison is always sourced from `hooks/lib/semver-compare.sh`'s `gf_semver_compare` (ADR-009: one ordering contract, shared with the checkpoint hook and `/g-doctor` Check 23) — never hand-roll a version compare or lean on `sort -V` here. A malformed/uncomparable result degrades to the loud offline branch, never to a silent "assume current".
 - Read the plugin files fresh each time — never use cached or assumed content.

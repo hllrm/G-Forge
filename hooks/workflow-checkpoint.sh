@@ -404,14 +404,34 @@ fi
 # .claude-plugin/plugin.json) — the previous bare two-segment path here
 # (M-audit W3 task 13) had no version segment at all, so it never matched a
 # real install and this whole nudge was silently dead on every consumer
-# project. `sort -V` is an adequate semver approximation for this
-# advisory-only nudge — a misordered pick only shifts which release the
-# update message names, it never blocks anything (this hook is non-gating).
+# project. Pick the highest-semver cache dir by reducing with the shared
+# gf_semver_compare (ADR-009: one ordering contract, no per-site sort -V) so
+# the hotfix-suffix grammar (2.3.3a) orders the same here as in /g-update and
+# /g-doctor. `sort -V` stays only as the fallback when the lib failed to source
+# — a missing lib must never dead-end this advisory nudge. Misordering is
+# harmless anyway: it only shifts which release the message names, never blocks
+# (this hook is non-gating).
 CLAUDE_DIR="$HOME/.claude"
 _gf_plugin_cache_base="$CLAUDE_DIR/plugins/cache/g-forge/g-forge"
 INSTALLED_MANIFEST=""
 if [ -d "$_gf_plugin_cache_base" ]; then
-    _gf_highest_version_dir=$(ls -d "$_gf_plugin_cache_base"/*/ 2>/dev/null | sort -V | tail -1)
+    _gf_highest_version_dir=""
+    if command -v gf_semver_compare >/dev/null 2>&1; then
+        _gf_highest_ver=""
+        for _gf_d in "$_gf_plugin_cache_base"/*/; do
+            [ -d "$_gf_d" ] || continue
+            _gf_v=$(basename "$_gf_d")
+            if [ -z "$_gf_highest_ver" ]; then
+                _gf_highest_ver="$_gf_v"; _gf_highest_version_dir="$_gf_d"; continue
+            fi
+            _gf_cmp=$(gf_semver_compare "$_gf_v" "$_gf_highest_ver")
+            if [ "$?" -eq 0 ] && [ "$_gf_cmp" = "1" ]; then
+                _gf_highest_ver="$_gf_v"; _gf_highest_version_dir="$_gf_d"
+            fi
+        done
+    else
+        _gf_highest_version_dir=$(ls -d "$_gf_plugin_cache_base"/*/ 2>/dev/null | sort -V | tail -1)
+    fi
     [ -n "$_gf_highest_version_dir" ] && INSTALLED_MANIFEST="${_gf_highest_version_dir}.claude-plugin/plugin.json"
 fi
 VERSION_CACHE="$CLAUDE_DIR/g-forge-latest-version"

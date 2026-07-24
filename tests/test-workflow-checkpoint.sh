@@ -772,7 +772,22 @@ else
     echo "PASS: no plugin cache shows no update-available line"; PASS=$((PASS+1))
 fi
 
-rm -rf "$FAKE_HOME" "$FAKE_HOME2" "$FAKE_HOME3"
+# 26.6 Cache-dir pick routes through gf_semver_compare (ADR-009), not sort -V:
+# hotfix-suffix dirs must order by the shared lib's grammar — 2.3.3a is NEWER
+# than 2.3.3, so the hotfix dir wins the highest-version pick. Locks that the
+# reduce loop consumes the lib and survives the repo's own version grammar.
+FAKE_HOME4="$(mktemp -d)"
+mkdir -p "$FAKE_HOME4/.claude/plugins/cache/g-forge/g-forge/2.3.3/.claude-plugin"
+printf '{"name":"g-forge","version":"2.3.3"}' > "$FAKE_HOME4/.claude/plugins/cache/g-forge/g-forge/2.3.3/.claude-plugin/plugin.json"
+mkdir -p "$FAKE_HOME4/.claude/plugins/cache/g-forge/g-forge/2.3.3a/.claude-plugin"
+printf '{"name":"g-forge","version":"2.3.3a"}' > "$FAKE_HOME4/.claude/plugins/cache/g-forge/g-forge/2.3.3a/.claude-plugin/plugin.json"
+printf '9.9.9' > "$FAKE_HOME4/.claude/g-forge-latest-version"
+touch "$FAKE_HOME4/.claude/g-forge-check-stamp"
+OUTPUT=$( printf '{}' | HOME="$FAKE_HOME4" bash "$CHECKPOINT_SCRIPT" 2>&1 )
+check_match "hotfix-suffix dirs: lib picks 2.3.3a (newer than 2.3.3) as highest" \
+    "g-forge update available: 2\\.3\\.3a → 9\\.9\\.9" "$OUTPUT"
+
+rm -rf "$FAKE_HOME" "$FAKE_HOME2" "$FAKE_HOME3" "$FAKE_HOME4"
 
 # Restore fixture's own integration-tier for anything that follows.
 printf 'full\n' > .claude/integration-tier
