@@ -39,6 +39,18 @@ Thumbs.db
 # about the tree is the defect: it is what was lost on 2026-07-10, and what let the
 # per-suite test table sit at a stale 522 while the real suite had moved to 523.
 # Fix the injection, never the .gitignore.
+#
+# REJECTED ALTERNATIVE, and why — recorded here because it was implemented once and
+# reversed, so it will look reasonable again: a `.gitignore` negation carve-out
+# (`!/CLAUDE.md`, mirroring the :18-20 pattern) that tracks this file. Tried and backed
+# out 2026-07-26 on two costs. (1) It PUBLISHES the local voice-profile section — the
+# `@`-import at the bottom of CLAUDE.md names a personal profile, and this is a public
+# marketplace repo, so tracking the file pushes that reference to the world. (2) The
+# profile definition itself stays gitignored by design, so every clone would carry a
+# CLAUDE.md that `@`-imports a file it does not have. Note /g-init tells CONSUMER
+# projects to track CLAUDE.md (Step 5a) and that remains correct for them — there the
+# file is not an install artifact of the tree it sits in. Formal capture of this rule is
+# queued as ADR-011; until it lands, this block is the record.
 /CLAUDE.md
 g-docs/plans/
 g-docs/agent-output/
