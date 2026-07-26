@@ -49,8 +49,10 @@ Thumbs.db
 # profile definition itself stays gitignored by design, so every clone would carry a
 # CLAUDE.md that `@`-imports a file it does not have. Note /g-init tells CONSUMER
 # projects to track CLAUDE.md (Step 5a) and that remains correct for them — there the
-# file is not an install artifact of the tree it sits in. Formal capture of this rule is
-# queued as ADR-011; until it lands, this block is the record.
+# file is not an install artifact of the tree it sits in. Canonical record of this rule,
+# including branch (c)'s marker syntax and the /g-doctor Check 24 classifier, is
+# g-docs/decisions/011-inject-claude-md-from-committed-sources.md — this block is the
+# warning at the point of temptation, not the record.
 /CLAUDE.md
 g-docs/plans/
 g-docs/agent-output/
