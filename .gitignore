@@ -19,10 +19,26 @@ Thumbs.db
 .claude/agents/*
 !.claude/agents/g-forge-dev.md
 
-# G-Forge operational artifacts — regenerable, not project record (not plugin content).
+# G-Forge operational artifacts — NOT project record (not plugin content). Two classes
+# below: the *installed artifact* (CLAUDE.md) and *regenerable raw output* (the rest).
 # Tracking now lives under g-docs/ and IS committed (g-docs/ROADMAP.md, g-docs/todo.md,
-# g-docs/todo-done.md, g-docs/milestones/, decisions/, retros/, …). Only the regenerable
-# raw-output paths below are ignored.
+# g-docs/todo-done.md, g-docs/milestones/, decisions/, retros/, …).
+#
+# `/CLAUDE.md` stays ignored deliberately (decided 2026-07-26, after considering and
+# rejecting a negation carve-out): in this repo it is the *installed artifact* of the
+# plugin dogfooding itself, the same class as `.claude/`. Note this deviates from what
+# /g-init tells consumer projects (Step 5a, skills/g-init/SKILL.md:168, classifies
+# CLAUDE.md as tracked project record) — deliberately, because there the file is not an
+# install artifact of the tree it sits in.
+#
+# THE INJECTION RULE. Durability is bought by making the injections airtight, not by
+# tracking the artifact: every load-bearing line in CLAUDE.md must be (a) inside a
+# G-Forge marker block fed from committed plugin source, (b) an `@`-import of a committed
+# file, or (c) explicitly declared local-only (the voice-profile import is the one
+# sanctioned instance of (c) — personal, never published). Bare prose asserting facts
+# about the tree is the defect: it is what was lost on 2026-07-10, and what let the
+# per-suite test table sit at a stale 522 while the real suite had moved to 523.
+# Fix the injection, never the .gitignore.
 /CLAUDE.md
 g-docs/plans/
 g-docs/agent-output/

@@ -9,7 +9,7 @@
 # listen mode. Direction-aware update-nudge cases (M46 W1 task 5): LATEST
 # newer/equal/older, pinning post-fix semver-comparison behavior.
 #
-# Total assertions: 80
+# Total assertions: 81
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
