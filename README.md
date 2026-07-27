@@ -233,7 +233,7 @@ Project hygiene:
 /g-forge brief →   refresh g-docs/project_brief.md as project evolves
 /g-forge help  →   where am I + what to do next
 /g-forge status →   fast state snapshot
-/g-forge doctor →   verify hooks, settings, rules block, and drift — 23 checks (16 required + 7 advisory)
+/g-forge doctor →   verify hooks, settings, rules block, and drift — 24 checks (16 required + 8 advisory)
 /g-forge update →   pull latest G-Forge rules into this project
 ```
 
@@ -276,6 +276,18 @@ To bypass in an emergency (not recommended):
 rm .claude/hooks/check-commit.sh   # removes the gate for this project
 ```
 
+### Consumer CLAUDE.md local-only marker convention
+
+Projects that track `CLAUDE.md` as committed project record (consumer projects, as opposed to this repo where it's gitignored) may bracket hand-written local content — such as personal environment setup, development notes, or machine-specific paths — in a marker-delimited block:
+
+```
+<!-- G-Forge local-only: <slug> -->
+...content...
+<!-- End G-Forge local-only: <slug> -->
+```
+
+`<slug>` is a pairing key in lowercase kebab-case (e.g. `my-dev-setup`, `local-paths`). `/g-doctor` Check 24 uses this marker to classify declarations and detects unpaired or unclosed markers as advisory findings.
+
 ---
 
 ## Skills
@@ -285,7 +297,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-forge help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-forge status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-forge resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-forge doctor` | 23-point health check (16 required + 7 advisory): 7 hooks + 4 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, and plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction) — ✓/✗/⚠/ℹ with fix instructions |
+| `/g-forge doctor` | 24-point health check (16 required + 8 advisory): 7 hooks + 4 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction), and CLAUDE.md injection-rule compliance (Check 24, advisory) — ✓/✗/⚠/ℹ with fix instructions |
 | `/g-forge kickoff` | Interview → scope challenge → stack deep dive → g-docs/project_brief.md |
 | `/g-forge onboard` | Read existing repo → present findings → interview → optional architecture audit → g-docs/project_brief.md |
 | `/g-forge roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → g-docs/ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
@@ -319,7 +331,7 @@ rm .claude/hooks/check-commit.sh   # removes the gate for this project
 | `/g-forge tier [full\|balanced\|light]` | Switch the integration tier. `full` (default) = all hooks + auto-triggers; `balanced` = state info only, commit gate on, no auto-triggers; `light` = workflow-checkpoint only, commit gate off (opt-out mode). Switching to `light` requires confirmation. Writes `.claude/integration-tier`. See `g-docs/integration-tiers.md`. |
 | `/g-forge voice [dev\|mid\|eli5]` | Set the communication style. With no argument: runs a 2-question plain-language intake and sets the right profile automatically — no tier names to memorise. With `dev`, `mid`, or `eli5`: applies that profile directly. Same facts, same verdicts — rendering changes. Auto-runs during `/g-kickoff` if no profile is set. Writes `.claude/voice-profile`. |
 | `/g-forge train [project idea]` | Training mode — learn software development by building a real project. Sets up the learner profile, confirms the project, and writes `.claude/training-mode`. From that point on, PM runs the session in **mentor register** — a genuinely distinct mode: explains the "why" before every step, assigns you tasks alongside the agent swarms, checks in after each wave, and logs your progress to `.claude/training-progress.md`. The workflow is unchanged; the framing is different. Three training levels: `foundational` (new to coding), `developing` (has built things, hasn't shipped), `intermediate` (has shipped, wants structured practice). `/g-kickoff` offers training mode automatically when the voice intake identifies a learner profile. |
-| `/g-forge trim` | Weekly read-only audit of `CLAUDE.md` and agent memory files. Surfaces orphaned `@references`, duplicate rules, stale content, dead file refs in MEMORY.md files, and overlong memory entries — all flagged for human review, never auto-modified. The only file it writes is `.claude/last-trim`. The workflow-checkpoint hook surfaces a nudge when 7 days have passed since the last audit. |
+| `/g-forge trim` | Weekly read-only audit of `CLAUDE.md`, its `@`-import targets, and agent memory files. Surfaces orphaned `@references`, duplicate rules, stale content, dead file refs in MEMORY.md files, overlong memory entries, and any sunset/activation conditions in committed imported sources — all flagged for human review, never auto-modified. The only file it writes is `.claude/last-trim`. The workflow-checkpoint hook surfaces a nudge when 7 days have passed since the last audit. |
 
 ---
 
@@ -546,11 +558,11 @@ Auto-triggers:  — no g-docs/ROADMAP.md exists in the project
 /g-forge status Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-forge doctor 23-point health check (16 required, 7 advisory) — 7 hooks + 4 lib
+/g-forge doctor 24-point health check (16 required, 8 advisory) — 7 hooks + 4 lib
                      scripts + native pre-commit hook installed and registered in
                      settings.json, G-Forge Rules block, G-RULES.md present and
                      referenced, no stale sentinel, installed-copy drift detection,
-                     plugin version lag
+                     plugin version lag, and CLAUDE.md injection-rule compliance
                      Reports ✓/✗/⚠/ℹ per check with fix instructions
 ```
 

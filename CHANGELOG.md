@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **`/g-doctor` Check 24 — CLAUDE.md injection-rule compliance detector (advisory).** Classifies every load-bearing line of `CLAUDE.md` into four buckets: MARKER-FED (wrapper blocks owned by `/g-init`, `/g-specialize`, or `/g-update`), IMPORT (line-initial `@`-import of a committed file), DECLARED-LOCAL (paired marker-delimited local block), BARE-PROSE (content matching none of the above). Applies precedence and committedness rules to `@`-imports (including detection of gitignored targets), detects marker-state defects (unpaired marker, slug re-open, unterminated-at-EOF), compares marker payloads against their committed feeds, and reports the declared-local block count. Advisory only (✓/⚠, never blocking), per ADR-011.
+- **`/g-trim` Step-1 import-follow — @-import targets are now opened and content-audited.** `/g-trim`'s weekly audit (subjects: CLAUDE.md and agent memory) now follows each `@`-import target and content-audits it — staleness, duplicates, sunset/activation conditions — making time-boxed rules like T1 visible.
+
 ## [2.4.0] — 2026-07-23
 
 ### Added
