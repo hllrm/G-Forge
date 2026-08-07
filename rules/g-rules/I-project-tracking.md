@@ -38,7 +38,7 @@ All G-Forge-generated documents — project tracking included — live under `g-
 | `g-docs/agent-output/` · `g-docs/qa-scope/` | `/g-execute`, `/g-review` | Raw agent output (regenerable) |
 | `g-docs/env-vars.md` · `g-docs/identity.md` · `g-docs/patterns-deferred.md` | `/g-docs`, `/g-identity`, `/g-patterns` | Reference docs |
 
-**Tracked vs. ignored:** the `g-docs/` project record is **committed** (it *is* the project) — except `g-docs/agent-output/` (and any local `g-docs/plans/` scratch), which is regenerable and gitignored. The `.gitignore` `/g-init` writes (Step 5a) draws this line; `/g-doctor` Check 19 keeps it honest, and Check 20 flags any G-Forge document that strays outside `g-docs/`.
+**Tracked vs. ignored:** the `g-docs/` project record is **committed** (it *is* the project) — except `g-docs/agent-output/` (and any local `g-docs/plans/` scratch), which is regenerable and gitignored. The `.gitignore` `/g-init` writes (Step 5a) draws this line; `/g-doctor` Check 20 keeps it honest, and Check 21 flags any G-Forge document that strays outside `g-docs/`.
 
 ### Commit gate infrastructure
 

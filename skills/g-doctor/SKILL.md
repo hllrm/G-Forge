@@ -131,14 +131,21 @@ hash_file() {
 - Fail (per file): ✗ [script] installed copy differs from plugin source (drift)
   → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
 
-This check also covers two related canonical-vs-installed surfaces that hook drift can hide in — the shared `hooks/lib/` scripts, and the native git `pre-commit` hook:
+This check also covers two related canonical-vs-installed surfaces that hook drift can hide in — the shared `hooks/lib/` scripts (two passes: drift, then install-list completeness), and the native git `pre-commit` hook:
 
-- **`hooks/lib/` drift.** For each of the 4 canonical lib scripts (`commit-detect.sh`, `worktree-resolve.sh`, `classify-changeset.sh`, `sentinel-read.sh`) in `hooks/lib/` (plugin source), check for an installed counterpart at `.claude/hooks/lib/<file>` and hash-compare using the same `hash_file` cascade above.
+- **`hooks/lib/` drift.** **Enumerate the canonical lib set from disk — `ls [plugin-root]/hooks/lib/*.sh` — never from a list written here.** A hardcoded enumeration cannot detect a lib that is missing *from the enumeration*, which is precisely how `/g-init` shipped a 4-of-6 install through this check in v2.4.0: two libs were sourced by the hooks, absent from every install list, and every reader of those lists — including this check — iterated the short list and reported clean. For each `.sh` in the source `hooks/lib/`, check for an installed counterpart at `.claude/hooks/lib/<file>` and hash-compare using the same `hash_file` cascade above.
   - Pass (per file): installed lib file exists AND its hash matches the canonical source in `hooks/lib/`.
   - Fail (missing): ✗ hooks/lib/[file] missing from installed copy (drift)
     → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
   - Fail (hash mismatch, file present): ✗ hooks/lib/[file] installed copy differs from plugin source (drift)
     → Run `/g-update` to re-sync hooks/ into .claude/hooks/.
+
+- **Sourced-but-uninstalled libs (install-list completeness).** The drift pass above compares *source* against *installed*, so it stays silent when a lib is missing from **both** — the residual hole it structurally cannot see. (That was not the v2.4.0 shape: there, both libs were present in source and missing only from the install lists, which the derives-from-disk drift pass above now catches on its own.) Close it by deriving the requirement from the code that actually uses it: grep the **installed** top-level hooks for `lib/<name>.sh` source references (`grep -oHE 'lib/[a-z0-9-]+\.sh' .claude/hooks/*.sh | sort -u`). The `-H` is load-bearing and must not be dropped: it forces the `<hook-path>:` prefix onto every hit even when the glob matches exactly one file — reachable precisely on a broken install — which is what makes the two-field contract hold for every input. Each hit reads `<hook-path>:lib/<name>.sh`; split on the **last** `:` to get the two fields. The right-hand field already ends in `.sh`; prefix it with `.claude/hooks/` verbatim and assert that file exists. Do not re-append an extension, and do not pass the whole unsplit hit as a path. The left-hand field binds the `[hook]` name in the failure line below. Grep the installed copies, not the plugin source — a consumer's install is what breaks, and the reference set is what that install will actually execute.
+  - **If the grep yields zero references, report the sub-check as inconclusive — never Pass.** An absent or empty `.claude/hooks/` leaves the glob unexpanded and the reference set empty, which makes "every referenced lib is installed" vacuously true and would emit ✓ on the most broken install possible. Report `⚠ install-list completeness — inconclusive (no installed hooks found to derive from)` and let the hook-presence checks (1–3, 11–14, each carrying an explicit missing-file Fail branch) and Check 16's own top-level hook-drift pass carry the failure — those are the checks that actually go red on an empty hooks directory. (Check 15 is *not* one of them despite sitting next door: it reads `.claude/settings.json` and `hooks.json` for duplicate registrations and has no file-existence logic at all, so an empty hooks directory does not make it fail.) An inconclusive sub-check leaves Check 16's own ✓/✗ untouched — it neither passes nor fails the parent, matching the ⚠ branches already in this check.
+  - Report **one line per missing lib**, not one per reference — a lib sourced by all seven hooks would otherwise emit the same defect seven times. Name the first referencing hook and, when there are others, append `(+N more)`.
+  - Pass: every lib referenced by an installed hook is present in `.claude/hooks/lib/`.
+  - Fail: ✗ hooks/lib/[file] sourced by [hook] but not installed (install list incomplete)
+    → Run `/g-update` to re-sync hooks/ into .claude/hooks/. If `/g-update` does not resolve it, the skill's install list is short — report it as a plugin defect rather than a project defect.
 
 - **Native `pre-commit` git hook drift.** Resolve the installed git hooks directory with `git rev-parse --git-path hooks` (do not assume `.git/hooks` — it can be relocated, e.g. worktrees) and look for `<hooks-dir>/pre-commit`. Before comparing, check whether it is a G-Forge-managed pre-commit: read its first few lines for the literal marker `G-Forge commit gate`.
   - Pass: `<hooks-dir>/pre-commit` exists, carries the `G-Forge commit gate` marker, AND its hash matches the canonical `hooks/pre-commit` (same `hash_file` cascade).
@@ -242,7 +249,7 @@ grep -qiE '^(token|secret|password|api[_-]?key)=' .claude/roundtable 2>/dev/null
 ```
 - Pass: ✓ Roundtable security — bind record gitignored, no credential in it (confirm the Doc is link-restricted, not public)
 - Advisory (bind record tracked/committed): ⚠ `.claude/roundtable` is tracked — the bound surface ref (and any creds near it) could be pushed
-  → Add `.claude/` to `.gitignore` (it should already be — see Check 19) and `git rm --cached .claude/roundtable`.
+  → Add `.claude/` to `.gitignore` (it should already be — see Check 20) and `git rm --cached .claude/roundtable`.
 - Advisory (secret in bind record): 🔴 A credential is stored in `.claude/roundtable` — move it to an environment variable and remove the line. Never commit a token.
 - Advisory (always, reminder): the bound Doc must be **link-restricted, never public** — `/g-roundtable` enforces this at bind, but confirm sharing hasn't been widened since.
 
