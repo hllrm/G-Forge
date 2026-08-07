@@ -19,12 +19,27 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 [ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
 # shellcheck source=lib/semver-compare.sh
 [ -f "$_GF_HOOK_DIR/lib/semver-compare.sh" ] && . "$_GF_HOOK_DIR/lib/semver-compare.sh"
+# Define-once fallback (observe.sh idiom). Without it a missing/unsourceable lib
+# makes the call below fail with `command not found` BEFORE stdin is drained —
+# the `: "${_STDIN_PAYLOAD:=}"` default runs after the failure, so it cannot
+# substitute for the read it was documented as protecting. The body mirrors
+# lib/stdin-read.sh's `read -t -d ''` mechanism rather than a bare `cat`: the
+# missing-lib path is exactly the broken-install population this guard is for,
+# and an unbounded fallback there would trade a noisy failure for the
+# 66-minute orphaned-hook hang that lib was written to prevent.
+if ! command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    gf_read_stdin_timeout() {
+        local p=""
+        IFS= read -r -t 5 -d '' p || true
+        printf '%s' "$p"
+        return 0
+    }
+fi
 
 # Consume stdin payload — UserPromptSubmit delivers tool_input JSON here. We
 # don't use it, but reading it prevents broken-pipe edge cases on some
 # shells. Moved below lib-sourcing so it can use the bounded
-# hooks/lib/stdin-read.sh helper instead of a bare blocking `cat`; missing
-# lib degrades to an unset/empty _STDIN_PAYLOAD via the guard below.
+# hooks/lib/stdin-read.sh helper instead of a bare blocking `cat`.
 if [ ! -t 0 ]; then
     _STDIN_PAYLOAD=$(gf_read_stdin_timeout 5)
     : "${_STDIN_PAYLOAD:=}"

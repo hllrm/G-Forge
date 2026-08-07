@@ -232,7 +232,7 @@ All hook scripts are **copied verbatim from the plugin cache** rather than inlin
 
 Plugin hooks directory: `<plugin-hooks>` = `[plugin-root]/hooks/` — `[plugin-root]` was resolved in Step 1a. Self-host mode: this is the working tree's own `hooks/` directly. Fallback mode: Glob the highest-versioned entry under `~/.claude/plugins/cache/g-forge/g-forge/*/hooks/`.
 
-Create `.claude/hooks/lib/` too: `mkdir -p .claude/hooks/lib/` — the four shared libraries below live there, and every top-level hook now sources from that path at runtime, so skipping it produces a broken install.
+Create `.claude/hooks/lib/` too: `mkdir -p .claude/hooks/lib/` — the six shared libraries below live there, and every top-level hook now sources from that path at runtime, so skipping it produces a broken install.
 
 For each of the following files, copy from `<plugin-hooks>/<relative-path>` to `.claude/hooks/<relative-path>`. If the file already exists at the destination, overwrite it — these scripts are g-forge managed and must stay in sync with the plugin cache.
 
@@ -249,8 +249,10 @@ For each of the following files, copy from `<plugin-hooks>/<relative-path>` to `
 | `lib/worktree-resolve.sh` | `<plugin-hooks>/lib/worktree-resolve.sh` | `.claude/hooks/lib/worktree-resolve.sh` |
 | `lib/classify-changeset.sh` | `<plugin-hooks>/lib/classify-changeset.sh` | `.claude/hooks/lib/classify-changeset.sh` |
 | `lib/sentinel-read.sh` | `<plugin-hooks>/lib/sentinel-read.sh` | `.claude/hooks/lib/sentinel-read.sh` |
+| `lib/stdin-read.sh` | `<plugin-hooks>/lib/stdin-read.sh` | `.claude/hooks/lib/stdin-read.sh` |
+| `lib/semver-compare.sh` | `<plugin-hooks>/lib/semver-compare.sh` | `.claude/hooks/lib/semver-compare.sh` |
 
-After copying each top-level hook file, ensure it is executable: `chmod +x .claude/hooks/<filename>` (best effort — on Windows, file mode bits may not apply but Claude Code still runs the script via bash). The four `lib/` files do not need this — they are `source`d by the top-level hooks, never executed directly, so the executable bit is optional for them.
+After copying each top-level hook file, ensure it is executable: `chmod +x .claude/hooks/<filename>` (best effort — on Windows, file mode bits may not apply but Claude Code still runs the script via bash). The six `lib/` files do not need this — they are `source`d by the top-level hooks, never executed directly, so the executable bit is optional for them.
 
 The commit gate now has **two sentinels**: `post-commit-cleanup.sh` deletes both `.claude/g-forge-approved` (the code-review gate, written by `/g-review` on MERGE READY) and `.claude/g-forge-docs-approved` (the doc-review gate, written by `/g-doc-review` on DOCS READY) after every successful commit, so both gates reset together.
 
@@ -267,9 +269,11 @@ Report:
   ✓ .claude/hooks/lib/worktree-resolve.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/lib/classify-changeset.sh — installed (canonical from plugin cache)
   ✓ .claude/hooks/lib/sentinel-read.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/lib/stdin-read.sh — installed (canonical from plugin cache)
+  ✓ .claude/hooks/lib/semver-compare.sh — installed (canonical from plugin cache)
 ```
 
-If the plugin cache does not contain any of the eleven files above (the top-level hooks plus the `lib/` scripts), stop and report:
+If the plugin cache does not contain any of the thirteen files above (the top-level hooks plus the `lib/` scripts), stop and report:
 ```
 ✗ Plugin cache missing hook file: <plugin-hooks>/<relative-path>
   Reinstall the plugin: /plugin install g-forge
@@ -466,7 +470,7 @@ G-Forge ready ✓
   ✓ g-docs/milestones/M1.md — created (or already existed)
   ✓ g-docs/todo.md — created (or already existed)
   ✓ .gitignore — project artifacts excluded, project record tracked
-  ✓ .claude/hooks/ — 7 hooks + 4 lib/ scripts installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint, lib/commit-detect, lib/worktree-resolve, lib/classify-changeset, lib/sentinel-read)
+  ✓ .claude/hooks/ — 7 hooks + 6 lib/ scripts installed (check-commit, post-commit-cleanup, observe, agent-lifecycle, pre-compact, session-start, workflow-checkpoint, lib/commit-detect, lib/worktree-resolve, lib/classify-changeset, lib/sentinel-read, lib/stdin-read, lib/semver-compare)
   ✓ pre-commit — installed | not overwritten (existing hook preserved)
   ✓ .claude/settings.json — hooks registered
   ✓ .claude/voice-profile — [chosen voice]

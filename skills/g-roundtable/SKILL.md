@@ -34,7 +34,7 @@ spaceId=<confluence space id>                      # confluence
 label=<gmail label id>                             # gmail
 ```
 
-Never store a credential here — tokens come from the environment at run time. `/g-doctor` Check 21 enforces this.
+Never store a credential here — tokens come from the environment at run time. `/g-doctor` Check 22 enforces this.
 
 **Surface resolution.** At `start`, resolve an available surface MCP by capability tier (ADR-001), best-first, via tool discovery:
 1. **Confluence** (Tier 1, structured/in-place) — `getAccessibleAtlassianResources` succeeds → use the Confluence adapter.

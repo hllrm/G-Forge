@@ -90,7 +90,7 @@ The write gap isn't Drive-specific — it generalizes. Surfaces fall into **capa
 
 ### Surface recommendation (post-dogfood verdict)
 
-**Confluence is the advised surface for real and shared work; Gmail is solo/fun-tier only.** The deciding factor is the *draft-and-nod* flow that makes the mailbox safe: a draft lives in **one account's** drafts folder. For multiple people to see/tag/send Roundtable drafts, they would need a **shared login** — which is credential-sharing (a `/g-doctor` Check 21 fail) and collapses identity. A Group/list *address* fixes shared **sent** mail, but not shared **drafts** — so the mailbox's signature safety property (human-sends-every-write) doesn't generalize to multi-user without an unsafe shared account.
+**Confluence is the advised surface for real and shared work; Gmail is solo/fun-tier only.** The deciding factor is the *draft-and-nod* flow that makes the mailbox safe: a draft lives in **one account's** drafts folder. For multiple people to see/tag/send Roundtable drafts, they would need a **shared login** — which is credential-sharing (a `/g-doctor` Check 22 fail) and collapses identity. A Group/list *address* fixes shared **sent** mail, but not shared **drafts** — so the mailbox's signature safety property (human-sends-every-write) doesn't generalize to multi-user without an unsafe shared account.
 
 - **Shared / serious:** **Confluence** — permissioned space, true in-place edit, per-user identity, no credential sharing. *Recommended and advised.*
 - **Solo / casual / "vibe":** **Gmail** — zero-setup, the draft-and-nod is delightful for one person; fine for fun, **not** for a team.

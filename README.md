@@ -162,7 +162,7 @@ Run **one** command in your project directory:
 `/g-init` detects what's there and drives the whole setup itself — you don't have to know which command comes first:
 
 1. **Intake** — routes to `/g-kickoff` (new/empty project: interview → brief) or `/g-onboard` (existing codebase: deep-read the repo → resolve conflicts → brief). Skipped if a `g-docs/project_brief.md` already exists.
-2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, g-docs/ROADMAP.md (with the `## Active Session` handoff), g-docs/milestones/, g-docs/todo.md, seven event hooks, four shared lib scripts, and the native git `pre-commit` gate.
+2. **Scaffold** — CLAUDE.md (G-rules injected), G-RULES.md, g-docs/ROADMAP.md (with the `## Active Session` handoff), g-docs/milestones/, g-docs/todo.md, seven event hooks, six shared lib scripts, and the native git `pre-commit` gate.
 3. **Specialize** — runs `/g-specialize` to detect your stack and install the architect agent, the matching implementer agent, and architecture rules.
 
 You end up ready to `/g-plan`. After `/g-init`, `git commit` is gated — it blocks until `/g-review` issues MERGE READY.
@@ -243,7 +243,7 @@ Full orchestration pattern reference: [g-docs/orchestration-patterns.md](g-docs/
 
 ## Commit Enforcement
 
-Once `/g-init` is run in a project, seven event hooks plus four shared lib scripts are installed into `.claude/hooks/`, and the native git `pre-commit` commit-gate hook is installed into the git hooks path with a clobber guard that never overwrites an existing user hook (all registered only in the project's `.claude/settings.json` — never the plugin manifest — so they can't double-fire; each also self-guards on `.claude/integration-tier` and stays inert outside a G-Forge project):
+Once `/g-init` is run in a project, seven event hooks plus six shared lib scripts are installed into `.claude/hooks/`, and the native git `pre-commit` commit-gate hook is installed into the git hooks path with a clobber guard that never overwrites an existing user hook (all registered only in the project's `.claude/settings.json` — never the plugin manifest — so they can't double-fire; each also self-guards on `.claude/integration-tier` and stays inert outside a G-Forge project):
 
 **`session-start.sh`** (`SessionStart`) — fires when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Resets the per-session prompt + compaction counters used for context-depth tracking — **except on a `compact` start** (the same session continuing after auto-compaction), where the counters carry across so the gate isn't silently zeroed.
 
@@ -297,14 +297,14 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `/g-forge help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-forge status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-forge resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-forge doctor` | 24-point health check (16 required + 8 advisory): 7 hooks + 4 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction), and CLAUDE.md injection-rule compliance (Check 24, advisory) — ✓/✗/⚠/ℹ with fix instructions |
+| `/g-forge doctor` | 24-point health check (16 required + 8 advisory): 7 hooks + 6 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction), and CLAUDE.md injection-rule compliance (Check 24, advisory) — ✓/✗/⚠/ℹ with fix instructions |
 | `/g-forge kickoff` | Interview → scope challenge → stack deep dive → g-docs/project_brief.md |
 | `/g-forge onboard` | Read existing repo → present findings → interview → optional architecture audit → g-docs/project_brief.md |
 | `/g-forge roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → g-docs/ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
 | `/g-forge intake` | Proactive feature-drop triage — when you drop a single feature mid-stream, classifies it against the brief (on-brief / scope-creep / out-of-scope), proposes placement + version impact + risk hint, then asks before writing. The lightweight front-end to `/g-roadmap`. Auto-triggers on any single feature idea. |
 | `/g-forge align` | Brief-deviation check — compares the project's actual trajectory (ROADMAP progress, recent commits, observer journal) against `g-docs/project_brief.md` (goals, non-goals, MVP, tech decisions) and reports ALIGNED or DRIFTING with evidence. Advisory — never blocks. Auto-runs at each milestone close; nudged between milestones. |
 | `/g-forge brief` | Refresh g-docs/project_brief.md incrementally — reads current state, targeted Q&A, no full re-onboard |
-| `/g-forge init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, g-docs/ROADMAP.md (with the Active Session handoff), g-docs/milestones/, g-docs/todo.md, seven event hooks, four lib scripts, and the native `pre-commit` hook → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
+| `/g-forge init` | **The single front door.** Detects what's here → routes to `/g-onboard` (existing codebase) or `/g-kickoff` (new project) for the brief → scaffolds CLAUDE.md (G-rules injected), G-RULES.md, g-docs/ROADMAP.md (with the Active Session handoff), g-docs/milestones/, g-docs/todo.md, seven event hooks, six lib scripts, and the native `pre-commit` hook → runs `/g-specialize` for the stack. One command, ready to `/g-plan`. |
 | `/g-forge specialize [stack]` | Detect stack from brief + deps → install architect + implementer agents + rules |
 | `/g-forge plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-forge execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
@@ -504,6 +504,8 @@ Quick reference for the most common workflows.
                                .claude/hooks/lib/worktree-resolve.sh (worktree resolution, shared)
                                .claude/hooks/lib/classify-changeset.sh (changeset classification, shared)
                                .claude/hooks/lib/sentinel-read.sh (sentinel stamp parsing, shared)
+                               .claude/hooks/lib/stdin-read.sh (stdin read-timeout guard, shared)
+                               .claude/hooks/lib/semver-compare.sh (version ordering, shared)
                      Registers all seven event hooks in .claude/settings.json (the plugin manifest registers none)
                      Installs native git pre-commit hook into the repository's git hooks path with clobber guard
 
@@ -558,7 +560,7 @@ Auto-triggers:  — no g-docs/ROADMAP.md exists in the project
 /g-forge status Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-forge doctor 24-point health check (16 required, 8 advisory) — 7 hooks + 4 lib
+/g-forge doctor 24-point health check (16 required, 8 advisory) — 7 hooks + 6 lib
                      scripts + native pre-commit hook installed and registered in
                      settings.json, G-Forge Rules block, G-RULES.md present and
                      referenced, no stale sentinel, installed-copy drift detection,

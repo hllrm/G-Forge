@@ -26,8 +26,16 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/stdin-read.sh
 # Bounds stdin reads so an abandoned tool call can never hang this hook forever.
 [ -f "$_GF_HOOK_DIR/lib/stdin-read.sh" ] && . "$_GF_HOOK_DIR/lib/stdin-read.sh"
+# Body mirrors lib/stdin-read.sh's `read -t -d ''` mechanism rather than a bare
+# `cat` — an unbounded fallback would reintroduce the very hang the lib exists
+# to bound, on precisely the missing-lib path this shim covers.
 if ! command -v gf_read_stdin_timeout >/dev/null 2>&1; then
-    gf_read_stdin_timeout() { cat 2>/dev/null; return 0; }
+    gf_read_stdin_timeout() {
+        local p=""
+        IFS= read -r -t 5 -d '' p || true
+        printf '%s' "$p"
+        return 0
+    }
 fi
 
 MODE="${1:-log}"
