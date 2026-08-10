@@ -8,6 +8,46 @@ G-Forge installs a structured engineering *process* into any Claude Code project
 
 ---
 
+## Where G-Forge is headed
+
+**G-Forge 2.5 is the last feature release.** From here it's maintenance, and that's deliberate.
+
+Where I want to take this next needs a rework deep enough that I couldn't honestly promise stable releases or predictable maintenance while it was underway. Quietly destabilising something people rely on is worse than drawing a clean line, so this is the line.
+
+Frozen isn't abandoned. I run G-Forge on my own projects, so its bugs are my bugs and they'll keep getting fixed. That's what `/g-report` (ships in 2.5) is for: when something breaks or gets in your way, it writes a scrubbed report you can send me. Reasonable feature feedback travels the same route.
+
+And 2.5 is the version I'll build the next thing with. That's the real reason for freezing it. You want something stable under your feet while you're building its successor.
+
+### What's next
+
+Three things G-Forge kept running into and can't reach from where it stands.
+
+**Knowing how much something matters.** Every part of the system currently judges importance on its own, mostly by feel. Priority, severity, impact and relevance should be one shared idea the whole system reasons with.
+
+**Memory that behaves like memory.** Today the record is a well-organised pile of documents. It should be something a session can walk and follow, pulling exactly the slice the task needs.
+
+**More than one of you.** One project, several people or several sessions, working at once without silently colliding.
+
+Each of those is a layer that has to run through everything the system does, and you don't retrofit that. That's the rebuild, and it's called G-Proof. There's more to it than these three, and it isn't ready to be described. No date.
+
+### What's coming in 2.5
+
+**Lighter where you feel it most.** The review gate runs before every commit, and today it's one enormous pass that costs a fortune and starts losing the thread by the time it reaches the last thing it checks. 2.5 splits it into small parallel passes with a cheap assembly step at the end. Same verdict, a fraction of the cost, and it stops going vague on long reviews.
+
+**Planning that doesn't invent work.** Task breakdown currently splits jobs that belong together and hands each fragment to its own agent. 2.5 fixes the sizing, so you stop paying for coordination you never needed.
+
+**Every setting in one place you can see.** `/g-settings` lists every variable that governs G-Forge's behaviour: what it's set to, what writes it, and what it changes. Safe edits go through it. No more hidden files quietly deciding how your sessions run.
+
+**A way to tell me when it breaks.** `/g-report` fires when something actually goes wrong, or whenever you call it. It asks what you want to report, writes it against an incident template, scrubs your project's specifics out, and hands you a file to send. Bugs and reasonable feature requests travel the same route.
+
+**Gates that stop misfiring.** A passing review could fail to unlock the commit gate on some machines, which reads as G-Forge being broken. Committed reference material a project builds against was getting blocked as though G-Forge owned it. Both fixed. Plan-time risk percentages get recalibrated too, because a number you've learned to ignore is worse than no number at all.
+
+**Documentation that can't quietly rot.** The health check now flags anything in your CLAUDE.md that's a hand-typed fact rather than one sourced from a file. That's how those facts go stale without anyone noticing.
+
+**Releases in one step.** Cutting a release stops being a manual walk through several files that has to be remembered correctly every time.
+
+---
+
 ## Why G-Forge
 
 Most AI coding tools are built around a single idea: automate as much as possible and get the human out of the loop. The result is tools that are complex to configure, fragmented across a dozen commands, and optimised for the appearance of productivity — not for whether the project actually succeeds.
@@ -715,6 +755,13 @@ git push
 | M21 — Decision Hygiene Loop (off-context ADR deliberation · post-decision session reset) | ✅ Done — **v1.8.0** |
 | M22 — Session Re-entry (`/g-resume` · selective re-hydration of the durable record) | ✅ Done — **v1.9.0** |
 | M23 — G-Forge 2.0 (production-readiness audit · hooks reconciliation · consistency sweep) | ✅ Done — **v2.0.0** |
+| M24 — Positioning & Reliability Methodology (+ stack implementers) | ✅ Done — **v2.0.1** |
+| M27 — Documentation Review Gate | ✅ Done — **v2.1.0** |
+| M28 — g-docs as the canonical home for all G-Forge documents | ✅ Done — **v2.2.0** |
+| M-audit — Forge Integrity (technical debt audit · native pre-commit gate) | ✅ Done — **v2.3.0** |
+| M46 — Update Integrity (detect / diagnose / fix split) | ✅ Done — **v2.4.0** |
+| **v2.5.0 — the final G-Forge release** ([ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)): M47 Planning-Pipeline Honesty · M48 Review-Pipeline Hardening · M45 Review Pipeline Rework · M38 G-Report · M40 Reference Convention · M43 Operator Controls · M41 Release Machinery (cuts the release) | 🔄 In progress |
+| After v2.5.0: this repo freezes (maintenance-only) and the successor — **G-Proof** — follows. Versioning restarts at G-Proof 1.0; there is no G-Forge 3.0. | — |
 
 ---
 

@@ -11,7 +11,7 @@ Rules in this file exist **only for the G-Forge → G-Proof transformation** ([A
 | | |
 |---|---|
 | **Active from** | the fork (this repo copied into a new repo to start **G-Proof**). Inert until then — v2.5 here is frozen and not being transformed. |
-| **Sunset when** | **G-Proof 1.0** is released — its first release, per the version identity in [ADR-010](decisions/010-full-rebuild-on-current-platform.md) and `project_brief.md:54` (versioning restarts under the new name; no `3.0.0`). Continuous transformation ends there; so does the reason for this rule. |
+| **Sunset when** | **G-Proof 1.0** is released — its first release, per the version identity in [ADR-010](decisions/010-full-rebuild-on-current-platform.md) and the brief's Naming/version strategy row (`project_brief.md:52` as of 2026-08-10; versioning restarts under the new name; no `3.0.0`). Continuous transformation ends there; so does the reason for this rule. |
 | **Rule** | `/g-doctor` runs **inside the review process**, not only at health-check time. The review pipeline takes its report as an input, and `code-lead` may HOLD on incoherence. `/g-doctor`'s role is unchanged — same checks, same read-only report; what is new is when it runs and who consumes it. The verdict stays where verdicts already live. |
 | **Why** | Under continuous transformation the dangerous failure is not a wrong diff, it is the system quietly ceasing to be whole: a hook present but unregistered, a router token pointing at a deleted skill, a lib nobody sources, a caller deleted while its callee sits there looking alive. Diff review cannot see any of it. |
 | **At sunset** | Decide explicitly — retire, or promote to a permanent review step. Do not let it lapse silently, and do not let it persist unexamined. |

@@ -1,5 +1,7 @@
 # M34 — Cross-session dependency tracking & pull/push orchestration
 
+> ⚠ **FORK-BOUND per [ADR-012](../decisions/012-g-forge-2.5-final-release-scope.md) (2026-08-10):** this milestone left the G-Forge 2.x roadmap — it ships, if ever, from the G-Proof fork. Its roadmap entry lives in the local-only, gitignored `g-docs/g-proof-roadmap.md`. Nothing here is in the v2.5 final-release scope, and every 2.x Version field below is STALE — versioning restarts at G-Proof 1.0.
+
 **Status:** ⬜ Not started (scoped, awaiting go) — **hard-depends on M29** (register)
 **Version:** ships its own minor once M29 lands (late-2.x arc — see ROADMAP Version Plan)
 **Depends on:** **M29** (claim/lease register — the substrate that carries claims) · **M33** (the Roundtable — the surface that renders the graph and the suggestions). Degrades cleanly to today's single-session flow when neither is configured.

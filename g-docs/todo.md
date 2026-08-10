@@ -1,8 +1,8 @@
 ## Tasks
 | # | Task | Notes |
 |---|------|-------|
-| 1 | Refresh g-wiki for M46 (v2.4.0 — update-path contract split) | deferred at milestone close 2026-07-23 |
-| 2 | Whole-system audit, top-tier reasoning | * developer-requested 2026-07-28 · precondition was bug-sweep slot 1, closed 2026-08-07 |
+| 1 | Refresh g-wiki for M46 (v2.4.0) **+ the 2.5 freeze/fork re-scope** — wiki still names M46→M41→M45→M42 and M29–M34 as the live roadmap, now contradicting the README freeze section | deferred 2026-07-23 · widened 2026-08-10 (doc-review) |
+| 2 | Whole-system audit, top-tier reasoning | * developer-requested 2026-07-28 · next up — decomposer intake closed 2026-08-10 (M47/M48 roadmapped, ADR-012) |
 
 ## Details
 
@@ -18,6 +18,6 @@ Developer-requested 2026-07-28: run a full audit of the entire system at the hig
 - **Partial-enumeration fixes** (3 instances) — correcting one instance of a duplicated claim and leaving its twin, twice caught by review. This is the same failure mode as the original bug, committed inside its fix.
 - **Blind-spot derivations** (2 instances) — `hooks/pre-commit` has no `.sh` extension and fell out of a `hooks/*.sh` sweep, producing two wrong "sourced by" rows.
 
-**Scope to settle at planning time**, but the shape is: every hand-maintained enumeration versus what the code actually references · every cross-file line cite and check-number reference versus its target · hook contract conformance across both hook classes · skill/agent/router structural conformance · dead or unreachable paths · the assumptions in force in ADRs 001-011 checked against the tree rather than against each other.
+**Scope to settle at planning time**, but the shape is: every hand-maintained enumeration versus what the code actually references · every cross-file line cite and check-number reference versus its target · hook contract conformance across both hook classes · skill/agent/router structural conformance · dead or unreachable paths · the assumptions in force in ADRs 001-012 checked against the tree rather than against each other. Scope also against the keyline field report's recurring classes (`g-docs/field-reports/2026-08-10-keyline-francesco.md`) — independent confirmation of the same fix-loop disease.
 
-**Sequencing:** the bug sweep's slot 1 is closed. Deliberately before the roadmap re-scope commits 2.5's full content, since a wide audit is the one thing likely to change what 2.5 must contain.
+**Sequencing:** the bug sweep's slot 1 is closed. The original intent was audit-before-re-scope; the developer pulled the re-scope forward and executed it 2026-08-10 (ADR-012) — if the audit surfaces something that changes what 2.5 must contain, it amends ADR-012 rather than blocking on it. Audit runs next, before M47 planning.

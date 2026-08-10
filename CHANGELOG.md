@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Announced
+
+- **G-Forge 2.5 will be the last feature release.** The README now carries the freeze announcement (the approved §3a/§3b/§3c copy from `g-docs/communication-plan-2.5.md`), published ahead of the 2.5.0 release by explicit developer decision (2026-08-10, [ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)). The 2.5 scope: M47 → M48 → M45 → M38 → M40 → M43 → M41. Maintenance continues after 2.5; the successor (G-Proof) restarts versioning at 1.0.
+
 ### Added
 
 - **`/g-doctor` Check 24 — CLAUDE.md injection-rule compliance detector (advisory).** Classifies every load-bearing line of `CLAUDE.md` into four buckets: MARKER-FED (wrapper blocks owned by `/g-init`, `/g-specialize`, or `/g-update`), IMPORT (line-initial `@`-import of a committed file), DECLARED-LOCAL (paired marker-delimited local block), BARE-PROSE (content matching none of the above). Applies precedence and committedness rules to `@`-imports (including detection of gitignored targets), detects marker-state defects (unpaired marker, slug re-open, unterminated-at-EOF), compares marker payloads against their committed feeds, and reports the declared-local block count. Advisory only (✓/⚠, never blocking), per ADR-011.

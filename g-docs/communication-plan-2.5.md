@@ -1,16 +1,17 @@
 # Communication Plan — G-Forge 2.5 (final feature release)
 
-> **Status:** **DRAFT — copy approved 2026-07-28, scope not yet recorded.** Publish at 2.5.0 release, not before.
+> **Status:** **ACTIVE — copy approved 2026-07-28; scope recorded 2026-08-10 ([ADR-012](decisions/012-g-forge-2.5-final-release-scope.md)).**
+> **§4's publish-at-release rule was OVERRIDDEN by the developer 2026-08-10:** the §3a+§3b+§3c copy went onto the README ahead of the 2.5.0 release, knowingly (§3c under a "What's coming in 2.5" heading until release). Two copy edits landed with that decision (both developer-decided 2026-08-10): §3a's "four other projects" → "my own projects" (the count could not be stood behind), and a "(ships in 2.5)" clarifier on `/g-report` (the command does not exist at v2.4.0 — publishing early forced the truth fix). Freeze-cause narrowing to the single improvement-opportunity cause is **deliberate** (developer, same date) — ADR-010's other two causes stay in the record, not the announcement.
 > **Owner:** HQ. Changes to the copy below are a developer decision, not an editing pass.
 > **Anchors:** [ADR-010](decisions/010-full-rebuild-on-current-platform.md) (rebuild + version identity: G-Proof ships as 1.0, there is no G-Forge 3.0).
 >
-> ⚠ **Read §7 before using this file.** The 2.5 scope described in §3c was agreed in session on 2026-07-28 and is **not yet in `ROADMAP.md`**, which still assigns four of those items to v2.6.0–v2.15.0 and records "only M41" as the v2.5 candidate. The roadmap re-scope pass closes that gap. Until it runs, this document states intent, not record.
+> **§7 records the decision trail.** The 2.5 scope described in §3c is in the committed record as of 2026-08-10 — [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md) plus the roadmap re-scope pass: all seven milestones stamped v2.5.0, M47/M48 recorded, the "only M41" framing retired. §7's formerly-blocking findings are closed or carried; one item (M38's delivery reconciliation) is decided at M38's plan gate.
 
 ---
 
 ## 1. What this plan says
 
-G-Forge 2.5 is the **last feature release**. From there the project is maintenance-only, deliberately, so the developer can build its successor (**G-Proof**) on a stable base while continuing to run G-Forge on four other live projects.
+G-Forge 2.5 is the **last feature release**. From there the project is maintenance-only, deliberately, so the developer can build its successor (**G-Proof**) on a stable base while continuing to run G-Forge on their own live projects. *(Count dropped 2026-08-10 per §7 — the copy says "my own projects".)*
 
 Three things must land together or the message reads wrong:
 
@@ -44,7 +45,7 @@ Lift verbatim. Sub-headings are part of the copy.
 >
 > Where I want to take this next needs a rework deep enough that I couldn't honestly promise stable releases or predictable maintenance while it was underway. Quietly destabilising something people rely on is worse than drawing a clean line, so this is the line.
 >
-> Frozen isn't abandoned. I run G-Forge on four other projects, so its bugs are my bugs and they'll keep getting fixed. That's what `/g-report` is for: when something breaks or gets in your way, it writes a scrubbed report you can send me. Reasonable feature feedback travels the same route.
+> Frozen isn't abandoned. I run G-Forge on my own projects, so its bugs are my bugs and they'll keep getting fixed. That's what `/g-report` (ships in 2.5) is for: when something breaks or gets in your way, it writes a scrubbed report you can send me. Reasonable feature feedback travels the same route.
 >
 > And 2.5 is the version I'll build the next thing with. That's the real reason for freezing it. You want something stable under your feet while you're building its successor.
 
@@ -82,12 +83,12 @@ Lift verbatim. Sub-headings are part of the copy.
 
 | Surface | Carries | Note |
 |---|---|---|
-| `README.md` | 3a then 3b, adjacent and in that order | 3b is what makes 3a land |
+| `README.md` | 3a then 3b (adjacent, in that order) then 3c as "What's coming in 2.5" (present tense at release) | 3b is what makes 3a land; 3c placement per the §7 resolution, published 2026-08-10 |
 | `CHANGELOG.md` under `## [2.5.0]` | 3c, then the itemised entries | Keep-a-Changelog format below the prose |
 | Release announcement (wherever it goes) | 3a + 3c, 3b condensed to its closing paragraph | |
 | `.claude-plugin/marketplace.json` description | Neither. One line, unchanged in tone | Not a place for the freeze story |
 
-Publish nothing before 2.5.0 ships. A freeze announced ahead of the release that justifies it reads as abandonment.
+Publish nothing before 2.5.0 ships. A freeze announced ahead of the release that justifies it reads as abandonment. *(OVERRIDDEN for the README surface only — developer, 2026-08-10, recorded in this file's header; CHANGELOG 2.5.0 heading and the announcement still wait for release.)*
 
 ---
 
@@ -106,7 +107,7 @@ Publish nothing before 2.5.0 ships. A freeze announced ahead of the release that
 
 Two failure modes drove the wording.
 
-**"Frozen" reads as "dead" unless maintenance is concrete.** Abstract reassurance does not survive contact with a user deciding whether to adopt. The specifics carry it: four live projects, so the bugs are the developer's own, and a named channel that ships in the same release.
+**"Frozen" reads as "dead" unless maintenance is concrete.** Abstract reassurance does not survive contact with a user deciding whether to adopt. The specifics carry it: the developer runs G-Forge on their own live projects daily, so the bugs are the developer's own, and a named channel that ships in the same release. *(The count was dropped from the copy 2026-08-10 — see §7.)*
 
 **A freeze with no visible successor reads as giving up.** Hence 3b sitting directly under 3a. The three directions are chosen to be individually understandable and to make the same point in three ways: each is a layer that runs through everything, which is precisely what a rework of the current body cannot deliver. That argument justifies the freeze better than the freeze paragraph does.
 
@@ -120,18 +121,19 @@ This file was gated by `/g-doc-review` on 2026-07-28: **DOCS HOLD, 3 blocking ·
 
 The arithmetic below is coincidental, not a mapping: of the eight warnings returned, one (the "reserves the next major" mechanism error) was **fixed in place** rather than carried, and the §2-vs-§4 mismatch was split out of the §4 finding into a row of its own. Eight returned, eight open, different eights.
 
-**Closed by the roadmap re-scope pass (blocking until then):**
+**Formerly blocking — closed by the 2026-08-10 re-scope pass (ADR-012), except as noted:**
 
-1. **§3c scope vs `ROADMAP.md`.** The roadmap assigns M45 → v2.6.0, M38 → v2.12.0, M40 → v2.14.0, M43 → v2.15.0, and carries no record of task-decomposer optimization at all; `ROADMAP.md:750` (M44 supersession stamp), `ROADMAP.md:799` (Version Plan) and `project_brief.md:68` all still read "only M41" for v2.5. Record the agreed scope and sequence there, then re-gate this file.
-2. **M38 redesign unrecorded.** §3c's `/g-report` copy describes hook-triggering and a report-type menu, neither of which is in the recorded M38 scope. **Also reconcile delivery:** the approved copy says "hands you a file to send" while the redesign was briefed as delivery via git. One of the two is wrong and the record decides which.
-3. **No inbound reference.** Nothing pointed at this file when it was written. The `## Active Session` handoff now does; the roadmap 2.5 entry and a precondition line in `g-docs/milestones/M41.md` should too, so the session that cuts the release actually finds it.
+1. ~~**§3c scope vs `ROADMAP.md`.**~~ **RESOLVED 2026-08-10.** All four items re-stamped v2.5.0 in `ROADMAP.md` (M45, M38, M40, M43); M47 records the task-decomposer work; the "only M41" framing is retired in the Version Plan, `project_brief.md`, and `M41.md`. (The original finding's `ROADMAP.md:750`/`:799` cites are dead — the file was reshaped by the same pass.)
+2. **M38 redesign — CARRIED, not closed.** The hook-trigger + report-type-menu scope and the delivery reconciliation ("hands you a file to send" vs via-git) are both decided at **M38's plan gate** — recorded on M38's Version line in `ROADMAP.md` and in ADR-012. One of the two delivery claims is wrong and the record decides which, there.
+3. ~~**No inbound reference.**~~ **RESOLVED 2026-08-10.** The roadmap's Version Plan 2.5 entry points here, and `g-docs/milestones/M41.md` carries the read-this-first precondition line.
 
-**Developer decisions, carried open:**
+**Developer decisions — resolved 2026-08-10 except where noted:**
 
-- **"Four other projects" (§3a).** The repo cannot arbitrate the count, and one enumerable candidate (`alveria`) is recorded as a third-party adopter's fork rather than a project the developer runs. The sentence is load-bearing for the maintenance commitment, so the number should be one the developer can stand behind.
-- **Freeze cause set (§1).** `ADR-010:41` records three causes the announcement should be honest about — drift from platform capability, genuine overlap, real improvement opportunity. The approved copy carries the third only. Either restore the set or record the narrowing here as deliberate.
-- **Announcement block order (§4).** The announcement row orders 3a + 3c then 3b, which breaks the adjacency rule §1 and §6 both call load-bearing; and "3b condensed to its closing paragraph" leaves "Each of those is a layer…" without an antecedent. Needs either a standalone form of that paragraph or a different order.
-- **§2 vs §4.** §2 tells prospective users they read the "What's in 2.5" list, but §4 never places 3c on the README.
+- ~~**"Four other projects" (§3a).**~~ **RESOLVED: number dropped** — copy now reads "my own projects". The commitment stands without a count to defend.
+- ~~**Freeze cause set (§1).**~~ **RESOLVED: single cause, deliberate.** ADR-010's full three-cause set (platform drift, genuine overlap, improvement opportunity) stays in the record; the announcement carries the third only.
+- **Announcement block order (§4) — STILL OPEN.** The announcement row orders 3a + 3c then 3b, which breaks the adjacency rule §1 and §6 both call load-bearing; and "3b condensed to its closing paragraph" leaves "Each of those is a layer…" without an antecedent. Decide at announcement time (release).
+- ~~**§2 vs §4.**~~ **RESOLVED: README carries 3c** (as "What's coming in 2.5" until release, present-tense at release) — per the developer's full-treatment decision, 2026-08-10.
+- **`/g-report` clarifier — RESOLVED 2026-08-10.** Publishing §3a ahead of release forced a truth fix: the command does not exist at v2.4.0, so the copy gains "(ships in 2.5)" — applied to the §3a block itself, so any verbatim lift (README now, announcement at release) carries it. Drop the clarifier at release if 2.5.0 ships `/g-report`, as a deliberate copy edit.
 
 **Re-verify at publish time (claims that outrun their evidence today):**
 

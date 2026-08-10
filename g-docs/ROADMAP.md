@@ -2,11 +2,11 @@
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HANDOFF — g-forge | branch: main | v2.4.0 · 2.5 bug-sweep slot 1 SHIPPED · 2026-08-07
+HANDOFF — g-forge | branch: main | v2.4.0 · 2.5 SCOPE SETTLED (ADR-012) · 2026-08-10
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Done this pass:   · **`/g-init` 4-of-6 lib install FIXED AND MERGED** — `ec9bf8a`, merged `--no-ff` to `main`, **push PENDING at pass end**. Full pass report + the five closed sub-tasks in `g-docs/todo-done.md` (top entry). Four parts landed: every install enumeration corrected (`g-init` and `g-update` now list all six; `g-doctor` derives instead of listing) across six README sites too, all in the same commit; the two unguarded `gf_read_stdin_timeout` call sites shimmed and the shim body **bounded at all three shim sites** (`observe.sh` pulled in — measured 6s exit against a 25s cap with stdin held open); `tests/test-lib-install-completeness.sh` (41 assertions) asserting installed ⊇ actually-sourced, negative-tested four ways; and `/g-doctor` Check 16 now **derives** `hooks/lib/*.sh` from disk plus a consumer-side install-completeness sub-check. · **Two backlog riders CLOSED by this work and struck from the list below** — "Check-16 lib enumeration stale" and "`command -v` hardening". · **Stale check-number cross-references corrected in four places** (`g-doctor:252`, G-RULES §I, `g-roundtable:37`, ADR-001) — residue from `40ccbeb` inserting Check 16 and renumbering every advisory check without a downstream sweep; six ADR-011 line cites re-resolved; completed-milestone records in `ROADMAP.md`/`todo-done.md` deliberately left frozen because renumbering them would falsify what was built. · **Suite is now 564 / 18 suites / green** (was 523 / 17), attested by a run on 2026-08-07 — note the last code-lead record attests 563/40, taken before the final assertion was added — awk-summed from the run's own `Results:` lines. `CLAUDE.md`'s Quick-commands table re-derived to match, cell by cell.
-Next up:          · **STEP 1 — `/g-intake` on task-decomposer optimization** (slot 2 of the 2.5 build order). Evidence from the 2026-07-28 session, use it: the decomposer returned an EMPTY final message and needed a resume to recover its own task list, and it over-split into 11 tasks where wave-planner immediately collapsed 5 into 1 — same-file sequential edits split across phantom agents. Two defects: task sizing (don't split a serial single-file chain) and unreliable result return across the seam. Fold forecast miss-risk calibration into the same scoping conversation — same pipeline, and the standing complaint is that the number reads high/static and gets ignored. · **STEP 2 — WHOLE-SYSTEM AUDIT at top-tier reasoning (Fable, xHigh/max)**, writeup in `g-docs/todo.md` task 2, now **substantially sharpened by this pass**: nine review rounds were needed to land a one-bug fix, and seven of the nine found a defect, and the fix-reviewing rounds repeatedly surfaced NEW defects introduced by the previous round's fix — including two defects introduced after a clean verdict. Four recurring classes are named in the todo entry (count drift ×5 · stale cross-references ×4 · partial-enumeration fixes ×3 · blind-spot derivations ×2) — scope the audit against those, not from scratch. · **STEP 3 — the roadmap re-scope pass**, unchanged and still pending: it records the settled 2.5 scope and closes all three of the communication plan's blocking findings — (a) `ROADMAP.md` still assigns M45→v2.6.0, M38→v2.12.0, M40→v2.14.0, M43→v2.15.0 and carries no decomposer entry, while `ROADMAP.md:750`, `ROADMAP.md:799` and `project_brief.md:68` all still say "only M41" is the v2.5 candidate; (b) the M38 redesign must land in the record, **including a decision on delivery — the approved copy says "hands you a file to send" while the redesign was briefed as via-git, and one of the two is wrong**; (c) the communication plan needs inbound pointers from the roadmap's 2.5 entry and a precondition line in `g-docs/milestones/M41.md`. Re-gate the communication plan after. · **DEVELOPER DECISIONS STILL OPEN**, all recorded in `communication-plan-2.5.md` §7: the "four other projects" count · whether to restore ADR-010:41's full three-cause set in the freeze narrative · announcement block order · whether the README also carries the 2.5 feature list. · **INTAKE ROWS carried:** (a) `/g-patterns` derivable-counts · (b) injection-rule teeth — the 50-finding bare-prose backlog is the advisory→required promotion gate · (c) self-safe/at-risk state · (d) reviewers write their own sentinels · (e) consumer sentinel-write denial · (f) user-defined voice profiles · (g) per-prompt injection finding · (h) untrusted-content gates as a standing rule for any model-executed check that shells out.
-Active context:   · `main` @ v2.4.0 carrying `ec9bf8a` **unpushed** — push is the first act of the next pass. **`/g-doctor` ships 24 checks (16+8)**; Check 16 now derives its lib set from disk and carries a second sub-check, Check 24 stays advisory. ADR-010 VERIFIED and unamended, ADR-011 LANDED AND CURRENT — build on both, re-verify neither; the checkpoint's "a handed-off ADR needs verifying" nudge stays a spent-entry false positive (`workflow-checkpoint.sh:391`). Suite = **564 / 18 suites / green**, attested 2026-08-07 — always awk-sum the run's own `Results:` lines, never hand arithmetic, never prose; and check whether a changed file is test input before assuming a markdown-only edit cannot move the total (it can — `CHANGELOG.md` and `g-docs/decisions/` are both read by suites). **Version identity: 2.5.0 is the last G-Forge feature release and a deliberate freeze; G-Proof ships as 1.0 — never `3.0`.** The roadmap's arc order and its v2.6–v2.15 version stamps are STALE pending the re-scope pass; `M44`/`M41` stamps stay placeholders. LOCAL, NON-COMMITTED STATE (all gitignored): `.claude/settings.json` shell matcher = `Bash|PowerShell` · `.claude/hooks/` is now BEHIND source for `observe.sh`, `session-start.sh`, `workflow-checkpoint.sh` as well as the deliberate ADR-008 `check-commit.sh` hold — **run `/g-update` early next pass**, and note `.claude/rules/g-rules-I-project-tracking.md` still carries the pre-fix check numbers until it does · voice profile `gian`, its CLAUDE.md section wrapped in `<!-- G-Forge local-only: voice-profile -->` markers · caveman off · `.claude/review-holds` = 11. REPORT-VS-REPO CORRECTIONS (don't re-derive): 8 hook scripts + hooks.json + 6 libs, 19 agents, 38 skills, single router (ADR-007), 56 profile dirs, 24 doctor checks, SubagentStart/Stop registered. Backlog riders: fixture sleep-leak (serial full suite ~10 min) · per-session counter accumulation · ADR-006 implementation · Check-24 bare-prose backlog. Format note: keep this line's leading label intact, use exactly the three §I labels, replace this block **wholesale** each pass — never append a second generation, and never repeat this line's own leading label text anywhere else on it (`workflow-checkpoint.sh:97` strips with a greedy BRE through the LAST occurrence; `pre-compact.sh:74` uses awk block capture — the two consumers disagree when violated, observed live 2026-07-26).
+Done this pass:   · **THE 2.5 RE-SCOPE PASS EXECUTED** (was STEP 3 — developer pulled it forward and settled scope live): **[ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md) records the full-copy scope — v2.5.0 ships M47 → M48 → M45 → M38 → M40 → M43 → M41 (last, cuts the release)**, rejecting the thinner alternatives (all four options + why in the ADR). New milestones **M47 Planning-Pipeline Honesty** + **M48 Review-Pipeline Hardening** intaken and written, seeded by this repo's own nine-round fix-loop plus the **keyline field report** (`g-docs/field-reports/2026-08-10-keyline-francesco.md` — first inbound field report, arrived this pass, triaged: items 1–3 folded into M47/M48, journal + /g-resume + cwd-drift items are audit/bug fodder). **16 fork-bound sections moved out of `ROADMAP.md`** (M25, M26, M29–M37, M39, M42, M44 + both backlog candidates) into `g-docs/g-proof-roadmap.md` — **local-only + gitignored by explicit developer choice**, carry to the fork BY HAND, recoverable from git history pre-2026-08-10. **README now carries the freeze announcement** (§3a+3b+3c) — the comms plan's §4 publish-at-release rule was **overridden by the developer, knowingly**; sanctioned copy edits: "my own projects" (count dropped), "(ships in 2.5)" on /g-report, single freeze cause kept deliberately. `/g-update` ran (self-host): `.claude/hooks/` fully realigned including gated `check-commit.sh` via ADR-008 clone-first exercise (T1–T4 green) + snapshot. **Doc-review r1 = DOCS HOLD, 10 blocking / 7 warning — all 17 fixed**: the pass had swept every version stamp and missed every order line (three `Depends on:` contradictions), plus comms-plan §7 self-closure, brief table, ADR-012 template backfill, 5 milestone-file fork stamps, M24 version correction (shipped v2.0.1, was misrecorded v2.1.0), CHANGELOG Announced entry.
+Next up:          · **STEP 2 — WHOLE-SYSTEM AUDIT at top-tier reasoning (Fable, xHigh/max)** — writeup in `g-docs/todo.md` task 2; scope against the four named recurring classes AND the keyline report's confirmations (same disease, two projects). The audit may amend ADR-012's scope; it no longer blocks on sequencing. · **Then `/g-plan` M47** (first of the seven; evidence rows in its roadmap entry). · **CARRIED:** M38 delivery reconciliation ("hands you a file" vs via-git) decided at M38's plan gate · announcement block order decided at release · g-wiki refresh task WIDENED (wiki still describes the retired arc, now visibly contradicts the README freeze section) · intake rows (a)–(h) unchanged from the previous handoff: /g-patterns derivable-counts · injection-rule teeth (50-finding bare-prose backlog = promotion gate) · self-safe/at-risk state · reviewers write their own sentinels · consumer sentinel-write denial (keyline confirms, 6 denials their side) · user-defined voice profiles · per-prompt injection finding · untrusted-content gates for model-executed checks that shell out.
+Active context:   · `main` @ v2.4.0 — `ec9bf8a` push confirmed done; this pass's re-scope commit is the tree's newest and **must be pushed at commit time, not carried**. Suite = **564 / 18 suites / green, attested 2026-08-10 on the post-edit rerun** — awk-summed from the run's own `Results:` lines; the doc-only re-scope moved no totals (CHANGELOG/decisions edits stayed suite-neutral this time — still always check). `/g-doctor` ships 24 checks (16+8), Check 16 derives libs from disk, Check 24 advisory. **ADR-010 VERIFIED unamended · ADR-011 CURRENT · ADR-012 NEW and same-day verified against the tree by doc-review — build on all three, re-verify none**; the checkpoint's "a handed-off ADR needs verifying" nudge stays a spent-entry false positive (`workflow-checkpoint.sh:391`). **Version identity: 2.5.0 is the last G-Forge release (freeze); G-Proof ships as 1.0 — never `3.0`.** The ROADMAP is **authoritative again** — the stale-arc warning is retired; fork-bound content lives ONLY in gitignored `g-proof-roadmap.md`. LOCAL, NON-COMMITTED STATE (all gitignored): `.claude/hooks/` **current with source as of this pass** (`/g-update` self-host realign, ADR-008 gating protocol honored) · `.claude/settings.json` shell matcher = `Bash|PowerShell` · voice profile `gian` in its marker block · **caveman plugin ACTIVE (full) this session** · `.claude/review-holds` = 11 pre-pass (+1 this pass's doc-HOLD). REPORT-VS-REPO CORRECTIONS (don't re-derive): 8 hook scripts + hooks.json + 6 libs, 19 agents, 38 skills, single router (ADR-007), 56 profile dirs, 24 doctor checks, SubagentStart/Stop registered. Backlog riders: fixture sleep-leak (serial full suite ~10 min) · per-session counter accumulation · ADR-006 implementation · Check-24 bare-prose backlog. Format note: keep this line's leading label intact, use exactly the three §I labels, replace this block **wholesale** each pass — never append a second generation, and never repeat this line's own leading label text anywhere else on it (`workflow-checkpoint.sh:97` strips with a greedy BRE through the LAST occurrence; `pre-compact.sh:74` uses awk block capture — the two consumers disagree when violated, observed live 2026-07-26).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -288,55 +288,13 @@ plainly with the reason — don't paper over it.
 
 ### M24 — Positioning & Reliability Methodology
 **Status:** ✅ Complete
-**Version:** v2.1.0 (docs-only; ships with the next release)
+**Version:** v2.0.1 (shipped — this line previously read "v2.1.0 (docs-only; ships with the next release)", written before the cut; the work actually shipped in v2.0.1 per the Version Plan and CHANGELOG. Corrected 2026-08-10.)
 **Goal:** State what G-Forge actually is, and define how to prove it.
 **Scope:**
 - [x] Reposition README + marketplace + plugin descriptions around "educated, enforced project management" (governance layer, not another agent orchestrator) — grounded in the 107-agent landscape research.
 - [x] `g-docs/benchmark.md` — reproducible reliability-benchmark methodology (model + G-Forge vs. raw, scored on success rate + the 8 `/g-telemetry` metrics).
 
 **Depends on:** M23. *(Committed on `claude/m23-release-u3rx0d` (`8a20f92`); lands on `main` with the next merge.)*
-
----
-
-### M25 — Run the Reliability Benchmark
-**Status:** ⬜ Not started
-**Version:** v2.1.0 (or whenever the number ships)
-**Goal:** Turn "punch above its weight" from a claim into a defensible, published number.
-**Scope:**
-- [ ] **Pilot first** — run the 2–3 task B-vs-A pilot in `g-docs/benchmark.md` to shake out the harness and check for signal on a multi-file / architecture-touching task.
-- [ ] **Gate:** only fund the full run if the pilot shows a lift; a null result on a task class is recorded honestly and stops the spend.
-- [ ] Full benchmark (n ≥ 20, arms A–D), blind mechanical scoring, the chart + 8-metric table.
-
-**Premortem (per `/g-roadmap` Step 3b — this milestone was added, so it ran):**
-- *Harness is the real cost, not the run* — automating the G-Forge arm headless (plan→execute→review) is eval engineering; mitigate by piloting on 2–3 tasks before building the full runner.
-- *Operator confound* — the G-Forge arm must be driven by a fresh model session executing the plugin, never hand-simulated, or the result is meaningless.
-- *Task-class dependence* — lift concentrates on multi-file/architecture work; report per-class, never a single blended number.
-- *Skeptical market* — a sloppy number is net-negative (87% distrust accuracy); do not publish until n and scoring are defensible.
-
-**Depends on:** M24 (methodology), and a session/compute budget allocated to run it.
-
-**Re-prioritization:** M25 sits after M24 and is gated on a pilot — it does not block any other planned work; the run happens when compute is deliberately allocated.
-
----
-
-### M26 — Provable Wave Dispatch (Workflow-script execution engine)
-**Status:** ⬜ Not started (deferred — re-slot after the M-audit → M29 → M35 arc)
-**Version:** TBD when re-slotted (v2.3.0 reassigned to M29 in the 2026-07-01 resequence)
-**Goal:** Make `/g-execute`'s fan-out *provable* rather than instructed — without G-Forge becoming "another agent orchestrator." This enforces the existing orchestration contract; it does not add a new one.
-**Scope (additive opt-in — prose dispatch stays the default and the fallback):**
-- [ ] Feasibility spike + design note (`g-docs/g-execute-engine-design.md`) — Workflow-tool availability detection from a skill, plugin-shipped `scriptPath` invocation, wave-plan→`args` contract, and where the per-wave `/context` capacity gate relocates once the loop is backgrounded. **Gates the build.**
-- [ ] `skills/g-execute/wave-runner.workflow.js` — deterministic `parallel()` fan-out, per-wave barrier, `RESULT`-block parsing, and journal/Progress/agent-output writes **identical to the prose path**.
-- [ ] Script retry/BLOCKED control flow — attempt counter, Three-Strikes ceiling, escalation-log; the §A8 "different mechanism" choice stays a model `agent()` callback (loop in script, *judgment stays model-made*).
-- [ ] `skills/g-execute/SKILL.md` Step 3 opt-in branch + `.claude/execution-engine` sentinel + `/g-doctor` surfacing; prose path byte-for-byte unchanged when opt-out.
-- [ ] Dual-execution-model docs + parity runbook.
-
-**Tier 3 DoD:** Parity run — a 3-task wave (one forced-FAILED) through *both* paths yields identical FILES, `.claude/journal` + Progress-table writes, commit-gate behavior, and retry-ceiling stop.
-
-**Forecast (advisory):** Complexity 7/10 · Miss-risk ~50% (Elevated) — risk concentrated in the spike; clean spike drops it to Moderate. Top scenarios: spike fails (→ reshape to "document the pattern"), orphaned capacity gate, parity drift, retry degradation, two-path maintenance tax.
-
-**Depends on:** M23. Independent of M24/M25.
-
-**Re-prioritization:** Deferred to v2.3.0 behind M27 (developer's call). Internal orchestration mechanism, spike-gated; nothing depends on it, so it slots last among non-completed milestones.
 
 ---
 
@@ -413,161 +371,9 @@ plainly with the reason — don't paper over it.
 
 ---
 
-### M29 — Multi-session coordination (claim/lease for concurrent sessions)
-**Status:** ⬜ Not started (scoped, awaiting go)
-**Version:** v2.8.0 (minor — the register is a new capability; renumbered 2026-07-23 — M45+M46 inserted ahead)
-**Goal:** Stop concurrent sessions from silently colliding on milestone numbers, branches, and the handoff — by coordinating through a shared, MCP-reached surface, with three pluggable backends behind one adapter, degrading cleanly to today's git handoff when none is configured.
-**Scope (phased):**
-- [ ] **Phase A — core + first adapter:** surface-agnostic claim protocol + register schema (resource = milestone/branch/wave; claim = holder/session/ts/lease/status), session identity + signed writes + lease/heartbeat + stale-claim reclaim, a capability-flagged adapter interface (`push|poll`, `cas|convention`, identity), and the **Google (Gmail/Drive)** reference adapter — official MCP, the flow+floor — to answer "is convention enough?" (ships as a standalone gating spike; rest of the arc proceeds on its verdict)
-- [ ] **Phase B — workflow integration:** collision check in `/g-roadmap` + `/g-plan` (fetch + warn + offer alternatives before assigning), hook surfacing of others' active claims + heartbeat in `workflow-checkpoint.sh`/`session-start.sh`, release on milestone close. Honors tiers (off on `light`).
-- [ ] **Phase C — setup, health, more adapters:** **Confluence** adapter (version-CAS = real lock) + optional **Discord** adapter (real-time, **community/unofficial MCP — flagged**), `/g-init` opt-in setup wiring a **remote MCP into `.mcp.json`** (tokens via env-var, never committed) + `/g-doctor` reachability check, graceful degradation + docs.
-
-**Position:** phase one of **multiplayer G-Forge** — full multi-user cooperation on one project ("human orchestration, powered by humans"), a framework that engages whenever >1 session/user is live and degrades to single-player when alone. M29 is the claim/lease substrate; **assignment-by-person, cross-person handoff, cross-person review, and reconciliation** are later phases of the arc (not cut). Permanent line: humans orchestrate — no autonomous AI-dispatches-AI, no hosted authority.
-
-**Cross-surface requirement:** each adapter's MCP must be **remote HTTP/SSE in `.mcp.json`** so cloud / Slack / GitHub-Actions sessions can reach it (local stdio servers are invisible to those surfaces). Same property that makes G-Forge enforcement travel — committed config follows you everywhere.
-
-**Premortem + done condition:** full breakdown in `g-docs/milestones/M29-multi-session-coordination.md` (top risks: credential leakage · convention races on Gmail/Discord · local-vs-remote MCP divergence · stale claims · scope creep). Promoted from the backlog candidate below; this is the milestone version of it.
-
-**Re-prioritization:** promoted to the **next buildable milestone** (v2.3.0 at the time of that decision; now v2.6.0 after the M42 + M41 insertions — the 2026-07-18 restructure moved the G-Proof rebrand to the M44 capstone, so the line stayed 2.x (⚠ that rationale is retired by ADR-010 — the line ends at v2.5; this milestone's position is unchanged)), ahead of the deferred M26 — M26 is spike-gated with nothing depending on it, while M29 is buildable now and strategically central (governance scaled to teams, per M24). Its Phase A doubles as the **de-risking spike for the whole arc** — it answers "is convention enough?" before M30–M32 commit. (M25 stays a parallel compute-gated track.)
-
----
-
-### M30 — Membership, presence & assignment  *(multiplayer arc — sketch)*
-**Status:** ⬜ Sketch (provisional — firms up after M29 ships)
-**Goal:** Know who's on the project, and let work be owned by *people*. The layer where the multiplayer framework's identity and activation live.
-**Scope (sketch):**
-- Membership roster + stable per-member identities (built on M29's session identity).
-- Live **presence** / heartbeat → "who's active, and on what."
-- **Assignment:** an owner on milestones / waves / tasks; `/g-roadmap` + `/g-plan` can assign to a person.
-- **Activation rules:** the framework engages when >1 identity is present, is tier-gated, and degrades back to single-player when alone.
-
-**Premortem (sketch-level):**
-- *Session-identity vs person-identity conflated* (med) — a person across machines/sessions must map to **one** identity or presence + assignment fragment. → Make person-identity primary in M30; session-ids map onto it (carried deliberately from M29).
-- *Presence flap* (med) — noisy/stale heartbeats toggle the framework on/off. → TTL + debounce on presence; activation **hysteresis** (don't switch on a single missed beat).
-- *Toothless or rigid assignment* (med) — "owned by X" is either a meaningless label or a hard block. → Assignment = advisory claim with logged override (reuse M29 claim semantics), not a lock.
-
-**Depends on:** M29 (identity, register, heartbeat).
-
----
-
-### M31 — Cross-person handoff & review  *(multiplayer arc — sketch)*
-**Status:** ⬜ Sketch (provisional)
-**Goal:** Make handoff and review cross *people*, not just sessions.
-**Scope (sketch):**
-- **Person→person handoff:** the `## Active Session` block generalizes from session→session to person→person; `/g-resume` can re-hydrate from a teammate's handoff.
-- **Cross-person review gate:** `/g-review` / `/g-doc-review` can require approval from a *different* member; the approval sentinel is keyed to approver identity.
-- **Notifications** via the chosen surface ("@you — review requested on wave-3").
-
-**Premortem (sketch-level):**
-- *Cross-person review deadlock* (high) — A needs B's approval, B is offline → work stalls. → Timeout + logged self-approve fallback (tier-gated); async notify; cross-approval never unconditionally mandatory.
-- *Handoff race reintroduces the M29 collision* (med) — concurrent person→person edits to the one `## Active Session` block. → Per-member handoff lanes, or treat the handoff itself as an M29-claimed resource.
-- *Untrustworthy identity-keyed sentinels* (low–med) — approver identity in the gate sentinel must be forgeable-proof. → Signed approvals tied to M30 identity.
-
-**Depends on:** M30 (identity/assignment), M29 (register/log).
-
----
-
-### M32 — Reconciliation of concurrent work  *(multiplayer arc — sketch)*
-**Status:** ⬜ Sketch (provisional — hardest phase; spike-gate before building)
-**Goal:** When people work concurrently, reconcile branches / waves with conflicts **surfaced**, never auto-merged behind anyone's back.
-**Scope (sketch):**
-- Detect overlapping file-sets / waves across members (uses M29's claim granularity).
-- Conflict surfacing + **guided** reconciliation — who integrates, in what order.
-- A team convention for "who owns `main`" and ordered integration.
-
-**Premortem (sketch-level):**
-- *Scope blow-up into a full merge/consensus engine* (high) — "who owns `main`" distributed coordination is the hard part and easy to overbuild past the governance lane. → Spike-gate; ship "surface conflicts + recommend an integration order," **never auto-merge**; auto-resolution is an explicit non-goal.
-- *Fuzzy done condition* (high) — "reconcile concurrent work" is vague. → Done = overlapping file-sets/waves across members are **detected and surfaced with a recommended order**, not auto-resolved.
-- *Weak overlap detection from coarse claims* (med) — if M29/M30 file-set claims aren't granular, conflict detection is blind. → Validate claim granularity upstream before M32; spike.
-
-**Depends on:** M30, M31. This is the genuinely distributed part — feasibility-spike it before committing.
-
-**Re-prioritization (arc):** M30→M31→M32 kept in strict dependency order; **M32 stays last and spike-gated** (highest likelihood + fuzziest done condition). The whole arc is provisional behind M29 — building M29 Phase A first is the deliberate de-risking move. **M26** (Provable Wave Dispatch) is pushed behind the arc's first release onto its own spike-gated track (nothing depends on it); **M25** unchanged (compute-gated, parallel).
-
-> *The M30–M32 split is a **provisional sketch** of the multiplayer arc, not a commitment — the exact boundaries, sequence, and contents are expected to change once M29 is built and we learn whether convention-based coordination is sufficient. North star + framework in `g-docs/multi-session-coordination.md`.*
-
----
-
-### M33 — The Roundtable (shared-doc communication layer)  *(multiplayer arc — scoped)*
-**Status:** ⬜ Not started (scoped, awaiting go) — full spec in `g-docs/milestones/M33-the-roundtable.md`
-**Version:** v2.11.0 (minor — Phase A shipped un-versioned; ships when Phase B lands. Follows M37 per the version plan; shared digests build on the memory substrate. Renumbered 2026-07-23 — M45+M46 inserted ahead.)
-**Goal:** Give G-Forge a real-time, human-facing **communication surface** — a shared Google Doc ("the Roundtable") that is the live UI between developers, *non-programmers* (PMs, friends vibecoding a game), and their Claude sessions. State of play is visible; humans steer in plain language; live decisions/plans **distill to the durable record + action points** on a human nod. Triggerable; works **solo** or **shared**. This is the **harmonious cooperation layer** — the interface the M30–M32 mechanics render on.
-**Scope (phased):** A — Solo Roundtable (`/g-roundtable start|sync|close`, templates, session rules, end-of-session distill; proves the make-or-break distill loop with one person, no M29 needed). B — Shared Roundtable (link-restricted join, lanes/presence via M29, cross-person catch-up + handoff). C — Maintenance/grooming, `/g-init` opt-in + `/g-doctor` health, templates, clean degradation. **D — Propagation** (every skill/hook/rule that assigns, plans, executes, reviews, resumes, or reports becomes lane/Roundtable-aware — per the §B cross-cutting propagation rule; gated by the architecture-review completeness check).
-
-**Premortem (top risks — full set in the spec):**
-- *Distillation quality is the whole game* (high) — lossy ⇒ intent drifts, noisy ⇒ the Doc swamps. → human nod gates every distill; salience filter on writes; the C grooming step; keep living-state small.
-- *🔴 "Public" doc = data leak* (high) — a public Google Doc is world-readable. → default **link-restricted, never public**; no credentials on the Roundtable; `/g-doctor` flags world-readable.
-- *Propagation forgotten — the island risk* (med) — the Roundtable works alone but `/g-roadmap`/`/g-plan`/hooks ignore it. → Phase D + the §B propagation rule + the gate completeness check. **A Roundtable the engine doesn't respect is not done.**
-
-**Depends on:** M29 (register) for shared-mode lanes/presence; Phase A is standalone. **Relation to the arc:** M33 is the *interface* the provisional M30–M32 sketch (membership · handoff · reconciliation) renders on — when M29 ships and the sketch firms up, expect M30–M32 to reconcile against (and partly fold into) the Roundtable.
-
----
-
-### M34 — Cross-session dependency tracking & pull/push orchestration  *(multiplayer arc — scoped)*
-**Status:** ⬜ Not started (scoped, awaiting go) — full spec in `g-docs/milestones/M34-cross-session-orchestration.md`
-**Goal:** Make G-Forge's single-session orchestration work across **many sessions/users** — surface a live **who-depends-on-whom** graph and turn it into **git coordination suggestions** (pull / push / coordinate), all **advised, never automated**. The "super important" part: the orchestration *is* the product; the Roundtable is where it becomes visible.
-**Scope (phased):** A — Dependency declaration & graph (extend the M29 claim with `depends-on`; `/g-status` renders blocked-by/blocking — the spike). B — Pull/push suggestion engine (graph + git ahead/behind → advisories at boundaries, salience-gated). C — Roadmap-update propagation (a roadmap change surfaces to everyone's Roundtable; shared re-prioritization). D — Overlap + cycle detection (coordinate warnings; never auto-resolve).
-
-**Premortem (top risks — full set in the spec):**
-- *Suggestion spam* (high) — advisories every boundary become noise. → salience gate: suggest only on a state change; tier-gated; dedupe.
-- *Overreach into auto-merge* (med) — the tempting next step is "just pull for them." → hard non-goal; suggest-only, the human runs every git command (inherits M32).
-- *Coarse claims blind overlap detection* (med, carried from M32) → validate M29 claim granularity upstream before Phase D; spike.
-
-**Depends on:** **M29** (claims = the substrate) + **M33** (Roundtable = the surface). **Relation to the arc:** dependency tracking is the **spine** the provisional M30–M32 mechanics (assignment · handoff · reconciliation) hang off — they are consequences of the graph M34 builds and likely **fold under** it. Degrades to single-session (no deps) when neither substrate is configured.
-
-**Re-prioritization (arc):** M34 slots **immediately after M29**, ahead of and largely absorbing the provisional **M30–M32** sketch — assignment/handoff/reconciliation presuppose the dependency graph, so the graph is built first. Sequence within the arc: **M29 (register) → M33 Phase A (Roundtable, standalone, already built) → M34 Phase A (dependency graph spike) → M34 B–D + M33 B–D + the M30–M32 mechanics reconciled against M34**. M34 is spike-gated on its Phase A (prove the graph is legible with two sessions before the suggestion engine). M26/M25 unchanged (spike-/compute-gated parallel tracks).
-
----
-
-### M35 — Memory Forge (deep memory layer + optional Obsidian surface)
-**Status:** ⬜ Not started — full spec in `g-docs/milestones/M35-memory-forge.md`
-**Version:** v2.9.0 (minor — new capability; renumbered 2026-07-23 — M45+M46 inserted ahead)
-**Goal:** The distilled record becomes a linked, layered, queryable memory that `/g-resume` hydrates task-specifically — wikilink + frontmatter conventions (`g-docs/` *is* the vault), a real `context:`-layer loader (implement or retire the paper contract), graph-walk hydration, memory hit-rate telemetry, and a strictly opt-in `.obsidian/` scaffold ("viewer, never dependency" — ADR at Phase C).
-**Sequence:** after M29, before M33 B–D — shared-state milestones (M33-B digests, M34 dependency records) build *on* this substrate rather than inventing their own record shapes.
-**Depends on:** M29 (shared-layer design only), M-audit-2026-07
-
----
-
-### M36 — Salience Layer: Approach (priority / severity / impact / relevance)
-**Status:** ⬜ Not started
-**Version:** design/decision (ADR outcome — no standalone bump; the M37 build carries the minor)
-**Goal:** Decide the approach for a **system-wide salience model** — how G-Forge scores **priority / severity / impact / relevance** — so every planning and governance skill reasons about "how much does this matter" instead of hand-waving it. This is the *whole layer* (roadmaps, plans, review, forecast, patterns, the arc's salience gates, G-tweak's de-gate safety), not an ADR- or G-tweak-scoped feature.
-**Scope:**
-- ADR (via `/g-adr`) defining the model: the four dimensions, how each is derived, and a **deterministic, documented rubric** — the model *proposes*, the human overrides, it **never auto-acts** on a score.
-- First-consumer contract anchored to concrete consumers (`/g-roadmap` prioritization, `/g-plan`, the M33-B/M34 salience gates, **and M45's review-depth slot — change-class → review depth, added 2026-07-23 from the review-cost field feedback**) — not designed in a vacuum.
-- Positioning vs existing scoring (`/g-forecast` risk %, `/g-telemetry` reliability, `/g-review` adaptive intensity, `/g-patterns` frequency buckets): define how salience absorbs, defers to, or complements each so M37 integrates rather than duplicates.
-
-**Depends on:** M-audit-2026-07 (enforcement integrity must be sound before layering a cross-cutting substrate). Independent of M29 — design-only, can run in parallel. Gates M37.
-
-**Premortem:**
-- *Analysis paralysis on a "grand unified" model* (med) → timebox to an approach decision + first-consumer contract; the model can evolve.
-- *Deciding in a vacuum* (med) → anchor to the named consumers, not abstraction.
-
----
-
-### M37 — Salience Layer: Propagation
-**Status:** ⬜ Not started
-**Version:** v2.10.0 (minor — the salience substrate + its cross-system wiring; renumbered 2026-07-23 — M45+M46 inserted ahead)
-**Goal:** Implement the M36 salience model and **weave it across the system** so priority/severity/impact/relevance is one shared layer, not per-skill guesswork.
-**Scope (phased — do not require all consumers in one milestone):**
-- Model implementation + highest-value consumers first: `/g-roadmap` (milestone prioritization), `/g-plan` (task/wave priority), and the arc's salience gates (M33-B digests, M34 suggestion salience).
-- Then propagate to the rest: `/g-forecast`, `/g-review`, `/g-patterns`, `/g-adr`.
-- **Cross-cutting propagation (G-RULES §B):** run `/g-blast-radius` to enumerate every skill/hook/rule that must become salience-aware; fold each touchpoint into scope; **done condition is incomplete until the architecture-review completeness gate confirms none was missed.**
-- Rubric is deterministic and documented; salience **proposes**, the human overrides — never auto-acts.
-
-**Depends on:** M36 (the approach decision). Inserted **before M33-B** so the arc consumes one real model instead of hand-rolling gates.
-
-**Premortem:**
-- *Boiling the ocean* (high) → phase it (model + 2–3 consumers first); propagate the rest after.
-- *Forgotten-consumer / island risk* (high) → the §B blast-radius + architecture-review completeness gate is the mitigation, not optional.
-- *Collision with existing scoring* (med) → M36's ADR defines the boundaries; M37 integrates, not duplicates.
-- *Subjective-score drift* (med) → documented rubric; propose-not-act.
-
----
-
 ### M38 — G-Report (outbound incident/feedback reporter)
 **Status:** ⬜ Not started
-**Version:** v2.12.0 (minor — new skill; renumbered 2026-07-23 — M45+M46 inserted ahead)
+**Version:** v2.5.0 (re-stamped per [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md), 2026-08-10 — rides the final release; was v2.12.0. The freeze story's maintenance channel — §3a of the communication plan leans on `/g-report` existing. Delivery reconciliation ("hands you a file" vs via-git) is open, decided at this milestone's plan gate — see comms plan §7 item 2.)
 **Goal:** Prepare **scrubbed, project-agnostic `.md` incident/feedback reports** destined for the G-Forge author — the outbound surface G-tweak calls, also invocable standalone.
 **Scope:**
 - Report template(s); project-agnostic scrub mode for sensitive data.
@@ -584,28 +390,9 @@ plainly with the reason — don't paper over it.
 
 ---
 
-### M39 — G-tweak (periodic self-feedback + safe self-tune)
-**Status:** ⬜ Not started
-**Version:** v2.13.0 (minor — new skill; Phase A ships it, B/C fold in as they land; renumbered 2026-07-23 — M45+M46 inserted ahead)
-**Goal:** Every N milestones, **offer (never enforce)** an interview on how G-Forge is serving the user — what's working (to *protect*) and what's friction (gating / overplanning / bottlenecks / poor performance) — then optionally self-tune and/or report out.
-**Scope (phased):**
-- **Phase A — Interview core:** offered every N (3–5, configurable) milestones; asks **both poles**; on decline it self-schedules (resurface in X milestones) or deactivates; **deactivation is flagged by `/g-doctor`** — allowed, never silent. Depends on nothing.
-- **Phase B — Report-out:** action-(b) **calls G-Report** (M38).
-- **Phase C — Safe self-tune:** action-(a) proposes local tweaks, **structurally barred from the commit gate / enforcement sentinels**; uses the M37 salience layer to distinguish needless bureaucracy from load-bearing enforcement; every tweak approve-before-write. Includes the **M43 inspection-cadence reassess hook** (added 2026-07-15): read the operator's cadence setting + observed hold behavior and propose adjustments (always-waved-through ⇒ suggest `off`; friction reports ⇒ suggest `every-wave`), approve-before-write like every tweak.
-- **No automation on any user data**, ever.
-
-**Depends on:** M38 (Phase B), M37 (Phase C). Phase A is standalone.
-
-**Premortem:**
-- *De-gating drift erodes the differentiator* (high) → action-(a) barred from enforcement; gated on M37; approve-before-write.
-- *Reintroduces the interview M19 removed* (med) → offered-not-enforced + self-schedule/deactivate; framed as meta-feedback, distinct from session retro.
-- *Silent deactivation* (low, mitigated) → `/g-doctor` flags it.
-
----
-
 ### M40 — Reference Convention (recognize-and-vet external material)
 **Status:** ⬜ Not started
-**Version:** v2.14.0 (minor — new recognized folder class + classifier arm + doctor advisory + intake questions + optional ADR field; renumbered 2026-07-23 — M45+M46 inserted ahead)
+**Version:** v2.5.0 (re-stamped per [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md), 2026-08-10 — rides the final release; was v2.14.0. New recognized folder class + classifier arm + doctor advisory + intake questions + optional ADR field.)
 **Goal:** Name the one committed-content class the taxonomy can't see — human-curated external material a project builds *against* but never *from* (pinned corpora, design handoffs, spec copies) — stop the commit gate mis-gating it, and let `/g-doctor` vet its provenance discipline. **Recognize-and-vet, never own-and-generate.**
 
 **Origin:** the `reference/` convention already runs in the wild in `keyline` (root `reference/`, `SNAPSHOT.md`/`NOTE.md` provenance notes) and was independently reinvented — divergently — in `omnibook` (same corpus, squatting inside `g-docs/`). Two projects, two placements → no rule exists. Full evidence + options in the reference-folder report (advisory, Francesco / CryusFrey, 2026-07-11).
@@ -628,7 +415,7 @@ plainly with the reason — don't paper over it.
 
 **Depends on:** M-audit-2026-07 (v2.3.0) — shares `check-commit.sh` + `g-doctor`; land after the enforcement-integrity fixes, not concurrent. Otherwise independent of the memory/salience/multiplayer arc.
 
-**Sequencing note:** slotted at the tail (now v2.12.0 — renumbered back into the 2.x line by the 2026-07-18 restructure; the rebrand lives in M44 (⚠ "capstone" framing retired by ADR-010 — M44 is the rebuild's release vehicle)) originally to avoid renumbering the planned M29→M39 lane (a rationale since overtaken, position unchanged). **Wave 1 is a pull-forward candidate** — the reference-only mis-gate is a live enforcement fail-open, thematically M-audit's own territory, and could ship as a `v2.3.x` patch ahead of the arc if the developer wants the gate honest sooner.
+**Sequencing note (historical — superseded by ADR-012, rides v2.5.0 per the Version line):** slotted at the tail (v2.12.0 at the time — renumbered back into the 2.x line by the 2026-07-18 restructure; the rebrand lives in M44 (⚠ "capstone" framing retired by ADR-010 — M44 is the rebuild's release vehicle)) originally to avoid renumbering the planned M29→M39 lane (a rationale since overtaken, position unchanged). **Wave 1 is a pull-forward candidate** — the reference-only mis-gate is a live enforcement fail-open, thematically M-audit's own territory, and could ship as a `v2.3.x` patch ahead of the arc if the developer wants the gate honest sooner.
 
 **Premortem:**
 - *Gate softening leaks* (med) → REFERENCE exemption becomes a code-smuggling path. Mitigation in scope: marker-gated exemption (unmarked → CODE) + doctor flags code-extension files under `reference/`.
@@ -651,18 +438,18 @@ plainly with the reason — don't paper over it.
 
 ### M41 — Release Machinery + README Currency (gated release pipeline)
 **Status:** ⬜ Not started
-**Version:** v2.5.0 (renumbered 2026-07-23 — M46 Update Integrity inserted ahead at v2.4.0; minor — new release commands + skills + a `/g-doctor` version-consistency check. **RESTRUCTURED 2026-07-18 (developer) — ⚠ the version-arc half of this note is RETIRED by ADR-010 (2026-07-26): the 2.x line ends at v2.5 and M44 is the rebuild's release vehicle, not this arc's capstone; the split-out itself stands. See the ADR-010 stamps on the M44 section and `g-docs/milestones/M41.md`.** the G-Proof rebrand + full README restyle were split OUT of this milestone into **M44 — the G-Proof 1.0 capstone, sequenced dead last** — the roadmap runs its whole natural life as G-Forge 2.x, then restarts clean as G-Proof 1.0. What stays here is the release machinery and the standing README/CHANGELOG *currency* convention, which starts even earlier — at the v2.3.0 release (see M-audit's release pass). `g-docs/milestones/M41.md` is the source of truth for `/g-plan`.)
+**Version:** v2.5.0 (renumbered 2026-07-23 — M46 Update Integrity inserted ahead at v2.4.0; minor — new release commands + skills + a `/g-doctor` version-consistency check. **RESTRUCTURED 2026-07-18 (developer) — ⚠ the version-arc half of this note is RETIRED by ADR-010 (2026-07-26): the 2.x line ends at v2.5 and M44 is the rebuild's release vehicle, not this arc's capstone; the split-out itself stands. See the ADR-010 stamps on M44 (moved to `g-docs/g-proof-roadmap.md` per ADR-012) and `g-docs/milestones/M41.md`.** Sequenced LAST in the 2.5 build order (ADR-012) — `/g-release` cuts v2.5.0 itself. **Precondition: the session cutting the release reads `g-docs/communication-plan-2.5.md` first** (approved copy, placement rules, open §7 decisions). the G-Proof rebrand + full README restyle were split OUT of this milestone into **M44 — the G-Proof 1.0 capstone, sequenced dead last** — the roadmap runs its whole natural life as G-Forge 2.x, then restarts clean as G-Proof 1.0. What stays here is the release machinery and the standing README/CHANGELOG *currency* convention, which starts even earlier — at the v2.3.0 release (see M-audit's release pass). `g-docs/milestones/M41.md` is the source of truth for `/g-plan`.)
 **Goal:** Make cutting a release a **single gated step** instead of a manual, multi-file, error-prone ritual — and make README/CHANGELOG currency a structural property of every release, not a memory-dependent chore. Distribution is straight off `main` (no tags, no CI) — the version field in `plugin.json` **is** the "latest available" signal that `/g-update` and the daily `workflow-checkpoint.sh` check advertise to every installed project — so a wrong or premature bump ships immediately. `/g-release` owns that bump with preconditions and consistency.
 
 **Origin:** observed pain, not hypothetical. Six releases in ~2 weeks (2.0.0→2.2.1), each hand-editing the version in **three places** (`plugin.json`, `marketplace.json`, README counts) + cutting CHANGELOG `[Unreleased]`→dated + (always skipped) tagging. On 2026-07-12 a v2.2.2 bump was made mid-milestone and had to be reverted precisely because nothing gated "is this a coherent, complete release?" — the exact failure `/g-release` prevents. On 2026-07-18 the developer flagged the GitHub README as visibly stale — the currency convention is the structural answer.
 
 **Scope (waved — full task breakdown + done conditions in `g-docs/milestones/M41.md`):**
 - **Wave 1 — Release tooling (`/g-changelog` + `/g-release`):** `/g-changelog` **drafts** `[Unreleased]` from the **curated durable record** (milestone-ledger rows, review verdicts, plan done-conditions) — **never raw `git log`** (ledger rows are already human-curated signal; commits are not); Keep-a-Changelog buckets inferred from row type; **draft + human nod** before any write. `/g-release` gates the cut: preconditions (active milestone ✅ closed, full suite green on a **real run** with pasted evidence per finding #20, gate self-hosted clean, no orphaned `[Unreleased]`; refuse on a partial milestone), one-shot version bump across **every** manifest, `[Unreleased]` → dated `## [x.y.z]`, annotated `v{x.y.z}` tag (closes the tagging gap the alveria adopter works around with pinned SHAs). Adds a `/g-doctor` **version-consistency check** (manifests agree; README counts match the `agents/`+`skills/`+`profiles/` inventory) as the standing backstop against a hand bump.
-- **Wave 2 — README currency machinery:** `/g-release` verifies the README **status strip** (version badge · "What's new" → CHANGELOG.md · "Where this is going" → ROADMAP — first shipped at v2.3.0 by M-audit's release pass) is current as a release precondition; the lighter `/g-review` Step-6 close-out README-currency mechanism (optional, behavior-change-gated) becomes the reusable per-milestone pass. **The full persuasion-ordered README restyle (gate GIF, positioning narrative, before/after table, FAQ) is NOT here — it ships with M44/G-Proof 1.0.**
+- **Wave 2 — README currency machinery:** `/g-release` verifies the README **status strip** (version badge · "What's new" → CHANGELOG.md · "Where this is going" → ROADMAP — first shipped at v2.3.0 by M-audit's release pass) is current as a release precondition; the lighter `/g-review` Step-6 close-out README-currency mechanism (optional, behavior-change-gated) becomes the reusable per-milestone pass. **The full persuasion-ordered README restyle (gate GIF, positioning narrative, before/after table, FAQ) is NOT here — it ships with M44/G-Proof 1.0 (fork-bound, `g-docs/g-proof-roadmap.md`).**
 
-**Explicitly out of scope:** the G-Proof rename and everything branded (→ M44); publishing pipelines/CI, signing, changelog generation **from raw commits** (`git log` is never a source), auto-deciding the semver bump (the developer states major/minor/patch; `/g-release` enforces consistency, not the decision), auto-applied README rewrites (always drafted + nodded).
+**Explicitly out of scope:** the G-Proof rename and everything branded (→ M44, fork-bound in `g-docs/g-proof-roadmap.md`); publishing pipelines/CI, signing, changelog generation **from raw commits** (`git log` is never a source), auto-deciding the semver bump (the developer states major/minor/patch; `/g-release` enforces consistency, not the decision), auto-applied README rewrites (always drafted + nodded).
 
-**Depends on:** — (independent; composes with `/g-roadmap`'s milestone close and finding #20's "green run with evidence"). Sequenced immediately after M-audit-2026-07 closes, before M42 — release machinery is most valuable *before* the long release train M42→M43, not after.
+**Depends on:** — (independent; composes with `/g-roadmap`'s milestone close and finding #20's "green run with evidence"). Sequenced **LAST** in the 2.5 build order per [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md) — `/g-release` cuts v2.5.0 itself, so M47, M48, M45, M38, M40, M43 all precede it. *(The earlier "immediately after M-audit, before M42" ordering is retired — M42 is fork-bound.)*
 
 **Premortem:**
 - *Becomes a rubber stamp* (med) → if the preconditions are advisory not blocking, it just automates a bad bump. Mitigation: milestone-closed + green-run are hard gates; refuse, don't warn.
@@ -676,119 +463,85 @@ plainly with the reason — don't paper over it.
 
 ### M45 — Review Pipeline Rework (code-lead takes seat in HQ)
 **Status:** ⬜ Not started
-**Version:** v2.6.0 (minor — `/g-review` restructure + reviewer/agent contract changes; inserted 2026-07-23 from the 2026-07-22 field feedback — review cost hits every remaining slice, so it slots directly after M41; renumbered 2026-07-23 — M46 inserted ahead)
+**Version:** v2.5.0 (re-stamped per [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md), 2026-08-10 — rides the final release; was v2.6.0. `/g-review` restructure + reviewer/agent contract changes; sequenced after M48's cheap hardening of the current pipeline, before M38/M40/M43/M41.)
 **Goal:** Replace the monolithic code-lead review (200k+ tokens on a smallish repo, §C context poisoning by the fourth axis) with an HQ-embodied code-lead **role** dispatching scoped parallel reviewer waves and a cheap synthesis step — one 200k monolith becomes ~5 small disposable contexts + findings-only verdict assembly.
 **Origin:** developer field feedback at the W3 review gate (2026-07-22), `g-docs/milestones/M36-salience-inputs/2026-07-22-review-cost-scaling-feedback.md`. Root cause confirmed against frontmatter: `code-lead` has no Agent tool; `review-orchestrator` degrades when nested; so the whole review runs in one context. Two live stall incidents on the record-write path (W3 r1, v2.3.0 release code-lead).
 **Scope:**
 - **Design ADR first** (via `/g-adr`): does `code-lead` survive as an agent or fold into the `/g-review` SKILL (ADR-007 one-thing-one-home spirit suggests fold); verdict/HOLD adjudication ownership; telemetry-profile composition (`cautious`/`defensive` reviewer adds vs partitioned waves); record-write structural answer (Write grant per g-forge-dev precedent vs HQ-writes-records convention — 2 stall occurrences).
 - `/g-review` restructure: HQ embodies the code-lead role (same pattern as the PM interface rule); dispatches partitioned reviewer waves (per-cluster: gating libs / hooks / skills-docs / tests, or per-axis), each a small disposable context returning compact findings only; synthesis emits MERGE READY / HOLD off findings blocks — never re-reads the diff.
-- **Depth-selection slot** built into the partition step, defaulting to flat-deep — the change-class → depth selector is M37's salience consumer, not built here (M36 names review-depth as a first-consumer contract).
+- **Depth-selection slot** built into the partition step, defaulting to flat-deep — the change-class → depth selector is M37's salience consumer, not built here (M36/M37 fork-bound per ADR-012; M36 names review-depth as a first-consumer contract).
 - Attestation seam unchanged: g-forge-dev runner + header-vs-runner reconcile (finding #20 doctrine untouched).
 - First slice runs with the monolith path still available as fallback (telemetry `recovery` profile) until the partitioned shape proves verdict-equivalent.
 - **Cross-cutting propagation (§B):** review verdicts feed the sentinels, telemetry counts holds, `/g-afk` auto-reviews — run `/g-blast-radius` at the design wave; scope incomplete until the completeness gate confirms no consumer missed.
 
-**Depends on:** M41 (sequencing only — release machinery first per the 2026-07-15 pull-forward decision). Independent of M36/M37 (ships flat-depth; consumes salience later).
+**Depends on:** — (sequenced **third** in the 2.5 build order per [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md): after M48's hardening of the current pipeline, before M38/M40/M43/M41. *The 2026-07-15 "release machinery first" ordering is retired — M41 now cuts the release last.*) Independent of M36/M37, both fork-bound in `g-docs/g-proof-roadmap.md` (ships flat-depth; the depth selector arrives, if ever, with G-Proof's salience layer).
 
 **Premortem:**
 - *Synthesis-verdict regression — findings-block verdict misses what a whole-diff read catches* (med) → A/B on the first slice; monolith fallback stays; HOLD adjudication human-visible.
 - *Nesting-limit surprises* (low-med) → "directly from a skill in the main session" is explicitly permitted by review-orchestrator's contract; doc-reviewer dispatches from `/g-doc-review` prove the shape.
-- *Premature depth-selection* (med) → defaults flat-deep; selector arrives with M37.
-
----
-
-### M42 — Planning Cold-Start Integrity
-**Status:** ⬜ Not started
-**Version:** v2.7.0 (minor — new planning capability + gate; renumbered 2026-07-23: M45 (v2.6.0) + M46 (v2.4.0) inserted ahead)
-**Goal:** No planning gate can green-light a product unusable from an empty state — the human cold-start becomes a represented, probed dimension of kickoff, roadmap, and review.
-
-**Origin:** field report from **G-Cash** (first from-scratch G-Forge consumer), 2026-07-13. A top-tier `/g-roadmap` pass shipped M1–M5 all-green (MERGE READY); the first human smoke test found **no way for a user to create their household, accounts, pots, salaries, or savings goals** — the only creator of standing-config entities was `fixture_seed.sql`. Root-cause chain: ingestion-first brief → `/g-kickoff` never forced the cold-start question → `/g-roadmap` absorbed the gap via fixture-satisfied done-conditions → no gate represents the empty state (`/g-align` is brief-relative; the gap was *in* the brief). Systemic theme: **AI planning optimizes to its own done-conditions; no gate represents the human's first five minutes.** The Tier-3 human gate held — nothing shipped. Source brief: G-Cash scratchpad `gforge-patch-brief.md`.
-
-**Scope (waved):**
-- **Wave 1 — front line (P0):**
-  - **Cold-start grill in `/g-kickoff`** — a relentless one-question-at-a-time interview against the draft brief: depth-first over the plan's dependency tree, every question carries a recommended answer + rationale, concludes at shared understanding. **Seeded with the fixed cold-start probe set** (fires regardless of what the brief mentions): (1) *cold start / empty state* — brand-new user, empty DB, day one: what do they see and do; (2) *entity-creation path* — for every domain entity: manual / imported / derived, and where is the surface; (3) *first-run reachability* — every planned feature reachable from zero data; (4) *fixture-leaning done conditions* — any milestone "done" standing in for a real user path. Mechanism prior art: the external "grill-me" skill — **implemented natively, no third-party dependency**.
-  - **Fixture-as-crutch detector in `/g-roadmap`** — any milestone done-condition satisfiable only by seed/fixture data is surfaced as an open question at the buy-in gate, never absorbed into "done".
-  - Probe set **single-sourced** (one shared rules/reference location); kickoff + roadmap reference it, never copy it.
-- **Wave 2 (P1): reachability gate** — brief-independent check: *from an empty DB, can a real user reach every shipped feature?* Home undecided (new standalone gate vs `/g-align` extension vs a review-pipeline axis) — decide first (mini-ADR if contested), then implement. Output = per-entity creation matrix (entity → create surface? → evidence) + advisory verdict **with evidence** — never a bare green stamp.
-- **Wave 3 (P1/P2):** `/g-patterns` seed rule — "planning omits the human first-run path"; `/g-align` blind-spot doc — brief-relative checks cannot catch requirements missing from the brief itself (why the reachability gate is not redundant). *(The brief's secondary signal — test-writer false DONE ≥4× — was appended to M-audit finding #20 at triage, not scoped here.)*
-
-**Depends on:** M-audit-2026-07 (sequencing only — prose-only skill edits, touches no hooks or enforcement code).
-
-**Sequencing note:** ID tailed at M42, but **sequenced early — after M41 (which the 2026-07-15 pull-forward slotted directly behind M-audit), before M29** — field-validated by the first real consumer's first smoke test, cheap (skill prose, no enforcement code), and it protects every project *birth*: the blind spot compounds worst at kickoff. Takes **v2.6.0** (renumbered 2026-07-23 — M45 inserted ahead; see version plan).
-
-**Premortem:**
-- *Kickoff friction / interview bloat* (high) — a relentless grill makes `/g-kickoff` exhausting; users rubber-stamp to escape and the probe's value dies. → Fixed, small probe set (4 categories); recommended answer on every question; concludes at shared understanding, hard-capped; the grill surfaces, never blocks.
-- *Reachability gate becomes theater* (med) — "every feature reachable" is judgment-heavy; a checkbox version is false confidence. → The gate must emit the evidence (the entity→create-surface matrix, exactly the table the G-Cash brief hand-built) and stays advisory-with-evidence.
-- *Probe-set copy drift* (med — finding #19's exact failure mode) → single source, referenced not copied by kickoff / roadmap / gate / patterns; `/g-blast-radius` at Wave 1 close.
-- *External-skill coupling* (med, pre-mitigated) — adopting grill-me as a runtime dependency couples kickoff to unversioned third-party content. → Native implementation; prior-art credit only.
-
-**Cross-cutting propagation (G-RULES §B):** the cold-start probe set is a shared primitive consumed by `/g-kickoff`, `/g-roadmap`, the reachability gate, and `/g-patterns` — run `/g-blast-radius` at Wave 1 close; the done condition is incomplete until the architecture-review completeness gate confirms no consumer was missed.
+- *Premature depth-selection* (med) → defaults flat-deep; selector arrives, if ever, with M37 (fork-bound, `g-docs/g-proof-roadmap.md`).
 
 ---
 
 ### M43 — Operator Controls (/g-settings + inspection cadence)
 **Status:** ⬜ Not started (scoped 2026-07-15, developer)
-**Version:** v2.15.0 (minor — new skill + new operative variable; renumbered 2026-07-23 — M45+M46 inserted ahead. **Parallel-friendly / pull-forward eligible** — independent of the multiplayer arc, touches only g-init/g-execute skill prose + a new skill; slots into any gap on developer request, like M36.)
+**Version:** v2.5.0 (re-stamped per [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md), 2026-08-10 — rides the final release; was v2.15.0. **Parallel-friendly** — independent of the other 2.5 items, touches only g-init/g-execute skill prose + a new skill. Position is pinned sixth by the ADR-012 build order; the old free-floating "pull-forward eligible, like M36" framing is retired — M36 is fork-bound, `g-docs/g-proof-roadmap.md`.)
 **Goal:** Give the operator **visibility and control over G-Forge's setup and operative variables**, and give actual programmers (non-vibe-coders) a first-class way to *read the code* at wave boundaries instead of only meeting it at the review verdict.
 **Scope (waved):**
 - **Wave 1 — `/g-settings`:** one skill that surfaces every G-Forge state variable with current value, owner (which skill/hook writes it), and effect — `integration-tier`, `voice-profile`, `telemetry-profile`, `inspection-cadence` (Wave 2), Roundtable binding, plus read-only diagnostics (`review-holds`, `milestone-count`, `session-prompt-count`, `escalation-log`, `last-trim`). Safe edits routed through it (validated values only); gate-relevant changes (tier) get an explicit are-you-sure with consequences. **Distinct from `/g-doctor`** — doctor validates *health/state*, settings shows and sets *intent*. Registered in the `/g-forge` router.
 - **Wave 2 — Inspection cadence (the programmer's wave-boundary hold):** new variable `.claude/inspection-cadence` ∈ `every-wave` | `every-milestone` | `off` (default `off`). `/g-init` gains ONE intake question ("Do you want to personally inspect the code at wave boundaries?" — framed for experienced devs; decline = off, no friction for vibe-coders). `/g-execute`'s wave-completion gate honors it as a **hard hold**: present the wave's diff summary + changed-file list, dispatch nothing further until the developer nods (consistent with gates-gate; an ignorable pause is not an inspection gate). `every-milestone` holds only before the final wave's `/g-review` handoff.
-- **Wave 3 — Propagation (G-RULES §B):** `/g-voice` cross-references (voice = how it *talks*, settings = how it *runs* — the intake flows must not duplicate questions); `/g-doctor` gains a check that `inspection-cadence` holds a valid value; **M39 G-tweak reassess hook** — the Phase A interview reads the cadence + observed behavior (holds always waved through ⇒ suggest `off`; frequent post-merge complaints ⇒ suggest `every-wave`) and proposes changes approve-before-write.
+- **Wave 3 — Propagation (G-RULES §B):** `/g-voice` cross-references (voice = how it *talks*, settings = how it *runs* — the intake flows must not duplicate questions); `/g-doctor` gains a check that `inspection-cadence` holds a valid value; **M39 G-tweak reassess hook** — *(narrowed per ADR-012: M39 is fork-bound, so the interview itself cannot ship from this repo. The 2.5 deliverable is only the documented hook point — the cadence variable readable + the reassess contract written down; the Phase A interview that consumes it lands, if ever, in G-Proof.)*
 
 **Premortem (sketch):**
 - *Settings sprawl* (med) — /g-settings becomes a junk drawer as every future milestone adds variables. → Registry table in the skill is THE inventory; adding a variable without registering it = a `/g-doctor` advisory (mirrors finding #19's single-source lesson).
 - *Hold fatigue* (med) — `every-wave` on a 7-wave milestone = 7 interrupts; the developer stops reading and nods blind. → G-tweak reassess hook exists precisely for this; the hold prompt shows diff *size* so the developer can calibrate; switching cadence is one /g-settings command away.
-- *Second intake question creep on g-init* (low) — init interview bloats one question at a time (M42's kickoff-friction premortem, same failure). → Hard rule: ONE question, recommended default, decline = silent off.
+- *Second intake question creep on g-init* (low) — init interview bloats one question at a time (the kickoff-friction premortem lesson from M42, fork-bound per ADR-012 — same failure). → Hard rule: ONE question, recommended default, decline = silent off.
 
-**Depends on:** — (standalone; the M39 hook activates whenever both ship, order-independent).
+**Depends on:** — (standalone. The M39 reassess hook is fork-bound per ADR-012 and cannot activate from this repo — Wave 3's deliverable narrows to the documented hook point above.)
 
 ---
 
-### M44 — G-Proof 1.0 (rebrand — now the rebuild's release vehicle)
-**Status:** ⬜ Not started · ⚠ **PARTLY SUPERSEDED by [ADR-010](decisions/010-full-rebuild-on-current-platform.md) (2026-07-26)** — read this stamp before planning against the text below.
-**Version:** **G-Proof 1.0** — versioning restarts under the new name. The 2.x line ends where this begins; no `3.0.0` ever ships. **Unchanged by ADR-010 and explicitly reaffirmed there.**
+### M47 — Planning-Pipeline Honesty (decomposer + calibration)
+**Status:** ⬜ Not started (2.5 bug-sweep slot 2 — intake 2026-08-10)
+**Version:** v2.5.0 (rides the freeze release — patch-class process fixes, no separate bump)
+**Goal:** Plans sized and priced so their numbers get believed and their tasks match how the work actually executes.
+**Scope:**
+- `task-decomposer`: sizing rule — never split a serial single-file chain across agents (evidence: 2026-07-28 session, 11 tasks collapsed to 1 by wave-planner)
+- Reliable result return across the decomposer seam (evidence: same session, empty final message needed a resume to recover the task list)
+- Forecast miss-risk calibration derived from recorded forecasts-vs-outcomes, not a static constant (standing complaint: number reads high/static, gets ignored)
+- `/g-plan` Step 3c: review-chain cost term + split-depth cap (field-reported by keyline, `g-docs/field-reports/2026-08-10-keyline-francesco.md` §2 — review chain ran 3–10x the implementation estimate and drove a 3-level-deep milestone re-split; their flat-tax constant gets re-derived from both corpora, not copied)
 
-> **ADR-010 supersession stamp.** What changed: this milestone is **no longer the capstone of the 2.x arc and no longer gated** on M35–M37, M29/M33/M34 or M38/M39 shipping first. Under the freeze-and-fork delivery shape, v2.5 ships from this repo (only M41 is a candidate for it), this repo freezes, and the tree is forked into a new repo and transformed into G-Proof — so **the rebrand is the rebuild's release vehicle**, landing right after the rebuild rather than dead last. What survives unchanged: the version identity (1.0, restart under the new name), Wave 2's README restyle, and the requirement that the CHANGELOG and announcement lead with a version-lineage note. **What is RETIRED and must be re-cut — do NOT plan off the wave text below:** (a) **Wave 1's repo rename** `hllrm/g-forge` → `hllrm/g-proof` — under ADR-010 this repo stays published as **frozen G-Forge**, so the new name belongs to a *new* repo, not to a rename of this one; (b) **Wave 3's `/g-update` migration path and its done condition** — ADR-010's Consequences are explicit that "consumers must be migrated, not merely updated — a cross-repo migration path, not a `/g-update` realign"; (c) the **`2.13→1.0` lineage number** used in Wave 1/Wave 3 copy and the premortem — the real lineage is **v2.5 → G-Proof 1.0**; (d) **`**Depends on:**`'s M38/M39 hard prerequisite** (see the note on that line). What is still open, at the gate: M44's three detail calls (done-definition rewrite, whether M41 remains a prerequisite, ride-alongs). The "name lands when the product can back it" rationale below now rests on the *rebuild* backing it, not on the six-milestone list. **`g-docs/milestones/M44.md` carries the same retirements** — it was written pre-ADR-010 and is stamped accordingly.
+**Premortem:**
+- *Over-correction — decomposer under-splits into context-blowing mega-tasks* (med) → sizing rule keyed on file-seriality, not task count; validate against the recorded 11→1 case.
+- *Seam contract change ripples to wave-planner / g-execute consumers* (med) → additive output contract only; blast-radius the seam at plan time.
+- *Calibration lands but the number still gets ignored* (med) → done condition = number moves with recorded evidence, not another constant.
 
-**Goal:** Rebrand **G-Forge → G-Proof** as the release vehicle for the rebuild — the name lands when the product can fully back it. Originally scoped (pre-ADR-010) as the arc's conclusion gated on: enforcement provably enforcing (M-audit), releases gated (M41), memory + salience live (M35–M37), the multiplayer arc shipped (M29/M33/M34), and self-governance measuring itself honestly (M38/M39 + the 2026-07-18 calibration item). "Proof" is a claim; this milestone ships it as a demonstrated property, not a promise.
-**Rationale for the original capstone placement (developer decision, 2026-07-18 — placement RETIRED by ADR-010, see stamp; the naming logic below still holds):** consumers (G-Cash, the alveria fork) keep a stable name/URL through the heaviest milestones; the awkward 3.x mid-arc renumbering disappears; the rebrand becomes a single, complete story ("G-Proof 1.0") instead of a mid-flight costume change. GitHub's rename redirect keeps the mechanical cost of renaming late identical to renaming early.
-**Scope (waves carried over from the pre-split M41 — full task detail in `g-docs/milestones/M44.md`):**
-- **Wave 1 — Rename & manifest:** repo `hllrm/g-forge` → `hllrm/g-proof` (GitHub auto-redirects); `plugin.json` + `marketplace.json` name/display-name/description + version → **1.0.0** under the new name; sweep internal `g-forge` → `g-proof` (CLAUDE.md, skill frontmatter, hook headers) — **historical retros + dated ADRs left as-written** (rename globset excludes them); CHANGELOG heading + G-Proof 1.0 anchor with an explicit version-lineage note (G-Forge 2.x → G-Proof 1.0).
-- **Wave 2 — Full README restyle (persuasion-ordered, G-Proof-branded):** ~250–300 lines (from ~700); tagline ("Claude Code is powerful. It's also optimized for velocity, not reliability. But you can G-Proof it."), producer's-seal analogy, **gate GIF** (commit blocked → `/g-review` → MERGE READY → commit passes; fallback animated-SVG/mermaid/text), before/after table, 5-minute install, FAQ, roadmap table. The status strip (shipped v2.3.0, maintained since) carries over restyled. Uses M41's `/g-release` + `/g-doctor` consistency machinery — by this point both are long-shipped.
-- **Wave 3 — Field communication:** migration notes + announcement for known installs (`hllrm/G-Cash`, marketplace listing) — repo renamed, plugin name changed, **run `/g-update` to resync**; version-lineage explanation front and center (1.0 = rename + maturity marker, same enforcement model); flag Confluence `109314050` / Drive refs for cleanup. Done = consumers notified + confirmed able to `/g-update`; no broken links.
+**Depends on:** —
 
-**Premortem (carried from the pre-split M41 where applicable):**
-- *Rename churn / broken clones* (med) → GitHub auto-redirects; no force-push; field installs resync via `/g-update`.
-- *Downstream fork breakage* (med) → migration notes + tested `/g-update` path; done condition includes "consumer can resync," not just "announced."
-- *Version-lineage confusion* (med — HIGHER than the old v3.0.0 plan's "culture shock" risk, since the lineage — v2.5 → 1.0 post-ADR-010, 2.13 → 1.0 as originally written — reads as a downgrade to the unbriefed) → the announcement + CHANGELOG lineage note lead with it; `/g-update` compares (name, version) pairs, not bare numbers — verify this explicitly in Wave 1.
-- *Gate GIF can't be captured* (low) → fallback to animated SVG / mermaid / text sequence.
+---
 
-**Depends on:** ⚠ **superseded by ADR-010 — the pre-ADR-010 text was:** *"everything — that's the point. Hard prerequisites: M41 (release machinery cuts this release), M38/M39 (the self-governance story the name claims)."* **Now:** the hard prerequisite is **the rebuild** (R0 first, then whatever R-bands R0 authorizes). M38/M39 are **not** prerequisites — they sit behind a 2.x sequence that ends at v2.5, so keeping them would block M44 permanently. Whether **M41** remains a prerequisite is one of the three open detail calls at the gate.
+### M48 — Review-Pipeline Hardening (fix-loop killers)
+**Status:** ⬜ Not started (2.5 bug-sweep slot 3 — intake 2026-08-10)
+**Version:** v2.5.0 (rides the freeze release)
+**Goal:** A fix pass can't silently mint the next defect. Field-proven twice independently: keyline's flagship incident (~20 review dispatches for one milestone, `g-docs/field-reports/2026-08-10-keyline-francesco.md` §1) and this repo's own `ec9bf8a` pass (9 rounds, 7 found defects, 2 after clean verdicts).
+**Scope:**
+- Grep-the-literal-fact sweep as a **required** `/g-review` + `/g-doc-review` step before accepting a fix as closing a finding — sweep output recorded in the review record, checkable, not advisory
+- Round-3-same-finding-class consolidation checkpoint ("round 3 on this class — consolidate the repeated facts into one source of truth instead of patching") — surfaced note, never a block
+- `doc-reviewer` volatile-fact heuristic: claims about in-flight process counts (round counts, commits-ahead) inside a document under review are a smell — pointer language over hardcoded numbers
+- Falsifiability comment rule for guard/negative tests (G-RULES §H, scoped to projects with a suite): guard deleted, test confirmed red, restored — recorded as an in-file one-line comment
+
+**Premortem:**
+- *Regression in the gate degrades every future review* (med) → additive steps only; exercised on a scratch changeset before merge; `test-review-severity` stays green.
+- *New steps decay into skipped prose — the vigilance trap this milestone fixes* (med) → grep-sweep output must appear in the review record; absence is itself a findable gap.
+- *Rule bloat for no-test projects* (low) → falsifiability rule suite-scoped.
+
+**Depends on:** — (sequenced after M47; no hard dependency. Both feed the whole-system audit's scope; audit runs after. Relationship to M45: M48 is the cheap field-proven hardening of the *current* pipeline, landing before M45's structural rework rebuilds it — per the ADR-012 build order.)
 
 ---
 
 ## Backlog
 
-### Candidate — Multi-session / multi-operator orchestration ("orchestrating humans")
-G-Forge orchestrates *agents* inside one session today. It already does **sequential, git-mediated** multi-session handoff — the ROADMAP `## Active Session` block + `/g-resume` + the observer journal are the primitives; this very session ran that way across two machines. The open question is **concurrent** coordination: can HQ in one session treat *other live sessions* (human or agent, same or different machine) as dispatchable units?
-
-The motivating failure is concrete and already observed: a session began planning **M24** while another session had already claimed **M24/M25** — multi-session work has no **claim/lock** primitive, so parallel sessions silently collide on milestone numbers, branches, and the handoff block.
-
-Possible scope when promoted to a milestone:
-- A claim/lease primitive (e.g. `.claude/claims/` or a remote-backed lock) so a session can reserve a milestone number / wave / file-set before work starts.
-- Collision detection in `/g-roadmap` and `/g-plan` (fetch + check before assigning a milestone number).
-- A handoff/merge protocol for *concurrent* (not just sequential) sessions — who owns `main`, how waves from different operators reconcile.
-- Decide the honest boundary: is this "orchestrating humans," or just safer git-mediated coordination? (Aligns with the M24 positioning — governance, not orchestration-for-its-own-sake.)
-
-A brainstormed approach — coordinate through an always-available, instantly-visible **shared surface reached via an MCP** rather than git, which only propagates on push/fetch — is captured in `g-docs/multi-session-coordination.md`. Direction chosen: ship spread surfaces behind a common, extensible adapter, **leading on official MCPs** — **Google (Gmail/Drive)** as flow+floor, **Confluence** as the enterprise lock, **Discord** optional (community MCP). Scoped as M29.
-
-*Status: **the goal is now explicit — multiplayer G-Forge** (full multi-user cooperation on one project; "human orchestration, powered by humans"). The concurrent claim/lease is **M29** (phase one, scoped, awaiting go); the cooperation layer — assignment, cross-person handoff/review, reconciliation — is the milestone arc beyond it. North star + framework captured in `g-docs/multi-session-coordination.md`.*
-
----
-
-### Candidate — Unified Provenance Primitive (decide, don't build)
-Two independent inventions describe the same shape: **a pinned external source + a provenance note + the rule that change lives in the decision layer, not a silent swap.** M40's `reference/` `SNAPSHOT.md` (source pin + deriving-ADR + delta-not-swap rule) and the alveria-forge fork's `al-docs/UPSTREAM.md` (pinned upstream commit + PORTED/DROPPED/DIVERGED ledger + on-release review checklist) each reinvented it — one for external corpora, one for upstream lineage. Worth an ADR to **name the primitive once** so both share a template, instead of solving provenance twice. **YAGNI on tooling** — no skill, no scaffold; the decision is whether it's one named g-forge concept. Gated behind M40 shipping (it needs one concrete instance in-tree first).
-
----
+*Emptied 2026-08-10 ([ADR-012](decisions/012-g-forge-2.5-final-release-scope.md)): both candidates (multi-session orchestration, unified provenance) are fork-bound and moved to `g-docs/g-proof-roadmap.md` — a **local-only, gitignored** file (developer choice). If that file is missing on this machine, it was lost the way gitignored files get lost — its content is only recoverable from this repo's git history (ROADMAP.md as of any commit before the 2026-08-10 re-scope). Carrying it to the G-Proof fork by hand is a named fork-checklist item.*
 
 ## Version Plan
 
@@ -796,7 +549,7 @@ Two independent inventions describe the same shape: **a pinned external source +
 v0.8.1 → v0.9.0 (M8) → v0.10.0 (M9) → v0.11.0 (M10) → v0.12.0 (M11)
        → v0.13.0 (M12) → v0.14.0 (M13) → v0.15.0 (M14) → **v1.0.0 (M15) ✅ shipped**
        → **v2.0.0 (M23) ✅** → **v2.0.1 (M24 + stack implementers) ✅** → **v2.1.0 (M27 — doc-review gate) ✅** → **v2.2.0 (M28 — g-docs canonical tracking) ✅**
-       → **v2.3.0 (M-audit-2026-07 — Forge Integrity; upgraded from v2.2.2 — W1 is new capability, not fixes; ships the first README status strip + starts the CHANGELOG/README currency convention)** → **v2.4.0 (M46 — Update Integrity: /g-update staleness preflight + checkpoint direction fix + detect/diagnose/fix split; inserted 2026-07-23 — G-Cash stale-cache incident)** → **v2.5.0 (M41 — Release Machinery + README Currency: /g-release + /g-changelog + /g-doctor version-consistency; rebrand split out 2026-07-18)** → **v2.6.0 (M45 — Review Pipeline Rework: code-lead-in-HQ + partitioned reviewer waves; inserted 2026-07-23 — review cost hits every remaining slice)** → **v2.7.0 (M42 — Planning Cold-Start Integrity; sequenced early despite tail ID — G-Cash field report)** → v2.8.0 (M29 — multiplayer phase one) → v2.9.0 (M35 — Memory Forge) → **v2.10.0 (M37 — Salience Layer propagation; M36 approach/ADR is design-only, gates M37, slots early)** → **v2.11.0 (M33 B–D — the Roundtable)** → M34 (cross-session dependency tracking + pull/push orchestration, arc spine) → M30–M32 mechanics reconcile against M34 → **v2.12.0 (M38 — G-Report)** → **v2.13.0 (M39 — G-tweak)** → **v2.14.0 (M40 — Reference Convention)** → **v2.15.0 (M43 — Operator Controls: /g-settings + inspection cadence; parallel-friendly, pull-forward eligible)** → **G-Proof 1.0 (M44 — versioning restarts under the new name)** ⚠ **THIS TAIL IS SUPERSEDED — see the ADR-010 stamp on the M44 section.** Under the freeze-and-fork shape the last release of the *2.x arc* is **v2.5** (currently M41 is its only candidate), this repo then freezes, and **G-Proof 1.0 ships from the forked repo as the rebuild's release vehicle** — it is not this arc's capstone. Every `v2.6.0`–`v2.15.0` assignment above is stale pending the post-rebuild-plan re-scope. · M26 (Provable Wave Dispatch) deferred to its own minor when its spike clears · M25 benchmark ships its number when run
+       → **v2.3.0 (M-audit-2026-07 — Forge Integrity; upgraded from v2.2.2 — W1 is new capability, not fixes; ships the first README status strip + starts the CHANGELOG/README currency convention)** → **v2.4.0 (M46 — Update Integrity: /g-update staleness preflight + checkpoint direction fix + detect/diagnose/fix split; inserted 2026-07-23 — G-Cash stale-cache incident)** → **v2.5.0 — THE FINAL G-FORGE RELEASE** ([ADR-012](decisions/012-g-forge-2.5-final-release-scope.md), 2026-08-10 — full announced scope, one release vehicle, no v2.6+ ever ships from this repo). Build order: **M47** (Planning-Pipeline Honesty) → **M48** (Review-Pipeline Hardening) → **M45** (Review Pipeline Rework) → **M38** (G-Report) → **M40** (Reference Convention) → **M43** (Operator Controls) → **M41** (Release Machinery — cuts the release, sequenced last). Already shipped into 2.5: Check 24 injection detector, `/g-init` lib-install fix (`ec9bf8a`). After v2.5.0: this repo freezes (maintenance-only), the tree forks, and **G-Proof 1.0 ships from the fork as the rebuild's release vehicle** (ADR-010 — versioning restarts; no G-Forge 3.0). Everything fork-bound (M25, M26, M29–M37, M39, M42, M44 + both backlog candidates) lives in `g-docs/g-proof-roadmap.md` — local-only, gitignored, carried to the fork by hand per ADR-012. Release comms: `g-docs/communication-plan-2.5.md` (copy approved 2026-07-28; README publication happened 2026-08-10 by recorded developer override of its §4 timing rule — the remaining surfaces publish at release).
 ```
 
 MVP cut: M9 + M10 + M11 — context structure + failure detection + intelligent planning with premortems.
