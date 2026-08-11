@@ -273,7 +273,7 @@ Project hygiene:
 /g-forge brief →   refresh g-docs/project_brief.md as project evolves
 /g-forge help  →   where am I + what to do next
 /g-forge status →   fast state snapshot
-/g-forge doctor →   verify hooks, settings, rules block, and drift — 24 checks (16 required + 8 advisory)
+/g-forge doctor →   verify hooks, settings, rules block, and drift — 25 checks (16 required + 9 advisory)
 /g-forge update →   pull latest G-Forge rules into this project
 ```
 
@@ -310,10 +310,11 @@ Amber is **active monitoring**, not a one-time warning: Claude runs `/context` e
 
 The sentinel is written by `/g-review` only on a MERGE READY verdict, and removed automatically after each commit. Every commit goes through the full review pipeline — no exceptions. Subagents are prohibited from committing; HQ commits once after MERGE READY.
 
-To bypass in an emergency (not recommended):
+To bypass in an emergency (not recommended) — the gate is two layers, both must go:
 
 ```bash
-rm .claude/hooks/check-commit.sh   # removes the gate for this project
+rm .claude/hooks/check-commit.sh                        # PreToolUse layer only — commits still blocked
+rm "$(git rev-parse --git-path hooks)/pre-commit"       # the authoritative native git gate (ADR-004)
 ```
 
 ### Consumer CLAUDE.md local-only marker convention
@@ -337,7 +338,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `/g-forge help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-forge status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
 | `/g-forge resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
-| `/g-forge doctor` | 24-point health check (16 required + 8 advisory): 7 hooks + 6 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction), and CLAUDE.md injection-rule compliance (Check 24, advisory) — ✓/✗/⚠/ℹ with fix instructions |
+| `/g-forge doctor` | 25-point health check (16 required + 9 advisory): 7 hooks + 6 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction), CLAUDE.md injection-rule compliance (Check 24, advisory), and integration-tier guard file (Check 25, advisory) — ✓/✗/⚠/ℹ with fix instructions |
 | `/g-forge kickoff` | Interview → scope challenge → stack deep dive → g-docs/project_brief.md |
 | `/g-forge onboard` | Read existing repo → present findings → interview → optional architecture audit → g-docs/project_brief.md |
 | `/g-forge roadmap` | Milestone planner: feature dump → cluster (narrated) → sequence with dependency + version justification → **premortem & re-prioritize** → approve → g-docs/ROADMAP.md. Assigns a target semver version to every milestone and writes a version plan. Whenever a milestone is added or modified it runs a premortem on the change and re-prioritizes the whole sequence before the buy-in gate. Auto-triggers on any feature idea or empty milestone list. |
@@ -450,7 +451,7 @@ Agents write full findings to `g-docs/agent-output/` and return a five-line summ
 
 ### Context depth management
 
-A prompt counter in `.claude/session-prompt-count` is incremented on every message. It is reset on a genuine session open (startup/resume/clear) but **carries across a `compact` start** — so a session that auto-compacts no longer silently zeroes the counter that triggers its own reset. The session is classified as `implementation` or `conversation` based on git signals; baselines start lenient and auto-calibrate downward (each compaction grows a persistent, floored offset in `.claude/context-threshold-offset`):
+A prompt counter in `.claude/session-prompt-count.<session-id>` (bare `session-prompt-count` only when no session id reaches the hook) is incremented on every message. It is reset on a genuine session open (startup/resume/clear) but **carries across a `compact` start** — so a session that auto-compacts no longer silently zeroes the counter that triggers its own reset. The session is classified as `implementation` or `conversation` based on git signals; baselines start lenient and auto-calibrate downward (each compaction grows a persistent, floored offset in `.claude/context-threshold-offset`):
 
 | Mode | 🟡 Amber (baseline) | 🔴 Red (baseline) |
 |------|---------|-------|
@@ -600,7 +601,7 @@ Auto-triggers:  — no g-docs/ROADMAP.md exists in the project
 /g-forge status Fast structured snapshot — no narrative, just facts:
                      Milestone · Active plan + wave · Review gate · Handoff line
 
-/g-forge doctor 24-point health check (16 required, 8 advisory) — 7 hooks + 6 lib
+/g-forge doctor 25-point health check (16 required, 9 advisory) — 7 hooks + 6 lib
                      scripts + native pre-commit hook installed and registered in
                      settings.json, G-Forge Rules block, G-RULES.md present and
                      referenced, no stale sentinel, installed-copy drift detection,

@@ -13,6 +13,15 @@ SENTINEL=".claude/g-forge-approved"
 PASS=0
 FAIL=0
 
+# Timing bound for abandoned-stdin fixtures (cases 23 and 25): the hook must
+# return once its 5s stdin guard fires. WHY 20000 and not 5s+epsilon: MSYS/
+# Git-Bash process overhead is real — test-class-split-invariant.sh recorded a
+# 9.9s worst run on a quiet machine and widened its GUARD_WINDOW_MS 8000→20000
+# (~2× worst observed) for exactly this fixture class. Guard-deleted failure
+# mode blocks ~300s on the sleeper, so 20s still separates pass from broken by
+# an order of magnitude.
+STDIN_GUARD_WINDOW_MS=20000
+
 run() {
     local name="$1" input="$2" expected="$3"
     echo "$input" | bash "$SCRIPT" >/dev/null 2>&1
@@ -310,10 +319,10 @@ END_TIME=$(date +%s%3N)
 ELAPSED=$((END_TIME - START_TIME))
 
 if [ "$CODE" -eq 0 ] && ! printf '%s' "$OUT" | grep -q 'deny'; then
-    if [ "$ELAPSED" -lt 8000 ]; then
-        echo "PASS: stdin timeout (abandoned pipe) — exit 0, no deny, ${ELAPSED}ms <8s"; PASS=$((PASS+1))
+    if [ "$ELAPSED" -lt "$STDIN_GUARD_WINDOW_MS" ]; then
+        echo "PASS: stdin timeout (abandoned pipe) — exit 0, no deny, ${ELAPSED}ms <${STDIN_GUARD_WINDOW_MS}ms"; PASS=$((PASS+1))
     else
-        echo "FAIL: stdin timeout took ${ELAPSED}ms, expected <8000ms (5s timeout + epsilon)"; FAIL=$((FAIL+1))
+        echo "FAIL: stdin timeout took ${ELAPSED}ms, expected <${STDIN_GUARD_WINDOW_MS}ms (5s guard + MSYS overhead headroom)"; FAIL=$((FAIL+1))
     fi
 else
     DENY_STATUS=$(printf '%s' "$OUT" | grep -q deny && echo "PRESENT" || echo "absent")
@@ -336,16 +345,23 @@ else
 fi
 rm -f "$SENTINEL"
 
-# 25: Regression — stdin timeout on non-commit commands must allow pass-through.
-# When stdin is abandoned but the command is not a git commit, the hook should
-# exit 0 (because non-commits always pass). Verify this holds even with timeout.
+# 25: Second abandoned-stdin sample, honestly labeled: same fixture class as
+# case 23 (the index still holds case 24's staged hooks/thing.sh — the reset
+# comes after this case; and with no payload arriving, CMD is empty,
+# is_git_commit is false, and no staged-set branch is ever reached). This is a
+# distinct invocation, not distinct coverage — kept as an independent
+# regression pin that the fail-open polarity (exit 0, bounded return) still
+# holds immediately after the guard-wiring cases 23-24 ran in this process.
 rm -f "$SENTINEL" "$DOCS_SENTINEL"
+START_TIME=$(date +%s%3N)
 OUT=$(bash "$SCRIPT" < <(sleep 300) 2>&1)
 CODE=$?
-if [ "$CODE" -eq 0 ]; then
-    echo "PASS: stdin timeout on non-commit command — exit 0 (no sentinel needed)"; PASS=$((PASS+1))
+END_TIME=$(date +%s%3N)
+ELAPSED=$((END_TIME - START_TIME))
+if [ "$CODE" -eq 0 ] && [ "$ELAPSED" -lt "$STDIN_GUARD_WINDOW_MS" ]; then
+    echo "PASS: stdin timeout, second sample — exit 0 in ${ELAPSED}ms <${STDIN_GUARD_WINDOW_MS}ms"; PASS=$((PASS+1))
 else
-    echo "FAIL: stdin timeout on non-commit (exit $CODE, expected 0)"; FAIL=$((FAIL+1))
+    echo "FAIL: stdin timeout, second sample (exit $CODE, ${ELAPSED}ms — expected 0 within ${STDIN_GUARD_WINDOW_MS}ms)"; FAIL=$((FAIL+1))
 fi
 
 # Reset the index so any later cases see a clean (empty) staged set.

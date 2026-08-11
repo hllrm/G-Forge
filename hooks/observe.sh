@@ -31,8 +31,8 @@ _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # to bound, on precisely the missing-lib path this shim covers.
 if ! command -v gf_read_stdin_timeout >/dev/null 2>&1; then
     gf_read_stdin_timeout() {
-        local p=""
-        IFS= read -r -t 5 -d '' p || true
+        local t="${1:-5}" p=""
+        IFS= read -r -t "$t" -d '' p || true
         printf '%s' "$p"
         return 0
     }

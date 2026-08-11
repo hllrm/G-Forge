@@ -1,13 +1,13 @@
 ---
 name: g-doctor
-description: Read-only health diagnostics for G-Forge projects — 24 checks including hook registration, installed-copy drift, Check 23 plugin-version-lag, and Check 24 CLAUDE.md injection-rule compliance. Recommends `/plugins` or `/g-update` by direction. Never writes.
+description: Read-only health diagnostics for G-Forge projects — 25 checks including hook registration, installed-copy drift, Check 23 plugin-version-lag, Check 24 CLAUDE.md injection-rule compliance, and Check 25 integration-tier guard. Recommends `/plugins` or `/g-update` by direction. Never writes.
 ---
 
 **Announce:** "Using g-doctor to check project health."
 
 ## Step 1 — Run all checks
 
-Run all 24 checks below against the current working directory, then output the report in the exact format specified. Checks 1–16 are required (✓/✗). Checks 17–21 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total. Check 22 (Roundtable security) is advisory/conditional — it only runs when a Roundtable is bound. Check 23 (plugin version lag) is advisory (✓/⚠/ℹ). Check 24 (CLAUDE.md injection-rule compliance) is advisory (✓/⚠).
+Run all 25 checks below against the current working directory, then output the report in the exact format specified. Checks 1–16 are required (✓/✗). Checks 17–21 are advisory (✓/⚠) — they surface improvement opportunities but do not count toward the pass/fail total. Check 22 (Roundtable security) is advisory/conditional — it only runs when a Roundtable is bound. Check 23 (plugin version lag) is advisory (✓/⚠/ℹ). Check 24 (CLAUDE.md injection-rule compliance) is advisory (✓/⚠). Check 25 (integration-tier guard file) is advisory (✓/⚠).
 
 ### Checks
 
@@ -328,6 +328,14 @@ This check's output always closes with the summary count line below — every ru
     → Run `/g-update` to re-sync the block from its committed source.
   - rider (v) skipped (degrade, not a finding, never bumps the ⚠ verdict on its own): ~ rider (v) skipped for [block] — canonical source unresolvable (no `[plugin-root]` path available); or ~ rider (v) skipped — `<stack>` token failed charset gate; or ~ rider (v) skipped — `..` or absolute component in a derived path; or ~ rider (v) skipped — non-regular or out-of-tree file, no read
 
+**25. Integration-tier guard file** (advisory)
+Check that the **governing** `integration-tier` file exists and contains exactly one of `full`, `balanced`, or `light` (single line, whitespace-trimmed). All 8 hooks — the commit gate included — self-guard on this file (`check-commit.sh`, `workflow-checkpoint.sh`, `session-start.sh`, `observe.sh`, `agent-lifecycle.sh`, `post-commit-cleanup.sh`, `pre-compact.sh`, and the native `pre-commit`), so a missing or corrupt governing file makes the entire hook system silently go inert while every file-presence check above still passes. "Governing" means the same ADR-005 resolution the hooks use: the local `.claude/integration-tier` if present, else the resolved primary tree's (`gf_guard_claude_dir` / `gf_resolve_primary_claude_dir` in `hooks/lib/worktree-resolve.sh`) — in a linked worktree the local file is legitimately absent by design and the primary's governs; do NOT report inert (and do not tell the developer to write a per-worktree tier file, which would diverge from the primary) unless **neither** location resolves a valid value.
+- Pass: ✓ integration tier set: [value] ([local | primary])
+- Fail (neither resolves): ⚠ governing `integration-tier` missing — all hooks (commit gate included) are silently inert
+  → Run `/g-tier full` (or re-run `/g-init`) **from the primary tree** to restore the tier file.
+- Fail (unrecognized value): ⚠ governing `integration-tier` contains an unrecognized value: [value]
+  → Run `/g-tier` to write one of `full`, `balanced`, `light`.
+
 **Note:** Milestone alignment is no longer a numbered check — it is contextual and covered by `/g-status`. Doctor focuses on hook, rules, and document-layout infrastructure only.
 
 ## Step 2 — Output the report
@@ -385,6 +393,8 @@ G-Forge Doctor ─────────────────────�
     [→ fix instruction if advisory]
   [✓/⚠ line for check 24]
     [→ fix instruction if advisory]
+  [✓/⚠ line for check 25]
+    [→ fix instruction if advisory]
 ────────────────────────────────────────────────
 [N/16 required checks passed]
 ```
@@ -393,12 +403,12 @@ Fix instructions are indented with four spaces and prefixed with `→ `, and app
 
 After the summary count line, add one blank line, then:
 - If all 16 required checks passed and no advisories: `All checks passed. Project is healthy.`
-- If all 16 required checks passed but advisories exist: `Required checks passed. Address advisories above to keep CLAUDE.md compact and the document layout clean.`
+- If all 16 required checks passed but advisories exist: `Required checks passed. Address the advisories above — they range from CLAUDE.md/document hygiene to conditions that leave the hook system inert (Check 25).`
 - If any required check failed: `Fix the issues above, then re-run /g-doctor.`
 
 ## Rules
 
-- Checks 1–16 are required (✓/✗) and count toward the pass/fail total (16 required); checks 17–21 are advisory (✓/⚠) and never count toward it; check 22 is advisory and runs only when `.claude/roundtable` exists; check 23 is advisory (✓/⚠/ℹ) and never counts toward the total; check 24 is advisory (✓/⚠) and never counts toward the total. Checks 17–24 form the 8 advisory checks (16 required + 8 advisory = 24 total).
+- Checks 1–16 are required (✓/✗) and count toward the pass/fail total (16 required); checks 17–21 are advisory (✓/⚠) and never count toward it; check 22 is advisory and runs only when `.claude/roundtable` exists; check 23 is advisory (✓/⚠/ℹ) and never counts toward the total; check 24 is advisory (✓/⚠) and never counts toward the total; check 25 is advisory (✓/⚠) and never counts toward the total. Checks 17–25 form the 9 advisory checks (16 required + 9 advisory = 25 total).
 - Check 23 (plugin version lag) is read-only diagnosis — it must never write a file, and it must never invoke `/g-update` or `/plugins` itself, only recommend the right one by direction. Version ordering is always sourced from `hooks/lib/semver-compare.sh`'s `gf_semver_compare` — never hand-rolled.
 - Check 24 (CLAUDE.md injection-rule compliance) is advisory (✓/⚠, never ✗) and read-only per ADR-009 — it classifies, it never rewrites CLAUDE.md. Its summary count line — carrying the marker-fed/import/declared-local/bare-prose counts, declared-local reported literally even on a pass (count growth there is the laundry-chute tripwire ADR-011's premortem names) — is unconditional: it closes this check's output in every state (clean pass, bare-prose, any rider finding, or a rider-(v)-skipped degrade), never only on a particular finding branch. The guard is scoped over ANY shell or binary contact and ALL untrusted data — paths, marker payloads, slugs, and `<stack>` tokens — not only `git` commands or hash comparisons over resolved paths: no `@`-import path reaches a shell, a filesystem call, or a hash comparison without first clearing rider (ii) step 1's in-model escape classification and step 2's charset gate (`^[A-Za-z0-9._/][A-Za-z0-9._/-]*$`, first character excludes `-`); no marker PAYLOAD text is ever shell-materialized or hashed, only Read and compared in-model per rider (v); no `<stack>` token derives a path before clearing rider (v)'s `^[a-z0-9-]+$` gate; and no rejected path or slug is echoed raw into a finding line — see the report-laundering guard above. A value failing any of these gates is never shell-interpolated or filesystem-touched — only classified and reported by line number.
 - Every failing or advisory check must include a `→ ` fix instruction, indented four spaces — never leave a fail/advisory line unexplained.

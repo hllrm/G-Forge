@@ -54,11 +54,20 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
 
 # Bounded read (hooks/lib/stdin-read.sh) — a bare `cat` here left this hook
 # orphaned for 66 minutes in the field when stdin had no writer and no EOF.
-if command -v gf_read_stdin_timeout >/dev/null 2>&1; then
-    INPUT=$(gf_read_stdin_timeout 5)
-else
-    INPUT=""
+# Missing-lib shim mirrors the lib's `read -t -d ''` mechanism (same body as
+# observe.sh's) — the old INPUT="" fallback meant is_git_commit never matched
+# on the degraded path, so sentinels were never cleared and the gate stayed
+# open on a stale approval wherever the native pre-commit backstop is absent
+# (foreign pre-commit preserved by /g-init Step 6a).
+if ! command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    gf_read_stdin_timeout() {
+        local t="${1:-5}" p=""
+        IFS= read -r -t "$t" -d '' p || true
+        printf '%s' "$p"
+        return 0
+    }
 fi
+INPUT=$(gf_read_stdin_timeout 5)
 
 # G-Forge project guard — act only inside a G-Forge-managed project (one that ran
 # /g-init, which writes .claude/integration-tier). Keeps the hook inert everywhere
@@ -72,8 +81,8 @@ fi
 # gated project — a worktree of a gated project gets its sentinels cleared
 # through the primary's .claude/, the same directory check-commit.sh's gate
 # and hooks/pre-commit read/consume for this worktree (mirrors
-# check-commit.sh's GF_CLAUDE_DIR resolution, hooks/check-commit.sh
-# ~lines 102-131). GF_CLAUDE_DIR is the resolved base for both sentinel
+# check-commit.sh's GF_CLAUDE_DIR resolution block — find it by the
+# symbol, not a line number). GF_CLAUDE_DIR is the resolved base for both sentinel
 # paths below; it defaults to the local "." tree, which keeps the
 # primary-tree / non-worktree path byte-identical to before this change.
 #
@@ -94,3 +103,8 @@ if is_git_commit "$CMD"; then
     rm -f "$GF_CLAUDE_DIR/g-forge-approved"
     rm -f "$GF_CLAUDE_DIR/g-forge-docs-approved"
 fi
+
+# Non-gating hooks never exit non-zero (ADR-008). Without this, a failed
+# trailing rm (EACCES/EBUSY on a held-open sentinel — plausible on Windows)
+# would become the script's exit status.
+exit 0

@@ -96,7 +96,9 @@ Use the wave schedule from Step 3 for `wave_count` and `total_agent_slots`. Use 
 
 **Read remaining budget:**
 
-Read `.claude/session-prompt-count` for the current depth. Once a plan is executing, the session is always `implementation` mode → red threshold = 40. `remaining = 40 − current_depth`.
+Read the current depth from the prompt counter. The hooks key it by session id — `workflow-checkpoint.sh` and `session-start.sh` write `session-prompt-count.<session-id>` under the governing `.claude/` directory (local, else the resolved primary tree's — the same ADR-005 resolution the hooks use; in a linked worktree the counter lives in the primary's `.claude/`), and the bare `session-prompt-count` only on the no-session-id degrade path. Take the current session's keyed file if the session id is knowable; otherwise the **most recently modified** file matching `session-prompt-count*` there (never assume the bare name; a bare-name file may be stale litter from an old session).
+
+Derive the red threshold the same way the hook does — never restate a literal: once a plan is executing the session is `implementation` mode, so `red = 45 − offset`, where `offset` is the integer in `.claude/context-threshold-offset` (0 if absent), floored at 25 (`hooks/workflow-checkpoint.sh` BASE_RED/FLOOR_RED). `remaining = red − current_depth`.
 
 **Evaluate:**
 
@@ -108,7 +110,7 @@ Read `.claude/session-prompt-count` for the current depth. Once a plan is execut
 ⚠ Context budget exceeded
 
   Estimated cost:   ~[N] exchanges
-  Remaining budget: ~[M] exchanges  (red threshold 40 − current depth [C])
+  Remaining budget: ~[M] exchanges  (derived red threshold [R] − current depth [C])
   Shortfall:        ~[N−M] exchanges
 
   Running this plan would push the session into red mid-execution,

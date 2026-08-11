@@ -1,5 +1,5 @@
 ---
-name: rust-axum-architect
+name: rust-architect
 description: Rust + Axum + Tokio architecture specialist. Validates handler/service/repository layering, typed AppError with IntoResponse, State/Extension extraction, and async safety. Dispatch when touching route handlers, services, repositories, or error types.
 model: sonnet
 tools: Read, Glob, Grep

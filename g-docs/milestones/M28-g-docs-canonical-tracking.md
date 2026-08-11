@@ -29,8 +29,8 @@ Today G-Forge scatters its outputs: operational records land under `g-docs/` (re
 
 - [x] **T1 — Migrate tracking docs into `g-docs/`.** `ROADMAP.md` `git mv`'d to `g-docs/ROADMAP.md`; `g-docs/milestones/` + `g-docs/todo.md` established. Every *live* reference (skills, hooks `workflow-checkpoint.sh`/`pre-compact.sh`, rules, agents, commands, templates, README, live `g-docs/` doctrine docs) rewritten to the `g-docs/` path. Historical records left untouched.
 - [x] **T2 — `/g-init` defines the project `.gitignore`.** New Step 5a writes/merges the `.gitignore` (runtime artifacts ignored, project record + shared `.claude/` config tracked). Idempotent merge. This repo's own `.gitignore` updated so the migrated `g-docs/` tracking is committed.
-- [x] **T3 — `/g-doctor` vets the `.gitignore`.** New advisory Check 19 — runtime exclusions present, no tracked-by-design path ignored (incl. over-broad bare patterns).
-- [x] **T4 — `/g-doctor` finds + relocates stray g-forge docs.** New advisory Check 20 — scans root + non-`g-docs/` doc folders, reports each stray with a `git mv` fix, offers to move.
+- [x] **T3 — `/g-doctor` vets the `.gitignore`.** New advisory Check 20 — runtime exclusions present, no tracked-by-design path ignored (incl. over-broad bare patterns). *(Was numbered 19 at delivery; renumbered by the Check-16 insertion.)*
+- [x] **T4 — `/g-doctor` finds + relocates stray g-forge docs.** New advisory Check 21 — scans root + non-`g-docs/` doc folders, reports each stray with a `git mv` fix, offers to move. *(Was numbered 20 at delivery; renumbered by the Check-16 insertion.)*
 - [x] **T5 — Confirm every skill writes under `g-docs/`.** Audited; canonical `g-docs/` subpath map encoded in `g-rules-I-project-tracking`.
 - [x] **T6 — Sync the record.** CHANGELOG `[Unreleased]` entry added; README paths migrated; `grep` confirms zero live references to old root paths (only historical records + the g-doctor stray-detector name them). Version bump to v2.2.0 deferred to release (developer's call).
 

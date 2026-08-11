@@ -11,7 +11,7 @@ You are the autonomous executor for this milestone. Your job is to drive the ent
 
 ## Pre-check — Verify AFK prerequisites
 
-Before doing anything else, verify all three conditions. Fail fast and clearly if any is missing.
+Before doing anything else, verify all four conditions. Fail fast and clearly if any is missing.
 
 **1. Approved plan exists.**
 Glob `g-docs/plans/` for `.md` files. Read each and look for a Progress table (`| Wave | Status |`). If none is found, stop:
@@ -28,7 +28,13 @@ If all waves are already `complete`, stop:
 ✓ All waves already complete. Run /g-review if you haven't yet.
 ```
 
-**3. Configure auto-permissions with safety deny-list.**
+**3. Training mode not active.**
+If `.claude/training-mode` exists, stop — G-RULES §B mandates the block: training requires the learner present for their wave tasks, and AFK runs everything without them. Do not touch settings.json before this check. Print the canonical block message owned by `/g-train` (its Rules section), verbatim:
+```
+Training mode is active — `/g-afk` requires no one present, but your wave tasks need you here. Complete the current wave's task first, or run `/g-train` without a project idea to start fresh.
+```
+
+**4. Configure auto-permissions with safety deny-list.**
 Read `.claude/settings.json`. Merge the following into the `permissions` block — do not overwrite existing rules:
 
 **Allow** (tool use without prompts):
@@ -234,6 +240,7 @@ No further autonomous actions will be taken this session.
 ## Rules
 
 - Never skip the Pre-check. No approved plan = stop immediately.
+- Never run while `.claude/training-mode` exists — print `/g-train`'s block message and stop (G-RULES §B).
 - Never skip the safety deny-list setup. Settings write failure = stop.
 - Never pause between waves to ask "shall I continue?" — that defeats the purpose.
 - BLOCKED and safety violations are the only valid autonomous stops.
