@@ -1,5 +1,11 @@
 # Done — archive of closed tasks and pass reports
 
+## STEP 2 — Whole-system audit at top-tier reasoning (task 2, closed 2026-08-11)
+
+**Pass report (2026-08-11):** Developer-requested 2026-07-28, executed as 7 parallel Fable auditors (enumerations · cross-refs · hook contracts · structure · dead paths · ADRs-vs-tree · test blind spots), each single-use, findings-only, interrupted once by a platform session limit and resumed intact. **80 findings summed from the reports' own declared totals: 11 blocking · 29 warning · 40 note** (an earlier hand count said 79/39 — one "recorded-clean" note in audit-4 was silently excluded; corrected here, derive-don't-exclude). Full reports: `g-docs/agent-output/audit/audit-{1..7}-*.md` — **local-only, gitignored, expensive to regenerate**. Enforcement spine (ADRs 004/005/007/008/009/011) verified implemented to the letter. Keyline journal mystery settled with captured payloads (harness sends empty agent_type; task name recoverable from SubagentStop but unread). Remediation triaged into `g-docs/todo.md` tasks 3–7; the original task text (scope shape, four recurring classes, sequencing history) is preserved in `g-docs/todo.md`'s git history (last at the 2026-08-10 re-scope commit) and superseded by the executed reports.
+
+---
+
 ## 2.5 bug sweep — slot 1: `/g-init` installed 4 of 6 `hooks/lib` scripts
 
 **Pass report (2026-08-07, `ec9bf8a` on `fix/g-init-lib-install`, merged `--no-ff` to `main`):** A field report, verified against the repo, found `/g-init` installing four of the six `hooks/lib/` scripts. `stdin-read.sh` appeared in **zero** skill files despite being sourced by all seven top-level hooks; `semver-compare.sh` was likewise absent. Three skills and six README sites carried the same stale hand-maintained enumeration, so a fresh `/g-init` produced a broken install, `/g-update` would not heal it, and `/g-doctor` Check 16 would not flag it — all three read the same list. Shipped broken in v2.4.0. Found by a human hand-walking the install list, because the defect was never in a diff.
