@@ -15,7 +15,7 @@ G-Forge installs an enforced engineering process into any Claude Code project. T
 - **Diagnostic** (+ Bash) — runs verification, reproduces bugs, confirms fixes work.
 - **Writer** (+ Write/Edit) — authors documentation, tests, or implementations scoped to their own record files. Implementer agents own `/g-execute` wave output files only; they never touch review artifacts or the durable record.
 
-All agents include name, description, model, and tools in frontmatter. Reviewer output distinguishes BLOCKING, WARNING, and PASS findings.
+All agents include name, description, model, and tools in frontmatter. Reviewer severity follows the tested contract: code-reviewer, performance-auditor, and dependency-auditor report Critical/Major/Minor with a `RESULT: PASS|HOLD` verdict line; security-auditor keeps its native Critical/High/Medium/Low (the orchestrator normalizes it); architecture-enforcer emits the verdict with a violations list, no severity ladder; doc-reviewer uses BLOCKING/WARNING.
 
 **`profiles/<stack>/`** — Stack-specific architect agents and layer rules, installed per-project by `/g-specialize`. Enforce import directions, state ownership, and side-effect boundaries. Read-only verification only.
 

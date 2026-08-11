@@ -200,7 +200,7 @@ Thumbs.db
 .claude/journal/
 .claude/compact-state.md
 .claude/reentry.md
-.claude/session-prompt-count
+.claude/session-prompt-count*
 .claude/session-compaction-count
 .claude/context-threshold-offset
 .claude/review-holds

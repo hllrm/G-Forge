@@ -7,7 +7,7 @@ All 15 agents have complete system prompts: single mandate, output contract (sum
 Every agent in agents/ has a non-empty body. Every agent's system prompt includes: its mandate, output format, and at least one explicit scope rule.
 
 ## Plan
-→ [docs/superpowers/plans/2026-05-03-m2-agent-roster.md](../docs/superpowers/plans/2026-05-03-m2-agent-roster.md)
+→ [archive/superpowers/plans/2026-05-03-m2-agent-roster.md](../archive/superpowers/plans/2026-05-03-m2-agent-roster.md)
 
 ## Agents
 

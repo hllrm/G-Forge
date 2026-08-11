@@ -255,9 +255,10 @@ Stack → file mapping (agent file + rules file):
 - `electron`        → `profiles/electron/agents/electron-architect.md`             + `profiles/electron/rules/architecture.md`
 - `express`         → `profiles/express/agents/express-architect.md`               + `profiles/express/rules/architecture.md`
 - `fastapi`         → `profiles/fastapi/agents/fastapi-architect.md`               + `profiles/fastapi/rules/architecture.md`
+- `flask`           → `profiles/flask/agents/flask-architect.md`                   + `profiles/flask/rules/architecture.md`
 - `flutter`         → `profiles/flutter/agents/flutter-architect.md`               + `profiles/flutter/rules/architecture.md`
 - `go-fiber`        → `profiles/go-fiber/agents/go-fiber-architect.md`             + `profiles/go-fiber/rules/architecture.md`
-- `go-gin`          → `profiles/go-gin/agents/go-gin-architect.md`                 + `profiles/go-gin/rules/architecture.md`
+- `go-gin`          → `profiles/go-gin/agents/go-architect.md`                     + `profiles/go-gin/rules/architecture.md`
 - `godot-csharp`    → `profiles/godot-csharp/agents/godot-csharp-architect.md`     + `profiles/godot-csharp/rules/architecture.md`
 - `godot-gdscript`  → `profiles/godot-gdscript/agents/godot-gdscript-architect.md` + `profiles/godot-gdscript/rules/architecture.md`
 - `hono`            → `profiles/hono/agents/hono-architect.md`                     + `profiles/hono/rules/architecture.md`
@@ -269,7 +270,8 @@ Stack → file mapping (agent file + rules file):
 - `next-js`         → `profiles/next-js/agents/next-js-architect.md`               + `profiles/next-js/rules/architecture.md`
 - `node-ts`         → `profiles/node-ts/agents/node-architect.md`                  + `profiles/node-ts/rules/architecture.md`
 - `nuxt`            → `profiles/nuxt/agents/nuxt-architect.md`                     + `profiles/nuxt/rules/architecture.md`
-- `phoenix-liveview`→ `profiles/phoenix-liveview/agents/phoenix-architect.md`      + `profiles/phoenix-liveview/rules/architecture.md`
+- `phoenix-liveview`→ `profiles/phoenix-liveview/agents/phoenix-liveview-architect.md` + `profiles/phoenix-liveview/rules/architecture.md`
+- `pygame`          → `profiles/pygame/agents/pygame-architect.md`                 + `profiles/pygame/rules/architecture.md`
 - `python-cli`      → `profiles/python-cli/agents/python-cli-architect.md`         + `profiles/python-cli/rules/architecture.md`
 - `python-data`     → `profiles/python-data/agents/python-data-architect.md`       + `profiles/python-data/rules/architecture.md`
 - `python-ml`       → `profiles/python-ml/agents/python-ml-architect.md`           + `profiles/python-ml/rules/architecture.md`
@@ -280,15 +282,17 @@ Stack → file mapping (agent file + rules file):
 - `remix`           → `profiles/remix/agents/remix-architect.md`                   + `profiles/remix/rules/architecture.md`
 - `rust-axum`       → `profiles/rust-axum/agents/rust-architect.md`                + `profiles/rust-axum/rules/architecture.md`
 - `rust-cli`        → `profiles/rust-cli/agents/rust-cli-architect.md`             + `profiles/rust-cli/rules/architecture.md`
-- `spring-boot`     → `profiles/spring-boot/agents/spring-architect.md`            + `profiles/spring-boot/rules/architecture.md`
+- `spring-boot`     → `profiles/spring-boot/agents/spring-boot-architect.md`       + `profiles/spring-boot/rules/architecture.md`
 - `sveltekit`       → `profiles/sveltekit/agents/sveltekit-architect.md`           + `profiles/sveltekit/rules/architecture.md`
 - `swift-ios`       → `profiles/swift-ios/agents/swift-ios-architect.md`           + `profiles/swift-ios/rules/architecture.md`
 - `tauri`           → `profiles/tauri/agents/tauri-architect.md`                   + `profiles/tauri/rules/architecture.md`
 - `unity`           → `profiles/unity/agents/unity-architect.md`                   + `profiles/unity/rules/architecture.md`
 - `unreal`          → `profiles/unreal/agents/unreal-architect.md`                 + `profiles/unreal/rules/architecture.md`
 - `vue-pinia`       → `profiles/vue-pinia/agents/vue-architect.md`                 + `profiles/vue-pinia/rules/architecture.md`
-- `wpf-csharp`      → `profiles/wpf-csharp/agents/wpf-architect.md`               + `profiles/wpf-csharp/rules/architecture.md`
+- `wpf-csharp`      → `profiles/wpf-csharp/agents/wpf-csharp-architect.md`         + `profiles/wpf-csharp/rules/architecture.md`
+- `xamarin`         → `profiles/xamarin/agents/xamarin-architect.md`               + `profiles/xamarin/rules/architecture.md`
 - `claude-plugin`   → `profiles/claude-plugin/agents/claude-plugin-architect.md`   + `profiles/claude-plugin/rules/architecture.md`
+- `frontend-data-flow` (supplementary) → `profiles/frontend-data-flow/agents/frontend-data-flow-architect.md` + `profiles/frontend-data-flow/rules/architecture.md`
 
 Read both files for each profile before writing anything.
 

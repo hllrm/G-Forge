@@ -1,4 +1,4 @@
-## I · Memory Layers
+## J · Memory Layers
 
 G-Forge uses a 6-tier memory layer taxonomy. Full definitions, ownership rules, and eviction policy are in `g-docs/memory-taxonomy.md`.
 

@@ -21,6 +21,13 @@
 _GF_HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/classify-changeset.sh
 . "$_GF_HOOK_DIR/lib/classify-changeset.sh"
+# KNOWN FAIL-OPEN: if commit-detect.sh is missing, is_git_commit is undefined,
+# the `if` below is false, and this layer exits 0 on every payload — verified
+# by simulation (2026-08-11 audit, T5). Accepted because hooks/pre-commit
+# (ADR-004) is the authoritative fail-closed gate — EXCEPT where /g-init found
+# a foreign pre-commit hook and left it (its Step 6a), where a missing lib
+# means no gate at all. Do not "harden" this to fail-closed: this hook fires
+# on every Bash/PowerShell call and would deny arbitrary non-commit commands.
 # shellcheck source=lib/commit-detect.sh
 . "$_GF_HOOK_DIR/lib/commit-detect.sh"
 # shellcheck source=lib/worktree-resolve.sh
@@ -90,14 +97,20 @@ let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const d=JSON.parse(s
 # PreToolUse hook saw, and this hook fires on EVERY Bash call, not just
 # commits — fail-closed here would deny arbitrary non-commit commands
 # whenever stdin merely lags. If the shared lib failed to load (missing
-# file/source error), fall back to the original blocking `cat` rather than
-# silently skipping the read, since an unread stdin would mean empty INPUT
-# on every invocation and this layer of the gate would never fire.
-if command -v gf_read_stdin_timeout >/dev/null 2>&1; then
-    INPUT=$(gf_read_stdin_timeout 5)
-else
-    INPUT=$(cat)
+# file/source error), fall back to a bounded read mirroring lib/stdin-read.sh's
+# `read -t -d ''` mechanism — never a blocking `cat`, which would reintroduce
+# the exact abandoned-stdin hang the lib exists to bound, in the one hook that
+# fires on EVERY shell tool call. The shim still consumes stdin, so this layer
+# of the gate still fires on the missing-lib path.
+if ! command -v gf_read_stdin_timeout >/dev/null 2>&1; then
+    gf_read_stdin_timeout() {
+        local t="${1:-5}" p=""
+        IFS= read -r -t "$t" -d '' p || true
+        printf '%s' "$p"
+        return 0
+    }
 fi
+INPUT=$(gf_read_stdin_timeout 5)
 
 CMD=$(extract_cmd "$INPUT")
 # extract_cmd() itself already falls back to a portable sed extraction when
