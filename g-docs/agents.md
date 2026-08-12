@@ -47,10 +47,10 @@ Agents that plan and execute concrete work: decomposing requests, scheduling wav
 
 ### `task-decomposer`
 **Tier:** Sonnet  
-**Role:** Breaks any request into atomic, verifiable tasks with mechanically checkable done conditions.  
+**Role:** Breaks any request into atomic, verifiable tasks with mechanically checkable done conditions. Collapses a serial chain of same-file dependent edits into one task for one agent rather than emitting one task per edit — granularity is keyed on same-file + sequential dependency, never on total task count.  
 **Use when:** You have a feature request or bug fix that involves more than one file or step and want a structured task list before starting.  
 **Give it:** The full request, any known file paths, and any constraints.  
-**Returns:** A numbered task list table with file scope and done condition per task. Flags any "Clarify:" items that need resolution before work can start.
+**Returns:** A numbered task list table with file scope and done condition per task, with same-file sequential edits already collapsed. Flags any "Clarify:" items that need resolution before work can start.
 
 ---
 

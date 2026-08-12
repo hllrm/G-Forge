@@ -108,16 +108,55 @@ For each surviving candidate, score:
 
 Sort descending. Keep the top 5 scenarios.
 
+## Step 5b — Read forecast-outcome corpus
+
+Before scoring miss-risk (Step 6), read the observed track record of past forecasts so the formula can calibrate against what actually happened, not just complexity + scenario signals.
+
+- Glob `g-docs/forecasts/*.md` and read the `## Outcome` table in each.
+- Most `## Outcome` tables are still empty — `/g-retro` reconciles the active plan's forecast at retro time, keyed to the branch slug (`skills/g-retro/SKILL.md:47-56`), not only when a milestone closes. An unfilled row has a blank `Actually happened?` cell and is not a signal: skip it, the same way Step 3 discards `None recorded.` / `None.` / `(none)` sentinels — absence of evidence is not evidence.
+- For rows that ARE filled in, read the verdict and evidence tag `/g-retro` writes into the `Actually happened?` cell (`skills/g-retro/SKILL.md:56`): a verdict phrase (`happened`, `happened — variant`, `yes`, `did not happen`, `no`, `partial`) usually followed by a one-word evidence tag in parentheses (`journal` / `git` / `unverified`, or a session-pass label like `Pass 1`). Tolerate markdown emphasis wrapping the cell (e.g. `**happened (git)**` reads identically to `happened (git)`).
+- **Confirm/discard rule — one rule, stated once, no exceptions:**
+  - A cell that is bare `unverified`, or whose evidence tag is `(unverified)`, carries no evidence — **discard** it.
+  - A cell carrying a `journal`, `git`, or explicit pass-reference tag (e.g. `(journal)`, `(git)`, `Pass 1`) — **confirmed**.
+  - A cell with a verdict phrase and **no tag at all** counts as **confirmed-legacy**: a recorded verdict with no tag is still a recorded verdict, not an absence of evidence, so it counts as confirmed. Only the two explicit-`unverified` forms above are discarded.
+  - `N` (used by the sample floor and `hit_rate` below) depends on this rule — apply it before counting rows.
+- Classify each confirmed row's credit by verdict:
+  - `happened` / `yes` (any phrasing, e.g. `happened`, `happened — variant`, `yes`) → `1`
+  - `partial` → `0.5`
+  - `did not happen` / `no` → `0` — **unless** the row's Notes column begins with the literal marker `mitigation-held:`. `/g-retro`'s outcome-writing step writes this marker when the predicted mitigation was applied and held. A marked row is evidence the forecast correctly flagged a real risk that was then prevented — not evidence the forecast was wrong — so credit it `0.5` instead of `0`. Rows without the marker — including every row written before this convention existed — take the unmodified `0` mechanically. No free-text interpretation of the Notes column is performed; the marker is either present or it isn't.
+  - **Limitation, stated explicitly:** the mitigation half-credit above is a deliberate compromise, not a full excuse. A held mitigation proves the forecast caught something worth catching; it does not prove the risk would have manifested without intervention, so it earns half credit, not full. This must never quietly reward alarm-silencing — if marker-credited rows come to dominate `N` and `calibration_adjustment` still trends negative, treat that as a prompt to inspect mitigation quality, not as license to trust the number blindly. Let `M` = count of marker-credited rows within `N`; Step 7/8 surface `M` alongside `N` (derived at runtime from the same Glob) so this condition is checkable rather than decorative.
+- Let `N` = confirmed-row count (per the confirm/discard rule above). **Check the sample floor before dividing** — do this before computing `hit_rate`, so a thin or empty corpus never divides by zero.
+
+**Minimum sample floor.** `N` must be at least **5** confirmed rows before the signal is trusted. If `N < 5`:
+```
+calibration_adjustment = 0
+```
+Record `insufficient calibration data — neutral signal (N=[N] confirmed, floor is 5)` for Step 7/8 to surface. This mirrors the cold-start pattern below (too little evidence means no adjustment in either direction, not a guessed one) but is a separate condition — cold-start is Step 3 finding no retro/pattern/git signals at all; this floor is Step 5b finding too few *reconciled outcomes* even when past forecasts exist.
+
+If `N ≥ 5`, sum the credits and divide by `N` to get `hit_rate` (0.0–1.0), then compute the calibration signal:
+```
+deviation              = hit_rate - 0.5
+calibration_adjustment = clamp(-10, 10, round(deviation × 20))   // defensive no-op: hit_rate ∈ [0,1] already bounds deviation × 20 to [-10,10]; kept explicit rather than relied-upon
+```
+0.5 is the neutral midpoint — premortem scenarios are candidate failures, not certainties, so a 50% observed hit rate means the corpus is, on average, neither over- nor under-predicting. A `hit_rate` above 0.5 (predicted scenarios happen more often than not — the corpus has been under-predicting risk) raises future miss-risk (`calibration_adjustment` positive, up to `+10`). A `hit_rate` below 0.5 (predicted scenarios mostly did NOT happen — the corpus has been over-predicting risk) lowers it (negative, down to `-10`). This recomputes from the live corpus every run, so it moves as `/g-retro` reconciles more forecasts — it is never a fixed constant.
+
+Carry `hit_rate`, `N`, `M`, and `calibration_adjustment` into Step 6.
+
 ## Step 6 — Compute miss-risk percentage
 
 A rough quantified estimate of "% likelihood this plan misses its target on the first execution pass":
 
 ```
 scenario_contribution = sum over top-3 scenarios of min(scenario_score, 15) × 1.5
-miss_risk             = clamp(0, 95, 10 + complexity_score × 3 + scenario_contribution)
+raw_score             = 10 + complexity_score × 3 + scenario_contribution
+miss_risk             = clamp(0, 95, raw_score + calibration_adjustment)
 ```
 
-Each scenario's contribution is capped at 22.5 (15 × 1.5) so no single severe pattern alone drives the result into High territory on a trivial plan. The complexity multiplier is tuned so a max-complexity plan (10/10) contributes 30 percentage points before scenario evidence. Round to nearest 5%.
+`calibration_adjustment` is Step 5b's output — the observed over/under-prediction signal from the forecast-outcome corpus (`0` when the corpus is below Step 5b's sample floor, so the formula is unaffected until there is enough evidence to trust). Each scenario's contribution is capped at 22.5 (15 × 1.5) so no single severe pattern alone drives the result into High territory on a trivial plan. The complexity multiplier is tuned so a max-complexity plan (10/10) contributes 30 percentage points before scenario evidence.
+
+**Rounding rule — apply once, at the end, after calibration.** Round only the final `miss_risk` value (already computed with `calibration_adjustment` added and clamped) to the nearest 5%. Never round `raw_score` on its own first. A small non-zero `calibration_adjustment` (±1–4) can still round away in the final headline number — that is expected, not a bug — so Step 7's `Calibration:` line always prints the unrounded raw-score display value, the exact `±A` adjustment, `N`, and `M` alongside the rounded `miss_risk`, specifically so the calibration signal stays visible even when rounding masks its effect on the headline percentage.
+
+**Display clamp — `raw_score` can exceed 100.** `raw_score` has no upper bound in the formula above (a high-complexity plan with several severe scenarios can reach triple digits), and printing it unclamped reads as an impossible percentage. For Step 7 and Step 8 display only, compute `raw_score_display = clamp(0, 100, raw_score)` and print that — never the unclamped `raw_score`. `miss_risk` itself is unaffected by this display clamp: it is already bounded to `[0, 95]` by its own clamp regardless of how large `raw_score` gets. **When the clamp binds** (`raw_score > 100`), print `[RAW]` as `≥100` rather than `100` — a saturation marker, so a genuinely-computed 100 and a clamped-down triple-digit score never read as the same thing.
 
 **Cold-start formula** — if Step 3 produced no signals (empty `g-docs/retros/`, no `g-docs/patterns-deferred.md`, no rework in git log):
 
@@ -125,7 +164,9 @@ Each scenario's contribution is capped at 22.5 (15 × 1.5) so no single severe p
 miss_risk_cold = clamp(15, 60, 15 + complexity_score × 3)
 ```
 
-The cold-start formula has a higher floor (15%) and a lower ceiling (60%) than the regular formula: no history means no evidence of low-risk patterns either, so confidence is intentionally narrow. Emit a single scenario `cold-start — no history yet` with likelihood 3, impact derived from complexity, and a `★ Confidence: low` annotation in the report.
+The cold-start formula has a higher floor (15%) and a lower ceiling (60%) than the regular formula: no history means no evidence of low-risk patterns either, so confidence is intentionally narrow. It never applies `calibration_adjustment` — cold-start already means "no evidence at all," calibration data (Step 5b) cannot rescue a formula with no scenario evidence to calibrate. Emit a single scenario `cold-start — no history yet` with likelihood 3, impact derived from complexity, and a `★ Confidence: low` annotation in the report.
+
+Cold-start (Step 3, no retro/pattern/git signals) and the corpus-too-thin case (Step 5b, `N < 5` confirmed outcomes) are independent conditions — a plan can hit either, both, or neither.
 
 Tag the result:
 - 0–25% — Low risk
@@ -144,6 +185,7 @@ G-FORECAST — [plan name]
 
 Complexity:    [X/10]   (files [F] · waves [W] · boundaries [B] · new surface [S] · rule edits [R][ + blast-radius adjustment if applied])
 Miss-risk:     [P]%     ([Low / Moderate / Elevated / High])
+Calibration:   raw [RAW]% → adjusted [P]%   (adjustment [±A], N=[N] confirmed outcomes[, M=[M] mitigation-held][ — floor not met, neutral if N<5])
 Est. tokens:   [low]–[high]   ([Small / Medium / Large / Very Large])
 
 Premortem — top failure scenarios:
@@ -159,6 +201,10 @@ Recommendations:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+`[RAW]` is `raw_score_display` (Step 6's display-clamped value) — deliberately a distinct placeholder from the Complexity line's `[R]` (rule edits) above, since the two are unrelated numbers inside the same template. `[M]` is Step 5b's marker-credited row count, derived at runtime from the same corpus Glob as `N` — print the `M=` clause only when `M > 0`; omit it when no row in the corpus was marker-credited.
+
+On the cold-start path (Step 6's `miss_risk_cold`), print the `Calibration:` line as `Calibration:   n/a — cold-start (no history to calibrate against)` instead — cold-start never computes `raw_score` or `calibration_adjustment`.
 
 ## Step 8 — Persist the forecast for the feedback loop
 
@@ -176,6 +222,8 @@ Write the forecast to `g-docs/forecasts/<plan-slug>.md` (create directory if mis
 - Breakdown: files [F], waves [W], boundaries [B], new surface [S], rule edits [R]
 
 ## Miss-risk: [P]% — [tag]
+- Raw score (pre-calibration): [RAW]% ([n/a on cold-start])
+- Calibration: adjustment [±A], N=[N] confirmed outcomes, M=[M] mitigation-held ([sample floor met / insufficient data — neutral] / [n/a on cold-start])
 
 ## Premortem scenarios
 
@@ -196,7 +244,7 @@ Write the forecast to `g-docs/forecasts/<plan-slug>.md` (create directory if mis
 | 2 | yes | | |
 ````
 
-The `Outcome` table is intentionally empty at forecast time — `/g-retro` fills it in after the milestone closes, closing the feedback loop: `/g-patterns` → premortem (`/g-forecast`) → `/g-retro` → `/g-patterns`.
+The `Outcome` table is intentionally empty at forecast time — `/g-retro` fills it in when it reconciles the active plan's forecast (keyed to the branch slug, per Step 5b above), closing the feedback loop: `/g-patterns` → premortem (`/g-forecast`) → `/g-retro` → `/g-patterns`.
 
 ## Step 9 — Return to caller
 
