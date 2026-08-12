@@ -365,7 +365,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `/g-forge retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and g-docs/todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
 | `/g-forge patterns` | Mine `g-docs/retros/` and `g-docs/todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
 | `/g-forge roundtable` | Bind the session to **the Roundtable** — a shared live Doc that is the human-facing communication layer (you + non-programmers + the session). `start` binds a Doc (create-from-template or attach-by-URL); `sync` reads it at boundaries and writes only salient deltas (the salience gate); `close` distills the live Doc into the durable record (handoff + ADRs + todo) on a human nod. Works solo or shared; surface-agnostic (ADR-001). **Off by default** — no Roundtable configured means every path is a no-op and behaviour is byte-identical to today. (M33 Phase A) |
-| `/g-forge forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `g-docs/forecasts/<slug>.md`. |
+| `/g-forge forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Miss-risk is calibrated against the project's own forecast-vs-outcome corpus (`g-docs/forecasts/*.md` `## Outcome` cells, reconciled by `/g-retro`): a bounded adjustment (±10 points, folded into the final 0–95% score) that can raise or lower the raw estimate depending on whether past forecasts over- or under-predicted, and only applies once at least 5 confirmed outcomes are on record — below that floor it reports the raw score with a neutral (zero) adjustment. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `g-docs/forecasts/<slug>.md`. |
 | `/g-forge telemetry` | Compute 8 reliability metrics (hallucination, review catch, regression, rework, spec deviation, escalation, token efficiency, retry dependency); classify health profile (stable / cautious / defensive / recovery); write `.claude/telemetry-profile` for adaptive orchestration. `/g-execute` and `/g-review` Step 0 read the profile and scale wave size, model tier, and reviewer count accordingly. |
 | `/g-forge blast-radius [file\|plan\|feature]` | Map forward + reverse dependencies for a planned change; compute per-file volatility from git history; output aggregate rating (Narrow / Moderate / Wide). Persists `g-docs/blast-radius/<slug>.md` for `/g-forecast` Step 2b integration. |
 | `/g-forge identity` | Narrative synthesis of the project's operational personality from accumulated retros, forecasts, telemetry, ADRs, blast-radius reports, CHANGELOG, ROADMAP, and git history. Produces `g-docs/identity.md` covering what the project is, how it ships, what it does well, where it struggles, and what it's becoming. Qualitative complement to `/g-telemetry`. |
@@ -462,7 +462,7 @@ The goal is to reset **before** the window compacts, never after. Amber is activ
 
 ### Pre-plan context budget check
 
-Before a plan is approved, `/g-plan` estimates its execution cost in exchanges using `5 + waves×3 + agents×2 + tasks×1` and compares it against the remaining budget. Plans that would push the session into red mid-execution are flagged, and the developer chooses between splitting the milestone (via `/g-roadmap`) or accepting the handoff risk. This eliminates surprise context exhaustion mid-wave.
+Before a plan is approved, `/g-plan` estimates its execution cost in exchanges using `5 + waves×3 + agents×2 + tasks×1 + tasks×4` — the last term prices the review chain that follows implementation, a rate derived from G-Forge's own task/review-round records (`g-docs/todo-done.md`) and confirmed at a different scale by a field report showing review chains running 3–10x the implementation estimate — and compares it against the remaining budget. Plans that would push the session into red mid-execution are flagged, and the developer chooses between splitting the milestone (via `/g-roadmap`) or accepting the handoff risk; a milestone that is already the product of a prior split (depth ≥ 1) has the split option withheld, and the developer instead chooses between proceeding with the handoff risk or escalating for a manual re-scope. This eliminates surprise context exhaustion mid-wave.
 
 ### Wave-based parallelism
 
@@ -622,8 +622,10 @@ You can still invoke them manually if needed:
                        one verdict — bug fixes and refactors skip this gate)
                      Dispatches task-decomposer → wave-planner
                      Step 3c: context budget check — estimates execution cost
-                       (5 + waves×3 + agents×2 + tasks×1 exchanges) vs remaining
-                       session budget; offers /g-roadmap split if over limit
+                       (5 + waves×3 + agents×2 + tasks×1 + tasks×4 exchanges) vs
+                       remaining session budget; offers /g-roadmap split if over
+                       limit (withheld once already split — depth ≥ 1 offers
+                       proceed-with-risk or manual re-scope instead)
                      Step 3d: wave dependency validation — checks same-wave file
                        conflicts (blocking), missing source files for mutation tasks
                        (blocking), cross-wave ordering violations (warning)

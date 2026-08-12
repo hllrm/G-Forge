@@ -49,8 +49,11 @@ Dispatch the `task-decomposer` agent. Provide:
 - Any known file paths or constraints
 - Any done conditions already specified
 - Whether the project has a QA panel (from Step 0) — if yes, instruct task-decomposer that any task adding or changing user-facing surface must include "QA panel updated" as an explicit done condition
+- An `output_file` path, following the `g-docs/agent-output/` convention: `g-docs/agent-output/g-plan/task-decomposer-[YYYY-MM-DD]-[request-slug].md`, where `[request-slug]` is a short slugified form of the task/feature description being planned right now — the same slugify convention Step 4a uses for the saved plan filename, minted here at dispatch time instead of deferred to Step 4a's approval-gated slug. The path is discriminated per run, not just per day, so two `/g-plan` runs on the same day for different requests never share a file. Create the `g-docs/agent-output/g-plan/` directory first if it does not exist. **Before dispatching, check whether a file already exists at this exact path** (a same-day retry reusing the same request-slug) — if so, delete it first, so a stale prior run's content can never be mistaken for this run's output.
 
 Wait for the task list before proceeding. Do not proceed if task-decomposer returns any "Clarify:" items — resolve those with the developer first.
+
+**Fallback if the return is empty or malformed:** task-decomposer's own Return format (its `DETAIL:` line) writes the full task list to the `output_file` path assigned above, using its own `Write` tool grant (scoped to that record path), before it ever emits the compact return block. If the final message comes back empty, truncated, or fails to parse as the expected `RESULT/TASKS/SUMMARY/DETAIL` block, do not assume recovery — read that `output_file` path directly (HQ assigned it when constructing the dispatch prompt above) and validate its content before using it: the file must (1) exist and be non-empty, (2) parse as a `## Task List` section carrying the `| # | Task | Files | Done condition |` table header, and (3) plausibly describe *this* request — cross-check at least one task's Files or Task text against a keyword from the request or a file path named in the dispatch prompt. Any failure of (1)–(3) — including a well-formed task list for a different request — is genuinely failed, never a recovery; do not proceed on mismatched content. Step 3's wave-planner input contract is unchanged either way — it receives the same task-list shape regardless of which path produced it.
 
 ## Step 2a — Dependency scan for planned additions
 
@@ -88,11 +91,14 @@ base              = 5    (plan/review infrastructure constant)
 per wave          = 3    (dispatch + result collection)
 per agent         = 2    (each agent slot across all waves)
 per task          = 1    (file reads, edits, and tool calls per task)
+per-task review   = 4    (exchanges charged per task for the review chain; derived below as the observed rounds-per-task rate × 4 exchanges-per-round, where a round is one dispatch + findings + fix + re-verify cycle — that 4-exchange round cost is a different number from the coefficient, which happens to also come out to 4)
 
-estimated = 5 + (wave_count × 3) + (total_agent_slots × 2) + (task_count × 1)
+estimated = 5 + (wave_count × 3) + (total_agent_slots × 2) + (task_count × 1) + (task_count × 4)
 ```
 
-Use the wave schedule from Step 3 for `wave_count` and `total_agent_slots`. Use the task list from Step 2 for `task_count`.
+> **Review-chain term — basis and derivation, stated once:** `task_count` means the row count of the plan's *final* Tasks table, written by Step 4a — not task-decomposer's raw pre-collapse emission from Step 2 (the two can differ when a same-file serial chain is later collapsed into one task; see the task-decomposer Rules carve-out for same-file serial chains). wave-planner (Step 3) groups the finalized tasks into agent slots for the Wave Schedule; it does not rewrite the Tasks table itself — `wave_count` and `total_agent_slots` come from its schedule, `task_count` comes from the Tasks table that schedule is built against. Two primary-source pairs, re-derived here rather than copied from a prior review record: G-Forge's own Check-24 pass — 7 tasks in its final Tasks table (`g-docs/plans/check-24-injection-detector.md`, `## Tasks`) — took 4 HOLD rounds to reach MERGE READY (`g-docs/todo-done.md`, the "Pass report — 2026-07-28 — Check 24 injection-rule detector" pass report); the `ec9bf8a` lib-install-completeness pass — 5 tasks (`g-docs/todo-done.md`, the "2.5 bug sweep — slot 1" pass report) — took 9 review rounds, 6 code-lead + 3 doc-reviewer (same pass report). The two records are not measured on the same definition of "round": the Check-24 figure (4) counts only rounds that surfaced a defect (HOLD rounds), the lib-install figure (9) counts every review round regardless of outcome (7 of the 9 found a defect). Normalized to one definition consistently, they do not land on the shipped coefficient: read as defect-finding rounds only, Check-24 is 4/7 ≈ 0.57 and lib-install is 7/5 = 1.4, averaging ≈ 0.99 rounds/task (× 4 ≈ 3.9, floors to **3**); read as total review rounds, Check-24 is 5/7 ≈ 0.71 (the 4 HOLD rounds plus the closing MERGE READY round) and lib-install is 9/5 = 1.8, averaging ≈ 1.26 rounds/task (× 4 ≈ 5.0, rounds to **5**). The `4` used below is neither of those consistently-normalized figures — it is what the two records give on their own mismatched counts (HOLD-only for one, total for the other) and is carried forward unchanged this round rather than presented as a clean midpoint; a consistent basis would move it to 3 or 5, not settle at 4. A field report (`g-docs/field-reports/2026-08-10-keyline-francesco.md`, read 2026-08-12) independently confirms the same shape at a different scale: across its corpus, review chains have repeatedly cost 3–10x the implementation estimate (§2, `:56`). A separate figure from the same report — on the order of 20 review-agent dispatches to land one milestone's code and its own closing documentation — is that one milestone's own count, not a corpus-wide one (§1, `:36`), and is cited here only as that, never folded into the 3–10x figure. The term is keyed on `task_count`, not `wave_count`, deliberately: task count is conserved when a milestone is genuinely split into sub-milestones (the sum of the sub-milestones' task counts equals the parent's), so splitting does not shrink the *total* predicted review cost the way a wave-count-based term would — it only distributes the same total across smaller sessions, which is the point of splitting for budget reasons, not a way to make the underlying review work cheaper.
+
+Use the wave schedule from Step 3 for `wave_count` and `total_agent_slots`; use Step 2's task list (as amended by Steps 2a/2b) for `task_count` — the plan's finalized Tasks table (Step 4a) is the concept this approximates, but it does not exist yet when Step 3c runs, so Step 2's list is what is actually read here, and the two are normally identical. wave-planner (Tools: Read, Glob) groups tasks into waves and agent slots — it cannot rewrite, merge, or drop a task, so it is not a backstop for a failed collapse: if task-decomposer fails to collapse a same-file serial chain per its Rules carve-out, that inflated count carries straight through to the Tasks table and into `task_count`, uncorrected.
 
 **Read remaining budget:**
 
@@ -102,9 +108,17 @@ Derive the red threshold the same way the hook does — never restate a literal:
 
 **Evaluate:**
 
-- `estimated ≤ remaining × 0.8` → budget fine. Add `> Cost estimate: ~[N] exchanges` to the plan header and proceed to Step 3a.
-- `estimated > remaining × 0.8` and `estimated ≤ remaining × 1.2` → tight fit. Add `> ⚠ Cost estimate: ~[N] exchanges (~[remaining] remaining — tight)` to the plan header. Warn the developer in Step 4 but proceed.
-- `estimated > remaining × 1.2` → plan exceeds budget. Stop. Do not proceed to Step 3a. Present:
+- `estimated ≤ remaining × 1.0` → budget fine. Add `> Cost estimate: ~[N] exchanges` to the plan header and proceed to Step 3a.
+- `estimated > remaining × 1.0` and `estimated ≤ remaining × 2.0` → tight fit. Add `> ⚠ Cost estimate: ~[N] exchanges (~[remaining] remaining — tight)` to the plan header. Warn the developer in Step 4 but proceed.
+- `estimated > remaining × 2.0` → plan exceeds budget. Stop. Do not proceed to Step 3a.
+
+> **Bands re-tuned for the review-chain term, checked against a real pass:** the prior 0.8/1.2 bands were set when `estimated` reflected implementation only (`tasks×1`, no review term). With `tasks×4` added, the marginal cost of one task rose 5x (1 → 1+4 = 5), so the old bands would hard-stop most non-trivial plans, including ones that ran fine. Worked example, G-Forge's own Check-24 pass — 7 tasks / 4 waves / 6 agent slots: `estimated` = 5 + 4×3 + 6×2 + 7×1 + 7×4 = 64. Its plan header recorded `~30 remaining` at the time (`g-docs/plans/check-24-injection-detector.md`, its `> Cost estimate:` header line), computed against the stale literal-40 red threshold this skill's own threshold derivation (above) has since replaced with `45 − offset`; recomputed under the corrected formula at the same depth, `remaining` ≈ 35. Under the old bands, 64 > 35 × 1.2 = 42 — hard stop, despite the pass reaching MERGE READY in the run it was planned in. Under the re-tuned bands, 35 × 1.0 = 35 < 64 ≤ 35 × 2.0 = 70 — tight fit, matching the "tight" the plan header already recorded under the old formula, not a hard stop. A materially larger plan still hard-stops at the same remaining budget (e.g. 20 tasks / 5 waves / 8 agents: `estimated` = 5 + 15 + 16 + 20 + 80 = 136 ≫ 70), so the gate still fires on genuinely oversized plans — it no longer fires on a routine one. The lower boundary's own headroom is intentionally gone in this re-tune — a plan estimated at exactly `remaining × 1.0` now proceeds with no warning — and the "tight" label at the upper bound spans a wide range, from just over budget up to 2× `remaining`; both are accepted consequences of pricing the review-chain term realistically, not oversights left uncorrected.
+
+> **Split target — basis stated separately from the bands:** the split target is not one of the evaluate bands and is not derived from the same worked example; it answers a different question — how large a sub-milestone the split should produce, not whether the current plan fits. It carries its own headroom margin, below 1.0, because the split is performed by a `/g-roadmap` run inside the *current* session, and the first sub-milestone's own `/g-plan` re-run happens later at a strictly smaller `remaining` than `M` — session depth has advanced by the time it runs. The target is `floor(M × 0.8)`, reusing the 0.8 headroom the lower evaluate band carried before this round's re-tune, so a sub-milestone sized to the target still sits under the `× 1.0` "budget fine" boundary even after the budget it was sized against has shrunk — so long as it has not shrunk by more than the 20% margin the 0.8 multiplier provides.
+
+**Split-depth check (run before presenting options):** determine the identifier to check for a prior split — the milestone ID being planned (from `g-docs/ROADMAP.md`) if one exists, else the slug of a plan being re-planned from a prior save at `g-docs/plans/<slug>.md`. For an ad-hoc `/g-plan` run with neither (no milestone, no prior save — Step 4a only mints a slug after approval), there is no identifier to check: **treat this as depth 0** by definition. When an identifier exists, grep it for the pattern `-split[0-9]+` (not end-anchored — a split suffix followed by further slug text, e.g. `M47-split1-auth`, still reads as split-depth ≥ 1). A match means this plan is already the product of one prior split — depth ≥ 1. No match (or no identifier) means depth 0.
+
+**Present the budget-exceeded prompt.** One block, both depths — only the availability of option 1 and the presence of option 3 change, so option numbers never change meaning between a depth-0 and a depth-≥1 answer:
 
 ```
 ⚠ Context budget exceeded
@@ -115,27 +129,40 @@ Derive the red threshold the same way the hook does — never restate a literal:
 
   Running this plan would push the session into red mid-execution,
   forcing an incomplete-wave handoff.
+  [depth ≥ 1 only, appended:] This milestone is already a split
+  product — a prior lineage re-split 3 levels deep from one original
+  unit with no benefit (derived 2026-08-12 from a field report).
 
   Options:
   1. Split — invoke /g-roadmap to break this milestone into
-     sub-milestones that each fit within ~[floor(M × 0.7)] exchanges.
+     sub-milestones that each fit within ~[floor(M × 0.8)] exchanges.
+     [depth ≥ 1 only:] — unavailable at this depth; see option 3.
   2. Proceed — accept the mid-plan handoff risk. Execution will pause
      at red and require a fresh session to resume incomplete waves.
+  3. [depth ≥ 1 only:] Escalate to the developer for a manual
+     re-scope — the plan's actual shape, not another mechanical
+     split, is the likely fix at this depth.
 
   Which would you prefer?
 ```
 
-**If the developer chooses option 1:**
+Splitting cannot game this estimate down: the split target is evaluated with the identical five-term formula, and `task_count` is conserved across a genuine split (the sub-milestones' task counts sum to the parent's) — the split-depth cap above stops the same lineage from re-splitting a second time for the same reason.
+
+**If the developer chooses option 1 — split (depth 0 only; unavailable at depth ≥ 1):**
 
 Use Glob to find `skills/g-roadmap/SKILL.md` inside `~/.claude/plugins/cache/g-forge/g-forge/` and read it. Run `/g-roadmap` with the following framing passed as context:
 
-> "The current milestone task list is [task list]. The session context budget is ~[M] exchanges per sub-milestone. Split this milestone into sub-milestones where each sub-milestone's estimated cost (base 5 + waves×3 + agents×2 + tasks×1) does not exceed [floor(M × 0.7)] exchanges. Produce a revised g-docs/ROADMAP.md with the sub-milestones sequenced in dependency order."
+> "The current milestone task list is [task list]. The session context budget is ~[M] exchanges per sub-milestone. Split this milestone into sub-milestones where each sub-milestone's estimated cost (base 5 + waves×3 + agents×2 + tasks×1 + tasks×4) does not exceed [floor(M × 0.8)] exchanges. Name each sub-milestone ID/slug with a trailing `-split<N>` suffix (no existing suffix on the parent → `-split1`; parent already `-split<N>` → replace it with `-split<N+1>`) so a future Step 3c pass can detect that it is already a split product. Produce a revised g-docs/ROADMAP.md with the sub-milestones sequenced in dependency order."
 
 After `/g-roadmap` completes, stop the current `/g-plan` run. Tell the developer: "g-docs/ROADMAP.md updated with sub-milestones. Run /g-plan on the first sub-milestone to begin."
 
-**If the developer chooses option 2:**
+**If the developer chooses option 2 — proceed (either depth):**
 
 Add `> ⚠ Risk: estimated ~[N] exchanges exceeds session budget — mid-plan handoff likely` to the plan header. Proceed to Step 3d.
+
+**If the developer chooses option 3 — manual re-scope (depth ≥ 1 only):** stop the current `/g-plan` run and hand back to the developer — do not invoke `/g-roadmap` automatically at this depth.
+
+**If the developer answers "1" at depth ≥ 1** (where option 1 is printed but annotated unavailable): do not invoke `/g-roadmap`. Tell the developer split is withheld at this depth, and treat the answer as option 3 — hand back for a manual re-scope.
 
 ## Step 3d — Wave dependency validation
 

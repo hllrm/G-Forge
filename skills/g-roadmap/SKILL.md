@@ -82,6 +82,8 @@ Take the approved clusters and arrange them into a milestone sequence. Version p
 - Breaking change to public API, incompatible behaviour change → **major** bump (X.0.0)
 - First release of a new project → start at v0.1.0 (or ask the developer for their preferred baseline)
 
+**Split-lineage naming (only when this run is breaking an existing, already-milestoned scope into sub-milestones — whether invoked from `/g-plan`'s Step 3c context-budget gate or run manually for the same reason):** the milestone/plan ID being split may already carry a trailing `-split<N>` marker (e.g. `M47-split1`) from an earlier split. Grep the parent ID/slug for `-split[0-9]+` before naming the sub-milestones. No existing marker → each sub-milestone ID gets `-split1` appended. An existing `-split<N>` marker → each sub-milestone ID has that marker replaced with `-split<N+1>` (parent depth + 1). This is the only writer of the `-split<N>` convention; `/g-plan`'s Step 3c budget check reads it back to decide whether a further automatic split is offered, so the suffix must land on the ID regardless of which surface triggered this run.
+
 For each ordering decision, narrate both the dependency reason and the version logic:
 > **Why [Cluster A] before [Cluster B]:** [dependency / risk / value reason]
 > **Version logic:** [Cluster A] is a [minor/patch/major] bump because [what it adds or fixes]. [Cluster B] follows as a [minor/patch] because [reason].
@@ -94,14 +96,14 @@ Identify the MVP cut: the minimum set of milestones that delivers usable value. 
 Present the full proposed sequence:
 
 ```
-M1 — [Title]  [MVP / post-MVP]
+M1[-split<N>] — [Title]  [MVP / post-MVP]
      Goal: ...
      Scope: ...
      Depends on: —
      Version: v[x.y.z]  ([minor/patch/major] — [one-line reason])
      Risk: ...
 
-M2 — [Title]  [MVP / post-MVP]
+M2[-split<N>] — [Title]  [MVP / post-MVP]
      Goal: ...
      Scope: ...
      Depends on: M1
@@ -113,6 +115,8 @@ M2 — [Title]  [MVP / post-MVP]
 Backlog (no milestone assigned yet):
      · [items that don't clearly belong to any milestone]
 ```
+
+`[-split<N>]` — append per the split-lineage naming rule above only when this run is breaking an existing milestone into sub-milestones; omit it entirely for a normal milestone ID.
 
 Ask the developer to confirm or adjust the version targets before proceeding.
 
@@ -187,7 +191,7 @@ Write `g-docs/ROADMAP.md` with this structure:
 
 ## Milestones
 
-### M1 — [Title]
+### M1[-split<N>] — [Title]
 **Status:** ⬜ Not started
 **Version:** v[x.y.z]
 **Goal:** [one line]
@@ -199,7 +203,7 @@ Write `g-docs/ROADMAP.md` with this structure:
 
 ---
 
-### M2 — [Title]
+### M2[-split<N>] — [Title]
 **Status:** ⬜ Not started
 **Version:** v[x.y.z]
 ...
@@ -207,6 +211,8 @@ Write `g-docs/ROADMAP.md` with this structure:
 ## Backlog
 - [item]
 ```
+
+`[-split<N>]` — same conditional as the Step 3 template above: append only when this run is breaking an existing, already-milestoned scope into sub-milestones; omit for a normal milestone ID.
 
 If `g-docs/ROADMAP.md` already exists and contains completed milestones (✅), preserve them above the newly written milestones — never remove history.
 
@@ -227,6 +233,7 @@ After writing, confirm:
 - This skill owns roadmap structure. `/g-plan` owns task breakdown within a single milestone.
 - Adding or modifying a milestone is never a silent append — Step 3b (premortem + re-prioritization across all non-completed milestones) is mandatory before the buy-in gate whenever the roadmap changes.
 - Every milestone must have a target version. Version planning is part of sequencing, not an afterthought — reason about it the same way you reason about dependencies.
+- When splitting an existing milestone into sub-milestones, always apply the split-lineage naming rule in Step 3 — the `-split<N>` suffix on each sub-milestone ID is what lets `/g-plan`'s Step 3c budget check recognize an already-split milestone, on any invocation path, not just the one that triggered this run.
 - Auto-trigger conditions (Claude detects and initiates without being asked):
   - No `g-docs/ROADMAP.md` exists in the project
   - `g-docs/ROADMAP.md` exists but contains no active (🔄) or unstarted (⬜) milestones
