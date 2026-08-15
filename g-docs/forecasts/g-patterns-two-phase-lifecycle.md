@@ -30,8 +30,8 @@ Apply at least the top-2 mitigations before approving. Consider splitting the la
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | did not happen (git) | mitigation-held: in-place-only instruction + verbatim format-note citation shipped in the SKILL and followed by the HQ bullet edit; both handoff consumers kept parsing across the pass. |
+| 2 | yes | did not happen (git) | mitigation-held: forbidden-list + self-check shipped; r2 code-reviewer and r4 verified the saved report artifact clean (no paths/identifiers/repo names). Security review strengthened the contract in-review (secrets class, re-scan-on-mutation) before anything left the repo. |
+| 3 | yes | partial (git) | The doc-writers did NOT confabulate (r2 verified counts exact) — but the class fired sideways: stale derived counts ("seven milestones", fixture bucket-vs-count, CHANGELOG mechanism claim) cost 3 consecutive Major rounds until the surface set was enumerated in ADR-012:11. |
+| 4 | yes | did not happen (journal) | mitigation-held: every wave/fix prompt mandated Write tool; 107 agent events today, zero permission-layer wedges. |
+| 5 | yes | happened — variant (git) | Wave-2 sequencing held for round 1, but the mid-review latest.md redesign recreated README/CHANGELOG drift against the SKILL (r3-1, r4-1) — doc currency re-broke each time the design moved. |
