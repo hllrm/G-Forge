@@ -29,7 +29,7 @@
 **Active milestone:** M-audit-2026-07 — Forge Integrity (🔄 in progress; Wave 1 next)
 **Next up:** verify ADR-004 (sentinel↔tree binding) and ADR-005 (worktree enforcement) against the repo, then implement Wave 1 code — #8/#9/#10 plus #21 (the argv-parse commit-detection routine, shared with ADR-004's pre-commit hook) — each with fail-before/pass-after tests, through /g-review; then Sub-plan B test coverage (#11); then close for v2.2.2.
 **Key files touched:** ROADMAP.md, M-audit-2026-07.md
-**Carry-over context:** main; v2.2.2 ships when M-audit W1 closes (now gated on ADR-004/005 + #21 implementation). Arc: M-audit-2026-07 → M29 → M35 → M37 → M33 B–D → M34 → M30–M32 → M38 → M39; M36 slots early, gates M37. This repo is both plugin source and a self-hosted consumer — verify skill/hook behavior against this repo's own source, not the lagging plugin cache. Finding #19 still paused pending the hllrm/G-Cash live-install check.
+**Carry-over context:** main; v2.2.2 ships when M-audit W1 closes (now gated on ADR-004/005 + #21 implementation). Arc: M-audit-2026-07 → M29 → M35 → M37 → M33 B–D → M34 → M30–M32 → M38 → M39; M36 slots early, gates M37. This repo is both plugin source and a self-hosted consumer — verify skill/hook behavior against this repo's own source, not the lagging plugin cache. Finding #19 still paused pending the onlygian/G-Cash live-install check.
 
 ## Journal basis
 187 agent (all `unknown` — unusable, BUG-3/#22) · 3 commit · 3 push · 6 session · 0 test · 0 revert

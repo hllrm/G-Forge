@@ -2,8 +2,13 @@
 
 **Date:** 2026-08-10
 **Status:** Accepted
+**Amended:** 2026-08-14 — M49 (Devil's-Advocate Agent, internal adversarial pattern review) folded into the 2.5 scope; see "Amendment — 2026-08-14" below.
 **Reversibility:** two-way door, narrowing (scope can be re-cut before 2.5.0 ships, but the §3c copy has been on the README since 2026-08-10 under a hedged "What's coming in 2.5" heading — cutting an announced item now means editing published copy, a developer decision; at release the heading goes present-tense and the door closes)
 **Context:** G-Forge plugin source repo. Decision made by the developer in session, 2026-08-10 — this ADR captures it; the deliberation was the session's intake + triage, not a subagent pass.
+
+## Amendment — 2026-08-14
+
+**M49 (Devil's-Advocate Agent, internal adversarial pattern review) is folded into the v2.5 scope**, decided by the developer in session at the `/g-patterns` lifecycle intake. Sequenced **after M43, before M41** in the build order — the release-cutting milestone still runs last. The scope table below (originally seven rows + `shipped`) gains an eighth row for M49; the table and the two derived milestone counts below (Consequences → Harder, and Risks) are updated to eight accordingly — nothing else in this ADR's decision or constraints changes. `ROADMAP.md`'s Version Plan build-order line (`:570`) and M41's `Depends on:` precedence list (`:452`), `project_brief.md:38`, `README.md:766`, `CHANGELOG.md:11`, and the local-only `g-proof-roadmap.md:255` stamp all record the same amendment — this is the complete surface set for any future 2.5 scope change. This is the ADR-side entry the M49 review finding (MAJ-1, `code-lead-2026-08-14-patterns.md`) required.
 
 ## Context
 
@@ -21,6 +26,7 @@ ADR-010 set the delivery shape (v2.5 ships from this repo, the repo freezes, the
 | M38 | G-Report (`/g-report` — the maintenance channel the freeze story leans on) |
 | M40 | Reference Convention (committed reference material stops being mis-gated) |
 | M43 | Operator Controls (`/g-settings` + inspection cadence) |
+| M49 | Devil's-Advocate Agent (internal adversarial pattern review) — **folded in 2026-08-14**, see Amendment above |
 | M41 | Release Machinery + README Currency — **cuts the 2.5.0 release, sequenced last** |
 | shipped | Check 24 injection detector; `/g-init` lib-install fix (`ec9bf8a`) |
 
@@ -56,7 +62,7 @@ Related calls made the same day:
 - `communication-plan-2.5.md` §7 blocking findings 1 and 3 close with the re-scope pass this ADR anchors.
 
 **Harder:**
-- The freeze date moves out: seven milestones ship before the fork, not one. Accepted knowingly.
+- The freeze date moves out: eight milestones ship before the fork, not one. Accepted knowingly.
 - The G-Proof start date moves with it — every fork-bound milestone waits behind the full 2.5 arc.
 
 **Follow-up work:**
@@ -65,7 +71,7 @@ Related calls made the same day:
 - The Version Plan's v2.6.0–v2.15.0 tail is deleted, not re-stamped — those numbers never ship; versioning restarts as G-Proof 1.0 per ADR-010 (unamended).
 
 **Risks:**
-- *Scope fatigue* — seven milestones under one version invites mid-arc re-cuts; any narrowing after release copy is published falsifies the announcement (this is the one-way edge of this two-way door).
+- *Scope fatigue* — eight milestones under one version invites mid-arc re-cuts; any narrowing after release copy is published falsifies the announcement (this is the one-way edge of this two-way door).
 - *The gitignored `g-proof-roadmap.md` gets lost* — machine-local by developer choice; mitigated by the committed pointer in `ROADMAP.md`'s Backlog, the git-history recovery path, and the named fork-checklist item.
 
 ## Assumptions That Held (verify at 2.5 close)

@@ -120,7 +120,9 @@ Archives & lenses (where to read what's going on — only list paths that exist)
              g-docs/retros/ — session retrospectives · .claude/journal/ — raw observer log
   Intel:     g-docs/forecasts/ — premortems · g-docs/blast-radius/ — dependency impact
              g-docs/telemetry/ — reliability snapshots · g-docs/identity.md — project personality
+             g-docs/patterns/ — mined pattern reports (latest.md = open report, date-named = resolved archive)
   Tip:       `/g-forge help <topic>` answers a specific question and points at the right lens.
+             (g-docs/inbox/adversarial/ is deliberately not listed above — it's an ingress for external counter-reports, not an archive.)
 
 All commands (grouped by purpose):
 
@@ -142,7 +144,7 @@ All commands (grouped by purpose):
     /g-forge doc-review — standalone documentation-review gate → DOCS READY or DOCS HOLD
 
   Intelligence:
-    /g-forge patterns — mine retros + todo-done for recurring failure patterns
+    /g-forge patterns — mine retros + todo-done for recurring patterns (saves abstracted report); resolve pending ones in a fresh session
     /g-forge forecast — premortem + scope realism + token-cost band (auto in /g-plan)
     /g-forge telemetry — 8 reliability metrics → health profile → adaptive orchestration
     /g-forge blast-radius — forward + reverse deps + per-file volatility for a change

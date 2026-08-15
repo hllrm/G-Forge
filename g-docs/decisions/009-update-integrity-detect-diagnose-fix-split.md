@@ -7,7 +7,7 @@
 
 ## Context
 
-Live consumer incident (2026-07-23, `hllrm/G-Cash`, first post-v2.3.0 downstream update): `/g-update` ran before the manual `/plugins` marketplace update, so the plugin cache still held 2.2.1 and the skill "realigned" the project with old files while presenting as an update. The same class appeared on the G-Forge dev repo itself: `workflow-checkpoint.sh` printed "update available: 2.3.0 → 2.2.1" — a backwards advisory from a direction-blind check. Neither failure corrupts, but both misrepresent state on the one path every consumer walks at every release.
+Live consumer incident (2026-07-23, `onlygian/G-Cash`, first post-v2.3.0 downstream update): `/g-update` ran before the manual `/plugins` marketplace update, so the plugin cache still held 2.2.1 and the skill "realigned" the project with old files while presenting as an update. The same class appeared on the G-Forge dev repo itself: `workflow-checkpoint.sh` printed "update available: 2.3.0 → 2.2.1" — a backwards advisory from a direction-blind check. Neither failure corrupts, but both misrepresent state on the one path every consumer walks at every release.
 
 ## Decision
 

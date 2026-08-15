@@ -97,7 +97,7 @@ g-team/
   "name": "g-team",
   "version": "0.1.0",
   "description": "Specialized multi-agent system for code quality, production architecture, and planned execution",
-  "repository": "https://github.com/gianmarco-palma/g-team",
+  "repository": "https://github.com/onlygian/g-team",
   "license": "MIT",
   "agents": "./agents/",
   "skills": "./skills/",
@@ -107,7 +107,7 @@ g-team/
 
 **Install:**
 ```bash
-/plugin marketplace add gianmarco-palma/g-team
+/plugin marketplace add onlygian/g-team
 /plugin install g-team
 ```
 

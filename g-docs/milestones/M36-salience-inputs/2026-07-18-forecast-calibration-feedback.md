@@ -1,6 +1,6 @@
 # Field report — forecast & budget numbers read high/static, get ignored (2026-07-18)
 
-**Source:** developer (hllrm), live during the W1.5c approval gate on this repo. Logged via intake at developer request. Companion input to the 2026-07-06 severity-calibration report — same underlying gap.
+**Source:** developer (onlygian), live during the W1.5c approval gate on this repo. Logged via intake at developer request. Companion input to the 2026-07-06 severity-calibration report — same underlying gap.
 
 ## The two observations
 

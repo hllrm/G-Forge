@@ -35,7 +35,7 @@ Shipped at **M15 / v1.0.0**: the end-to-end enforced loop — `/g-kickoff` → `
 | M23 — Production audit → v2.0.0 | Hardening, self-guarded hooks, rename pass | Make it shippable and safe to install anywhere |
 | M27–M28 → v2.1–2.2 | Doc-review gate; `g-docs/` as canonical committed home | Docs gated like code; one tracking home |
 | ~~M46→M41→M45→M42 — process-integrity tranche~~ *(superseded 2026-08-10, [ADR-012](decisions/012-g-forge-2.5-final-release-scope.md))* | M46 shipped v2.4.0; the tranche's survivors fold into the 2.5 scope below; M42 fork-bound | Superseded — see the v2.5 row |
-| **v2.5 — the final G-Forge release** *(current)* | M47 Planning-Pipeline Honesty → M48 Review-Pipeline Hardening → M45 review rework → M38 G-Report → M40 Reference Convention → M43 Operator Controls → M41 Release Machinery (cuts the release, last) | The freeze release ships everything the approved announcement promises (ADR-012) |
+| **v2.5 — the final G-Forge release** *(current)* | M47 Planning-Pipeline Honesty → M48 Review-Pipeline Hardening → M45 review rework → M38 G-Report → M40 Reference Convention → M43 Operator Controls → M49 Devil's-Advocate Agent (folded in 2026-08-14) → M41 Release Machinery (cuts the release, last) | The freeze release ships everything the approved announcement promises (ADR-012, amended 2026-08-14: +M49) |
 | ~~M29 · M33 · M34 · M30–M32 — the multiplayer arc~~ *(fork-bound per ADR-012)* | Claim/lease register · the Roundtable (Phase A built) · cross-session orchestration · membership/handoff/reconciliation | Leaves with the G-Proof fork — entries in the local-only `g-docs/g-proof-roadmap.md` |
 
 ## Tech decisions

@@ -26,7 +26,7 @@ Check this now, before anything else in this skill. Read `.claude-plugin/plugin.
    - **Cache version** — Glob `~/.claude/plugins/cache/g-forge/g-forge/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract the version. If nothing is found, there is no cache to be stale — report so and continue to Step 0a (Step 1 will report the missing-plugin error).
    - **GitHub latest version** — fetch it:
      ```bash
-     curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
+     curl -sf --max-time 10 https://raw.githubusercontent.com/onlygian/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
      ```
    - **Project-installed version** — what this project's G-Forge-managed files were last synced from. There is currently no version stamp recorded anywhere in the project (Step 2's inventory records file/block *presence*, not a version number) — report this as `unknown` unless a future manifest resolves it.
 

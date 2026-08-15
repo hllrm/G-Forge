@@ -37,8 +37,10 @@ All G-Forge-generated documents — project tracking included — live under `g-
 | `g-docs/alignment/` | `/g-align` | Brief-drift checks |
 | `g-docs/agent-output/` · `g-docs/qa-scope/` | `/g-execute`, `/g-review` | Raw agent output (regenerable) |
 | `g-docs/env-vars.md` · `g-docs/identity.md` · `g-docs/patterns-deferred.md` | `/g-docs`, `/g-identity`, `/g-patterns` | Reference docs |
+| `g-docs/patterns/` | `/g-patterns` | Abstracted pattern-mining reports (principle-level, externally shareable); the open report is always `g-docs/patterns/latest.md` — renamed to its resolution date (`YYYY-MM-DD.md`) once resolved. PENDING resolutions tracked per report |
+| `g-docs/inbox/adversarial/` | external automation (third-party) | Advisory counter-reports to pending pattern resolutions — written by third-party automation, **read** by `/g-patterns`' resolve phase (Step 12); suggestions only, human-weighed, never authoritative |
 
-**Tracked vs. ignored:** the `g-docs/` project record is **committed** (it *is* the project) — except `g-docs/agent-output/` (and any local `g-docs/plans/` scratch), which is regenerable and gitignored. The `.gitignore` `/g-init` writes (Step 5a) draws this line; `/g-doctor` Check 20 keeps it honest, and Check 21 flags any G-Forge document that strays outside `g-docs/`.
+**Tracked vs. ignored:** the `g-docs/` project record is **committed** (it *is* the project) — except `g-docs/agent-output/` (and any local `g-docs/plans/` scratch), which is regenerable and gitignored. The `.gitignore` `/g-init` writes (Step 5a) draws this line; `/g-doctor` Check 20 keeps it honest, and Check 21 flags any G-Forge document that strays outside `g-docs/`. `g-docs/inbox/adversarial/` is the one deliberate exception to "G-Forge writes it, G-Forge tracks it": it is third-party-writable — dropped by external automation outside this project's control — yet still committed by design, because the advisory input itself is part of the project record once it lands.
 
 ### Commit gate infrastructure
 

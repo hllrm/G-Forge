@@ -26,7 +26,7 @@ Spike S1 answers both.
 Adding a local-path marketplace under the same name (`g-forge`) does not sit side-by-side with the GitHub marketplace — it **overwrites the registry entry**:
 
 ```
-BEFORE:  g-forge → GitHub (hllrm/G-Forge)
+BEFORE:  g-forge → GitHub (onlygian/G-Forge)
 AFTER:   g-forge → Directory (D:\SW_Projects\G-Forge)
 ```
 
