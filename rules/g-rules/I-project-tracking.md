@@ -11,7 +11,7 @@
 | `g-docs/todo-done.md` | HQ | Archive of closed tasks and pass reports |
 | `g-docs/decisions/NNN-title.md` | `/g-adr` | Architectural Decision Records — rationale behind significant technical choices |
 | `g-docs/env-vars.md` | `doc-writer`, `/g-docs` | Environment variable reference — name, purpose, required/optional, example |
-| `CHANGELOG.md` | HQ, `doc-writer` | Version history — features, fixes, breaking changes, deprecations |
+| `CHANGELOG.md` | HQ, `doc-writer`, `/g-patterns` (append-only under an existing `## [Unreleased]`) | Version history — features, fixes, breaking changes, deprecations |
 | `g-wiki/` | `/g-wiki` | Human-facing project wiki — narrative architecture + how-to. **Committed** project content (not a runtime artifact); refreshed at each milestone close. Distinct from `g-docs/` (operational records) and `/g-docs` (code-level doc hygiene). |
 
 ### Working memory vs. the durable record — the Roundtable (M33)
