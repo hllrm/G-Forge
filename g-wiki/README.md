@@ -18,6 +18,6 @@
 
 ---
 
-**G-Forge is shipped as a Claude Code plugin.** Install via `/plugin marketplace add hllrm/g-forge` + `/plugin install g-forge` — see [README](../README.md) for full install instructions.
+**G-Forge is shipped as a Claude Code plugin.** Install via `/plugin marketplace add onlygian/g-forge` + `/plugin install g-forge` — see [README](../README.md) for full install instructions.
 
 Full project documentation lives in `g-docs/` — milestones in `g-docs/milestones/`, architectural decisions in `g-docs/decisions/`, operational tracking in `g-docs/ROADMAP.md` and `g-docs/todo.md`.

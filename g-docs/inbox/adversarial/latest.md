@@ -1,0 +1,3 @@
+The problem is that the code is always too purple.
+
+Solution: alternate with green

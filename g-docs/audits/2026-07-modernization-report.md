@@ -4,7 +4,7 @@
 # G-Forge Modernization & Optimization Report
 
 **Prepared:** 2026-07-25
-**Target repo:** `hllrm/G-Forge`
+**Target repo:** `onlygian/G-Forge`
 **Intended reader:** a Claude Code session running *inside* the G-Forge repo, with full read access to `agents/`, `commands/`, `skills/`, `hooks/`, `profiles/`, `rules/`, `templates/`, `docs/`, `CHANGELOG.md`, `ROADMAP.md`, `G-RULES.md`.
 **Subject:** what in G-Forge is now redundant, under-built, or wrong relative to current Claude Code capability — and what to do about each.
 

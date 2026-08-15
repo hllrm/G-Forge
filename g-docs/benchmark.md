@@ -1,5 +1,7 @@
 # G-Forge Reliability Benchmark — "punch above its weight"
 
+> **STATUS (2026-08-13):** Pilot executed and gated — verdict: **do not fund n ≥ 20 on this design.** The methodology requires five corrections before re-running; see [M25 pilot result record](benchmark-pilot-2026-08-13.md) for the full gate decision and required-changes list. This document stands **superseded-pending-revision**.
+
 **Audience:** maintainer (this is a validation harness, not a per-project skill).
 **Purpose:** convert G-Forge's core claim — *discipline lets a given model ship at a higher success and hygiene rate than it would raw* — from an assertion into a measured number. In a market where ~87% of developers distrust agent accuracy (Stack Overflow 2025), a reliability delta is the strongest possible pitch, and G-Forge already ships the instrument to measure it (`/g-telemetry`, the 8-metric layer).
 

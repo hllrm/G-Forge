@@ -142,7 +142,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 `/plugin` is only available in the Claude Code CLI. Open a terminal and run `claude`, then:
 
 ```bash
-/plugin marketplace add hllrm/g-forge
+/plugin marketplace add onlygian/g-forge
 /plugin install g-forge
 ```
 
@@ -155,7 +155,7 @@ All **19** G-Forge agents, **38** skills, 48 stack profiles, 7 combo profiles, a
 ```bash
 # In a terminal:
 claude
-/plugin marketplace add hllrm/g-forge
+/plugin marketplace add onlygian/g-forge
 /plugin install g-forge
 ```
 
@@ -181,7 +181,7 @@ For a read-only diagnosis of version alignment at any time (not just before a sy
 For development or one-off use, load directly via the `--plugin-dir` flag:
 
 ```bash
-git clone https://github.com/hllrm/g-forge.git
+git clone https://github.com/onlygian/g-forge.git
 claude --plugin-dir ./g-forge
 ```
 
@@ -363,7 +363,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `/g-forge wiki [area]` | Build and maintain the human-facing project wiki in a **committed** `g-wiki/` folder — narrative architecture + per-area pages + how-to, synthesized from the codebase, ROADMAP, ADRs, and brief via doc-writer. Run anytime; offered at `/g-init` and refreshed automatically at the end of every milestone. Distinct from `/g-docs` (code-level doc hygiene) and the git-ignored `g-docs/` operational records |
 | `/g-forge adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `g-docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
 | `/g-forge retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and g-docs/todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
-| `/g-forge patterns` | Mine `g-docs/retros/` and `g-docs/todo-done.md` for recurring failure patterns; bucket by frequency (isolated / emerging / systemic); propose concrete profile-rule edits for any ≥2-occurrence pattern with apply/defer/dismiss per suggestion |
+| `/g-forge patterns` | Two-phase pattern lifecycle. **Mine** reads `g-docs/retros/` and `g-docs/todo-done.md` for recurring patterns (≥2 frequency), saves an abstracted, principle-level report to `g-docs/patterns/latest.md` (stable path for external automation; renamed to resolution date YYYY-MM-DD.md when resolved), records patterns PENDING — **applies no edits**. **Resolve** runs in a fresh session (entered via `## Active Session` handoff), checks `g-docs/inbox/adversarial/` for external counter-reports (advisory only, human-weighed), then apply/defer/dismiss per developer. |
 | `/g-forge roundtable` | Bind the session to **the Roundtable** — a shared live Doc that is the human-facing communication layer (you + non-programmers + the session). `start` binds a Doc (create-from-template or attach-by-URL); `sync` reads it at boundaries and writes only salient deltas (the salience gate); `close` distills the live Doc into the durable record (handoff + ADRs + todo) on a human nod. Works solo or shared; surface-agnostic (ADR-001). **Off by default** — no Roundtable configured means every path is a no-op and behaviour is byte-identical to today. (M33 Phase A) |
 | `/g-forge forecast [plan-slug]` | Premortem and scope-realism pass on a plan. Outputs complexity score (0–10), quantified miss-risk percentage, and ranked top-5 failure scenarios seeded by `/g-patterns` history. Miss-risk is calibrated against the project's own forecast-vs-outcome corpus (`g-docs/forecasts/*.md` `## Outcome` cells, reconciled by `/g-retro`): a bounded adjustment (±10 points, folded into the final 0–95% score) that can raise or lower the raw estimate depending on whether past forecasts over- or under-predicted, and only applies once at least 5 confirmed outcomes are on record — below that floor it reports the raw score with a neutral (zero) adjustment. Auto-invoked by `/g-plan` Step 3b. Advisory — never blocks approval. Persists `g-docs/forecasts/<slug>.md`. |
 | `/g-forge telemetry` | Compute 8 reliability metrics (hallucination, review catch, regression, rework, spec deviation, escalation, token efficiency, retry dependency); classify health profile (stable / cautious / defensive / recovery); write `.claude/telemetry-profile` for adaptive orchestration. `/g-execute` and `/g-review` Step 0 read the profile and scale wave size, model tier, and reviewer count accordingly. |
@@ -763,7 +763,7 @@ git push
 | M28 — g-docs as the canonical home for all G-Forge documents | ✅ Done — **v2.2.0** |
 | M-audit — Forge Integrity (technical debt audit · native pre-commit gate) | ✅ Done — **v2.3.0** |
 | M46 — Update Integrity (detect / diagnose / fix split) | ✅ Done — **v2.4.0** |
-| **v2.5.0 — the final G-Forge release** ([ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)): M47 Planning-Pipeline Honesty · M48 Review-Pipeline Hardening · M45 Review Pipeline Rework · M38 G-Report · M40 Reference Convention · M43 Operator Controls · M41 Release Machinery (cuts the release) | 🔄 In progress |
+| **v2.5.0 — the final G-Forge release** ([ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)): M47 Planning-Pipeline Honesty · M48 Review-Pipeline Hardening · M45 Review Pipeline Rework · M38 G-Report · M40 Reference Convention · M43 Operator Controls · M49 Devil's-Advocate Agent · M41 Release Machinery (cuts the release) | 🔄 In progress |
 | After v2.5.0: this repo freezes (maintenance-only) and the successor — **G-Proof** — follows. Versioning restarts at G-Proof 1.0; there is no G-Forge 3.0. | — |
 
 ---

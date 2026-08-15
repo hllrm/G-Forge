@@ -11,7 +11,7 @@
 Via CLI:
 ```bash
 claude
-/plugin marketplace add hllrm/g-forge
+/plugin marketplace add onlygian/g-forge
 /plugin install g-forge
 ```
 

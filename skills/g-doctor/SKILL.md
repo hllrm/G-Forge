@@ -206,7 +206,7 @@ G-Forge was formerly named `g-team`; the rename created a new plugin rather than
 **20. `.gitignore` vets G-Forge artifacts** (advisory)
 The `.gitignore` is the boundary between the project record (tracked) and runtime/dev artifacts (ignored). `/g-init` writes it; this check confirms it still holds. Read `.gitignore`.
 - It must **ignore** the runtime artifacts: the commit-gate sentinels (`.claude/g-forge-approved`, `.claude/g-forge-docs-approved`), the observer journal (`.claude/journal/`), and the regenerable agent output (`g-docs/agent-output/`).
-- It must **not ignore** anything tracked-by-design: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, `g-docs/decisions/`, `g-docs/retros/`, or `g-wiki/`. (Watch for over-broad bare patterns — e.g. a literal `todo.md` or `milestones/` line will wrongly ignore the `g-docs/` copies.)
+- It must **not ignore** anything tracked-by-design: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/milestones/`, `g-docs/decisions/`, `g-docs/retros/`, `g-docs/patterns/`, `g-docs/inbox/`, or `g-wiki/`. (Watch for over-broad bare patterns — e.g. a literal `todo.md` or `milestones/` line will wrongly ignore the `g-docs/` copies.)
 - Pass: ✓ .gitignore vets G-Forge artifacts (runtime ignored, project record tracked)
 - Advisory (missing): ⚠ No .gitignore — runtime artifacts (sentinels, journal, agent-output) may be committed
   → Run `/g-init` (Step 5a) to write the project `.gitignore`.
@@ -216,19 +216,24 @@ The `.gitignore` is the boundary between the project record (tracked) and runtim
   → Remove or scope the over-broad pattern so the `g-docs/` project record stays tracked.
 
 **21. No stray G-Forge documents** (advisory)
-Every G-Forge document belongs under `g-docs/` (project record) or `g-wiki/` (human-facing). This check finds strays that drifted elsewhere — usually tracking files left at the project root from before the `g-docs/` migration, or ADR/retro/agent-output folders created in a parallel tree (e.g. `docs/decisions/`, `docs/plans/`). It is **inverted, not a fixed allowlist**: rather than checking a short hardcoded list of dir names (which misses any canonical dir not on the list — the M-audit #23/BUG-4 gap, where `agent-output/`, `plans/`, and `qa-scope/` slipped through a 6-name allowlist), the canonical dir-name set is derived from whatever already lives one level under `g-docs/` in *this* project — every name found there is a G-Forge tracking convention, so that same name found **anywhere else** in the repo is a stray, full stop. This self-updates as new `g-docs/` subdirectories are added (per G-RULES §I: `decisions/`, `retros/`, `forecasts/`, `plans/`, `blast-radius/`, `telemetry/`, `alignment/`, `agent-output/`, `qa-scope/`, `milestones/`, etc.) — no manual list maintenance here. Look for:
+Every G-Forge document belongs under `g-docs/` (project record) or `g-wiki/` (human-facing). This check finds strays that drifted elsewhere — usually tracking files left at the project root from before the `g-docs/` migration, or ADR/retro/agent-output folders created in a parallel tree (e.g. `docs/decisions/`, `docs/plans/`). It is **inverted, not a fixed allowlist**: rather than checking a short hardcoded list of dir names (which misses any canonical dir not on the list — the M-audit #23/BUG-4 gap, where `agent-output/`, `plans/`, and `qa-scope/` slipped through a 6-name allowlist), the canonical dir-name set is derived from whatever already lives one level under `g-docs/` in *this* project — every name found there is a G-Forge tracking convention. This self-updates as new `g-docs/` subdirectories are added (per G-RULES §I: `decisions/`, `retros/`, `forecasts/`, `plans/`, `blast-radius/`, `telemetry/`, `alignment/`, `agent-output/`, `qa-scope/`, `milestones/`, `patterns/`, `inbox/`, etc.) — no manual list maintenance here. Look for:
 - `ROADMAP.md`, `todo.md`, `todo-done.md`, or `project_brief.md` at the **project root** (canonical home is `g-docs/`).
 - A `milestones/` directory at the **project root** (canonical home is `g-docs/milestones/`).
-- Any directory sharing a name with a top-level `g-docs/` subdirectory, found anywhere **outside** `g-docs/` and `g-wiki/` (e.g. a root `decisions/`, or a parallel `docs/plans/`, `docs/agent-output/`, `docs/qa-scope/` tree).
+- A directory sharing a name with a top-level `g-docs/` subdirectory, found anywhere **outside** `g-docs/` and `g-wiki/`, **whose own contents look like G-Forge documents** — at least one `.md` file and no source-code file (`.js`/`.ts`/`.tsx`/`.jsx`/`.py`/`.sh`/`.rs`/`.go`/`.java`/`.vue`) directly inside it. A name match alone is not enough — `patterns/` and `inbox/` are generic enough that a consumer project's `src/patterns/` or `src/features/inbox/` shares the name by coincidence, not by drift (generic canonical names entered the set 2026-08-14); the content filter tells a stray tracking-doc folder apart from a same-named source folder.
 ```bash
 # strays at root
 for f in ROADMAP.md todo.md todo-done.md project_brief.md; do [ -f "$f" ] && echo "stray: $f"; done
 [ -d milestones ] && echo "stray: milestones/"
 # canonical dir-name set = whatever already lives directly under g-docs/ in this project
-# (inverted check: any of those names found outside g-docs/ or g-wiki/ is a stray, not a fixed allowlist)
+# (inverted check: any of those names found outside g-docs/ or g-wiki/ is a candidate, not a fixed allowlist)
+# a candidate is only a stray if its own contents look like docs: >=1 .md file, no source-code file
 for canon in $(find g-docs -mindepth 1 -maxdepth 1 -type d 2>/dev/null | xargs -n1 basename); do
   find . -type d -name "$canon" \
-    -not -path './g-docs*' -not -path './g-wiki*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null
+    -not -path './g-docs*' -not -path './g-wiki*' -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null | while read -r d; do
+    has_md=$(find "$d" -maxdepth 1 -type f -name '*.md' 2>/dev/null | head -1)
+    has_src=$(find "$d" -maxdepth 1 -type f \( -name '*.js' -o -name '*.ts' -o -name '*.tsx' -o -name '*.jsx' -o -name '*.py' -o -name '*.sh' -o -name '*.rs' -o -name '*.go' -o -name '*.java' -o -name '*.vue' \) 2>/dev/null | head -1)
+    [ -n "$has_md" ] && [ -z "$has_src" ] && echo "$d"
+  done
 done
 ```
 - Pass (none found): ✓ No stray G-Forge documents — all tracking lives under g-docs/
@@ -257,7 +262,7 @@ grep -qiE '^(token|secret|password|api[_-]?key)=' .claude/roundtable 2>/dev/null
 Resolve the same version triple `/g-update`'s Step 0 staleness preflight resolves, read-only — this check never writes anything and never runs `/g-update` itself, it only diagnoses and points at the right direction:
 - **GitHub latest** — fetch it, same idiom `/g-update` Step 0 already uses:
   ```bash
-  curl -sf --max-time 10 https://raw.githubusercontent.com/hllrm/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
+  curl -sf --max-time 10 https://raw.githubusercontent.com/onlygian/G-Forge/main/.claude-plugin/plugin.json | grep '"version"'
   ```
   If `curl` fails (offline), mark this leg `unreachable` and degrade gracefully — do not fail the check, compare only the legs you have.
 - **Cache version** — Glob `~/.claude/plugins/cache/g-forge/g-forge/` for subdirectories, pick the highest semver, read its `.claude-plugin/plugin.json`, extract `version`. If nothing is found, there is no cache to compare — treat as `unknown`.

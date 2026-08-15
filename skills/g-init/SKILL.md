@@ -166,7 +166,7 @@ G-Forge generates two kinds of files, and the `.gitignore` is what keeps them st
 **Track (do NOT ignore) — the project and its shared enforcement:**
 - Source code and the project's own build/config.
 - `CLAUDE.md`, `G-RULES.md`, `CHANGELOG.md`, `README.md`.
-- The `g-docs/` project record: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/todo-done.md`, `g-docs/milestones/`, `g-docs/project_brief.md`, and `g-docs/decisions/ retros/ forecasts/ telemetry/ blast-radius/ alignment/`.
+- The `g-docs/` project record: `g-docs/ROADMAP.md`, `g-docs/todo.md`, `g-docs/todo-done.md`, `g-docs/milestones/`, `g-docs/project_brief.md`, and `g-docs/decisions/ retros/ forecasts/ telemetry/ blast-radius/ alignment/ patterns/ inbox/adversarial/`.
 - `g-wiki/` — committed human-facing content.
 - Shared G-Forge config so teammates inherit the same gates: `.claude/hooks/`, `.claude/settings.json`, `.claude/rules/`, `.claude/agents/`.
 
