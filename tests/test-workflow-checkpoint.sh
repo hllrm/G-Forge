@@ -33,8 +33,10 @@ check() { # name expected actual
 check_match() { # name pattern actual
     # LC_ALL=C forces byte-wise matching. WHY: Windows wchar_t is 16-bit, so
     # MSYS mbrtowc cannot represent any character above U+FFFF, and GNU grep 3.0
-    # then rejects the sequence outright — every 4-byte emoji this hook prints
-    # (🪑 🔴 🟡 📋) silently failed to match while 3-byte ones (⚠ ✓) matched.
+    # then rejects the sequence outright — every 4-byte emoji the hook printed at
+    # the time silently failed to match while 3-byte ones (⚠ ✓) matched. Those
+    # emoji have since been removed from the banner, but the guard stays: it is
+    # what makes any future non-ASCII marker safe to assert on here.
     # Byte-wise is correct here anyway: every pattern below is literal text plus
     # `.*`, and none depends on `.` meaning one character rather than one byte.
     if printf '%s' "$3" | LC_ALL=C grep -q "$2"; then
@@ -179,7 +181,7 @@ check_match "balanced tier: Active line present" "Active:" "$OUTPUT"
 
 # ADR-008 adjudication: on balanced tier, tolerate "no auto-triggers" in the Tier line,
 # but verify that no separate auto-trigger ADVISORY lines appear (e.g., "Consider running /g-plan").
-# The 📋 /g-trim nudge is explicitly tolerated (it's manual-invocation reminder, not auto-trigger).
+# The /g-trim nudge is explicitly tolerated (it's manual-invocation reminder, not auto-trigger).
 # Narrow check: search for specific advisory pattern after "Tier:" line to exclude the Tier line itself.
 if printf '%s' "$OUTPUT" | sed -n '/Tier:/,$p' | tail -n +2 | grep -qE '(Consider|auto-trigger.*advisory)'; then
     echo "FAIL: balanced tier should not show auto-trigger advisory"; FAIL=$((FAIL+1))
@@ -387,7 +389,7 @@ printf '35\n' > .claude/session-prompt-count
 
 OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
 
-check_match "amber: 🟡 emoji" "🟡" "$OUTPUT"
+check_match "amber: warning marker" "⚠ Context depth" "$OUTPUT"
 check_match "amber: ACTIVE MONITORING message" "ACTIVE MONITORING" "$OUTPUT"
 check_match "amber: 25% capacity floor mention" "25%" "$OUTPUT"
 
@@ -405,7 +407,7 @@ printf '65\n' > .claude/session-prompt-count
 
 OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
 
-check_match "red: 🔴 emoji" "🔴"  "$OUTPUT"
+check_match "red: enforced marker" "!! Context depth"  "$OUTPUT"
 check_match "red: Context depth message" "Context depth" "$OUTPUT"
 check_match "red: ENFORCED message" "ENFORCED" "$OUTPUT"
 check_match "red: fresh session nudge" "start fresh session" "$OUTPUT"
@@ -423,7 +425,7 @@ printf '1\n' > .claude/session-compaction-count
 
 OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
 
-check_match "compaction: 🔴 emoji" "🔴" "$OUTPUT"
+check_match "compaction: enforced marker" "!! Context compacted" "$OUTPUT"
 check_match "compaction: count displayed" "compacted 1×" "$OUTPUT"
 check_match "compaction: reset nudge" "fresh session" "$OUTPUT"
 
@@ -519,7 +521,7 @@ url=https://example.com
 EOF
 
 OUTPUT=$( printf '{}' | bash "$CHECKPOINT_SCRIPT" 2>&1 )
-check_match "roundtable: heartbeat message" "🪑.*Roundtable bound" "$OUTPUT"
+check_match "roundtable: heartbeat message" "· Roundtable bound" "$OUTPUT"
 check_match "roundtable: title extracted" "Test Surface" "$OUTPUT"
 
 rm -f .claude/roundtable

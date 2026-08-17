@@ -3,8 +3,19 @@
 **Date:** 2026-08-10
 **Status:** Accepted
 **Amended:** 2026-08-14 — M49 (Devil's-Advocate Agent, internal adversarial pattern review) folded into the 2.5 scope; see "Amendment — 2026-08-14" below.
+**Amended:** 2026-08-17 — M50 (Eval-Chain Integrity) folded into the 2.5 scope, sequenced **third** (after M48, before M45); see "Amendment — 2026-08-17" below.
 **Reversibility:** two-way door, narrowing (scope can be re-cut before 2.5.0 ships, but the §3c copy has been on the README since 2026-08-10 under a hedged "What's coming in 2.5" heading — cutting an announced item now means editing published copy, a developer decision; at release the heading goes present-tense and the door closes)
 **Context:** G-Forge plugin source repo. Decision made by the developer in session, 2026-08-10 — this ADR captures it; the deliberation was the session's intake + triage, not a subagent pass.
+
+## Amendment — 2026-08-17
+
+**M50 (Eval-Chain Integrity) is folded into the v2.5 scope**, decided by the developer in session at the `/g-intake` triage that followed the 2026-08-17 `/g-telemetry` run. Sequenced **after M48, before M45** in the build order — M45's design ADR needs M50's agent contract map as an input, so ordering them the other way makes M45 guess. The scope table below gains a **ninth** row for M50; the two derived milestone counts (Consequences → Harder, and Risks) go from eight to nine accordingly. M45's `Depends on:` moves from *third* to *fourth*. Nothing else in this ADR's decision or constraints changes.
+
+**Why it is in 2.5 rather than the fork.** A 2.5/G-Proof split was proposed — fix the instrument *definitions* in 2.5, defer the *rewiring* to the rebuild, on the reasoning that ADR-010 replaces the current agent/hook layer anyway. The developer overrode it: **2.5 is a maintained freeze with real users, so it must do what it says at the best of its capabilities**, and "it gets rebuilt later" is not a reason to ship a release whose self-governance instruments do not measure what they claim. The override is recorded because it inverts the ADR-010 cost argument, and a future reader will otherwise re-derive the split and reach the wrong answer.
+
+**What triggered it.** The `/g-telemetry` run of 2026-08-17 returned a clean-looking `cautious` profile while four of its own gauges were structurally incapable of registering the failures this project keeps recording — most starkly, coverage scored `code-reviewer` as `never` on a day the journal records it starting and stopping (`g-forge:code-reviewer start a8e145c2`, 2026-08-16). A fifth defect is user-facing: `g-docs/telemetry-metrics.md`, the skill's declared authoritative spec, **has no ship vehicle at all** — no skill creates it, so `/g-telemetry` reads a missing file on every consumer project.
+
+**Surface set updated for this amendment** — the same list the 2026-08-14 amendment established as complete: this ADR (header + this section + scope table + both derived counts) · `ROADMAP.md`'s Version Plan build-order line, M41's `Depends on:` precedence list, and M45's `Depends on:` sequence position · `project_brief.md`'s v2.5 roadmap row · `README.md`'s v2.5.0 milestone list. `CHANGELOG.md:11` and the local-only `g-proof-roadmap.md:255` were **checked and require no edit** — neither enumerates the milestone list; they were in the 2026-08-14 set for unrelated reasons (freeze announcement, fork boundary). Recording the check so a future reader does not read their absence as an oversight.
 
 ## Amendment — 2026-08-14
 
@@ -22,6 +33,7 @@ ADR-010 set the delivery shape (v2.5 ships from this repo, the repo freezes, the
 |---|---|
 | M47 | Planning-Pipeline Honesty (decomposer sizing + seam return, forecast calibration, review-chain cost term) |
 | M48 | Review-Pipeline Hardening (grep-sweep required step, round-3 consolidation, volatile-fact heuristic, falsifiability rule) |
+| M50 | Eval-Chain Integrity (telemetry/coverage measure ground truth, agent contract map, firing audit) — **folded in 2026-08-17**, see Amendment above |
 | M45 | Review Pipeline Rework (code-lead in HQ, partitioned reviewer waves) |
 | M38 | G-Report (`/g-report` — the maintenance channel the freeze story leans on) |
 | M40 | Reference Convention (committed reference material stops being mis-gated) |
@@ -62,7 +74,7 @@ Related calls made the same day:
 - `communication-plan-2.5.md` §7 blocking findings 1 and 3 close with the re-scope pass this ADR anchors.
 
 **Harder:**
-- The freeze date moves out: eight milestones ship before the fork, not one. Accepted knowingly.
+- The freeze date moves out: nine milestones ship before the fork, not one. Accepted knowingly.
 - The G-Proof start date moves with it — every fork-bound milestone waits behind the full 2.5 arc.
 
 **Follow-up work:**
@@ -71,7 +83,7 @@ Related calls made the same day:
 - The Version Plan's v2.6.0–v2.15.0 tail is deleted, not re-stamped — those numbers never ship; versioning restarts as G-Proof 1.0 per ADR-010 (unamended).
 
 **Risks:**
-- *Scope fatigue* — eight milestones under one version invites mid-arc re-cuts; any narrowing after release copy is published falsifies the announcement (this is the one-way edge of this two-way door).
+- *Scope fatigue* — nine milestones under one version invites mid-arc re-cuts; any narrowing after release copy is published falsifies the announcement (this is the one-way edge of this two-way door).
 - *The gitignored `g-proof-roadmap.md` gets lost* — machine-local by developer choice; mitigated by the committed pointer in `ROADMAP.md`'s Backlog, the git-history recovery path, and the named fork-checklist item.
 
 ## Assumptions That Held (verify at 2.5 close)

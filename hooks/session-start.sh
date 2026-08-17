@@ -142,7 +142,7 @@ if [ "$TIER" != "light" ]; then
     STASH_COUNT=$(git stash list 2>/dev/null | wc -l | tr -d '[:space:]')
 
     [ "$DIRTY_COUNT" -gt 0 ] && echo "  ~ $DIRTY_COUNT uncommitted change(s)"
-    [ "$STASH_COUNT" -gt 0 ] && echo "  📦 $STASH_COUNT stash(es) pending"
+    [ "$STASH_COUNT" -gt 0 ] && echo "  · $STASH_COUNT stash(es) pending"
 
     # --- Remote state (wait for fetch) ---
     wait "$FETCH_PID" 2>/dev/null

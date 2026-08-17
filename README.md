@@ -774,7 +774,7 @@ git push
 | M28 — g-docs as the canonical home for all G-Forge documents | ✅ Done — **v2.2.0** |
 | M-audit — Forge Integrity (technical debt audit · native pre-commit gate) | ✅ Done — **v2.3.0** |
 | M46 — Update Integrity (detect / diagnose / fix split) | ✅ Done — **v2.4.0** |
-| **v2.5.0 — the final G-Forge release** ([ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)): M47 Planning-Pipeline Honesty · M48 Review-Pipeline Hardening · M45 Review Pipeline Rework · M38 G-Report · M40 Reference Convention · M43 Operator Controls · M49 Devil's-Advocate Agent · M41 Release Machinery (cuts the release) | 🔄 In progress |
+| **v2.5.0 — the final G-Forge release** ([ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)): M47 Planning-Pipeline Honesty · M48 Review-Pipeline Hardening · M50 Eval-Chain Integrity · M45 Review Pipeline Rework · M38 G-Report · M40 Reference Convention · M43 Operator Controls · M49 Devil's-Advocate Agent · M41 Release Machinery (cuts the release) | 🔄 In progress |
 | After v2.5.0: this repo freezes (maintenance-only) and the successor — **G-Proof** — follows. Versioning restarts at G-Proof 1.0; there is no G-Forge 3.0. | — |
 
 ---

@@ -59,14 +59,19 @@ run. A comment saying "keep these in step" is not enforcement.
 ## Matching non-ASCII output
 
 Assertions that grep for output containing an **astral-plane** character —
-anything above U+FFFF, which is every 4-byte emoji (`🪑 🔴 🟡 📋 🎯`) — must run
-their `grep` under `LC_ALL=C`. Windows `wchar_t` is 16-bit, MSYS's `mbrtowc`
-cannot represent those code points, and GNU grep 3.0's multibyte path then
-rejects the byte sequence outright: the pattern silently never matches even
-though the character is verifiably present in the captured output. 3-byte
-characters (`⚠ ✓ ⚑`) are unaffected, which is what makes the failure look
-arbitrary. Reference implementation: `check_match` in
-`tests/test-workflow-checkpoint.sh`.
+anything above U+FFFF, which is every 4-byte emoji — must run their `grep` under
+`LC_ALL=C`. Windows `wchar_t` is 16-bit, MSYS's `mbrtowc` cannot represent those
+code points, and GNU grep 3.0's multibyte path then rejects the byte sequence
+outright: the pattern silently never matches even though the character is
+verifiably present in the captured output. 3-byte characters (`⚠ ✓ ⚑`) are
+unaffected, which is what makes the failure look arbitrary. Reference
+implementation: `check_match` in `tests/test-workflow-checkpoint.sh`.
+
+The hook banners no longer print any astral-plane character — the decorative
+emoji were removed and only `⚠`, `✓` and ASCII markers remain — so no assertion
+currently depends on this. The rule stands for the next one that does: the
+banner's marker set is a design choice that can change, the platform limit
+cannot.
 
 ## PostToolUse skip-on-error boundary (characterized, accepted)
 

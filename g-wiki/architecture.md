@@ -47,7 +47,7 @@ G-Forge enforcement lives in **`hooks/`** — standalone POSIX bash scripts with
 **`g-docs/`** — Canonical home for all G-Forge-generated project records:
 - `ROADMAP.md` — Milestone plan + `## Active Session` handoff (committed, the single cold-start document for a fresh session).
 - `milestones/M*.md` — Per-milestone scope, tasks, done conditions.
-- `decisions/NNN-*.md` — Architectural Decision Records (8 ADRs to date covering core design choices).
+- `decisions/NNN-*.md` — Architectural Decision Records (12 to date, 001–012) covering the core design choices.
 - `retros/YYYY-MM-DD.md` — Session retrospectives auto-synthesized by `/g-retro` from the silent observer journal.
 - `todo.md` + `todo-done.md` — Tactical task ledger (committed; closed tasks moved to todo-done each pass).
 
@@ -74,7 +74,7 @@ Agents are **never reused or re-prompted** (G-RULES §C). Each agent gets one ap
 
 ## Coordination & The Multiplayer Arc
 
-G-Forge is designed for solo development today and multiplayer coordination tomorrow (M29–M32, planned but not yet built). The roadmap's shape:
+G-Forge is designed for solo development today. The multiplayer arc was designed but **is not on the G-Forge roadmap** — as of [ADR-012](../g-docs/decisions/012-g-forge-2.5-final-release-scope.md) (2026-08-10) M29, M30–M32, M33 and M34 are **fork-bound**: they leave with the G-Proof fork and are tracked in a local-only file, not in the committed roadmap. Only M33's Phase A (the Roundtable adapter, off by default) was ever built here. The design below is recorded because it shaped the architecture that *did* ship, not as work in flight:
 
 - **M29** (Claim/lease register) — Shared resource claims with heartbeat decay, enabling concurrent sessions to signal occupancy without collisions.
 - **M33** (The Roundtable) — A shared live Doc (Google Docs, Confluence, or Gmail depending on surface capability tier; ADR-001) that surfaces live state, feeds, and decisions. Humans write, sessions read/append. **Off by default** (gitignored `.claude/roundtable` binding file).
@@ -103,5 +103,5 @@ These layers compose with the core enforcement: M29/M33 are **surface and commun
 - [Commit Gate](commit-gate.md) — How the approval sentinel works
 - [README](README.md) — Quick start
 - [g-docs/ROADMAP.md](../g-docs/ROADMAP.md) — Full milestone plan
-- [g-docs/decisions/](../g-docs/decisions/) — All 8 ADRs (001–008)
+- [g-docs/decisions/](../g-docs/decisions/) — all 12 ADRs (001–012); ADR-010 and ADR-012 govern the freeze/fork and the 2.5 scope
 - [CLAUDE.md](../CLAUDE.md) — Project rules and quick commands

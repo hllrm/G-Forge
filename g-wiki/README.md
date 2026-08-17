@@ -2,7 +2,9 @@
 
 **What:** G-Forge is a Claude Code plugin that installs an educated, enforced project-management layer into any project. It layers a PM that challenges scope, parallel execution waves, and an unskippable commit gate — making discipline non-optional, not advisory.
 
-**Current state:** v2.3.0 released. M-audit closed. Next: M46 Update Integrity → M41 Release Machinery → M45 Review Pipeline Rework → M42 Cold-start (see [ROADMAP](../g-docs/ROADMAP.md)).
+**Current state:** **v2.4.0 released** (2026-07-23; first tagged GitHub release). M-audit, M46 Update Integrity, and M47 Planning-Pipeline Honesty all closed.
+
+**v2.5.0 is the final G-Forge feature release** ([ADR-012](../g-docs/decisions/012-g-forge-2.5-final-release-scope.md)). Build order: **M48** Review-Pipeline Hardening → **M50** Eval-Chain Integrity → **M45** Review Pipeline Rework → **M38** G-Report → **M40** Reference Convention → **M43** Operator Controls → **M49** Devil's-Advocate Agent → **M41** Release Machinery (cuts the release, last). After 2.5 this repo freezes on maintenance only, forks, and ships as **G-Proof 1.0** from the fork ([ADR-010](../g-docs/decisions/010-full-rebuild-on-current-platform.md) — versioning restarts; there is no G-Forge 3.0). See [ROADMAP](../g-docs/ROADMAP.md).
 
 **This wiki covers the architecture, workflows, and operations behind G-Forge.** Start with [Getting Started](usage.md) if you're new; use [Commit Gate](commit-gate.md) if you need to understand enforcement; refer to [Architecture](architecture.md) for design decisions and data flow.
 

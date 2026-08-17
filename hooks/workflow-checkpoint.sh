@@ -190,7 +190,7 @@ fi
 # above, so the heartbeat is off there too.
 if [ -f ".claude/roundtable" ]; then
     _table_title=$(sed -n 's/^title=//p' .claude/roundtable 2>/dev/null | head -1)
-    echo "  🪑 Roundtable bound${_table_title:+: $_table_title} — /g-roundtable sync at this boundary (read deltas, write only salient state)"
+    echo "  · Roundtable bound${_table_title:+: $_table_title} — /g-roundtable sync at this boundary (read deltas, write only salient state)"
 fi
 
 if [ -f ".claude/tier3-active" ]; then
@@ -271,9 +271,9 @@ RED_THRESHOLD=$((BASE_RED - OFFSET))
 CAP_FLOOR_PCT=25
 
 if [ "$PROMPT_COUNT" -ge "$RED_THRESHOLD" ]; then
-    echo "  🔴 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}], threshold ${RED_THRESHOLD} — ENFORCED: finish task in flight, auto-trigger /g-retro, tell user to start fresh session NOW (do not let the window reach compaction)"
+    echo "  !! Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}], threshold ${RED_THRESHOLD} — ENFORCED: finish task in flight, auto-trigger /g-retro, tell user to start fresh session NOW (do not let the window reach compaction)"
 elif [ "$PROMPT_COUNT" -ge "$AMBER_THRESHOLD" ]; then
-    echo "  🟡 Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}], threshold ${AMBER_THRESHOLD} — ACTIVE MONITORING: run /context THIS turn and every turn from now; the moment remaining capacity drops below ${CAP_FLOOR_PCT}%, reset immediately (finish in-flight work, /g-retro, fresh session) — do not wait for the red exchange count. Goal: reset before compaction, never after."
+    echo "  ⚠ Context depth: ~${PROMPT_COUNT} exchanges [${SESSION_MODE}], threshold ${AMBER_THRESHOLD} — ACTIVE MONITORING: run /context THIS turn and every turn from now; the moment remaining capacity drops below ${CAP_FLOOR_PCT}%, reset immediately (finish in-flight work, /g-retro, fresh session) — do not wait for the red exchange count. Goal: reset before compaction, never after."
 fi
 
 # Compaction escalation — auto-compaction is the strongest "context overloaded"
@@ -287,7 +287,7 @@ if [ -f "$GF_CLAUDE_DIR/session-compaction-count" ]; then
     COMPACTION_COUNT=$(to_int "$(cat "$GF_CLAUDE_DIR/session-compaction-count" 2>/dev/null)")
 fi
 if [ "$COMPACTION_COUNT" -ge 1 ]; then
-    echo "  🔴 Context compacted ${COMPACTION_COUNT}× this session — the window is overloaded; finish in-flight work, auto-trigger /g-retro, then start a fresh session (run /g-resume to re-hydrate)"
+    echo "  !! Context compacted ${COMPACTION_COUNT}× this session — the window is overloaded; finish in-flight work, auto-trigger /g-retro, then start a fresh session (run /g-resume to re-hydrate)"
 fi
 
 # Milestone health — rework commits, blockers, review holds since main.
@@ -358,7 +358,7 @@ if [ -f "$COVERAGE_FILE" ]; then
             IDX=$((IDX % AGENT_COUNT))
             AGENT=$(printf '%s\n' "$NEVER_AGENTS" | sed -n "$((IDX + 1))p" | tr -d '[:space:]')
             if [ -n "$AGENT" ]; then
-                echo "  💡 $AGENT has never been used in this project — dispatch it directly or see the Playbook"
+                echo "  · $AGENT has never been used in this project — dispatch it directly or see the Playbook"
                 printf '%d\n' "$((IDX + 1))" > "$NUDGE_INDEX"
                 touch "$NUDGE_STAMP"
             fi
@@ -373,7 +373,7 @@ if [ -f "$TRIM_STAMP" ] && find "$TRIM_STAMP" -mmin -10080 2>/dev/null | grep -q
     NEEDS_TRIM=false
 fi
 if [ "$NEEDS_TRIM" = true ]; then
-    echo "  📋 Weekly optimization due — run /g-trim to compact CLAUDE.md and agent memory"
+    echo "  · Weekly optimization due — run /g-trim to compact CLAUDE.md and agent memory"
 fi
 
 # Session re-entry nudge — on the FIRST prompt of a session, if a handoff is
@@ -389,9 +389,9 @@ if [ "$PROMPT_COUNT" -eq 1 ]; then
     fi
     if [ "$_has_handoff" = true ]; then
         if grep -qi 'verify ADR' g-docs/ROADMAP.md .claude/compact-state.md 2>/dev/null; then
-            echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate; a handed-off ADR needs verifying first"
+            echo "  · Fresh session, pending handoff — run /g-resume to re-hydrate; a handed-off ADR needs verifying first"
         else
-            echo "  🔄 Fresh session, pending handoff — run /g-resume to re-hydrate context before new work"
+            echo "  · Fresh session, pending handoff — run /g-resume to re-hydrate context before new work"
         fi
     fi
 fi
@@ -406,7 +406,7 @@ if [ -f "g-docs/project_brief.md" ] && [ -f "g-docs/ROADMAP.md" ]; then
         NEEDS_ALIGN=false
     fi
     if [ "$NEEDS_ALIGN" = true ]; then
-        echo "  🎯 Brief-alignment check due — run /g-align to confirm progress still serves g-docs/project_brief.md"
+        echo "  · Brief-alignment check due — run /g-align to confirm progress still serves g-docs/project_brief.md"
     fi
 fi
 
