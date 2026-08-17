@@ -31,7 +31,13 @@ check() { # name expected actual
 }
 
 check_match() { # name pattern actual
-    if printf '%s' "$3" | grep -q "$2"; then
+    # LC_ALL=C forces byte-wise matching. WHY: Windows wchar_t is 16-bit, so
+    # MSYS mbrtowc cannot represent any character above U+FFFF, and GNU grep 3.0
+    # then rejects the sequence outright — every 4-byte emoji this hook prints
+    # (🪑 🔴 🟡 📋) silently failed to match while 3-byte ones (⚠ ✓) matched.
+    # Byte-wise is correct here anyway: every pattern below is literal text plus
+    # `.*`, and none depends on `.` meaning one character rather than one byte.
+    if printf '%s' "$3" | LC_ALL=C grep -q "$2"; then
         echo "PASS: $1"; PASS=$((PASS+1))
     else
         echo "FAIL: $1 (expected pattern '$2', got '$3')"; FAIL=$((FAIL+1))

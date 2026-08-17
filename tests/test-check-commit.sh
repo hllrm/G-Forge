@@ -8,19 +8,18 @@
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
-SCRIPT="$(cd "$(dirname "$0")" && pwd)/../hooks/check-commit.sh"
+# Resolve to ABSOLUTE paths once, before any fixture cd (tests/README.md).
+TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT="$TESTS_DIR/../hooks/check-commit.sh"
 SENTINEL=".claude/g-forge-approved"
 PASS=0
 FAIL=0
 
-# Timing bound for abandoned-stdin fixtures (cases 23 and 25): the hook must
-# return once its 5s stdin guard fires. WHY 20000 and not 5s+epsilon: MSYS/
-# Git-Bash process overhead is real — test-class-split-invariant.sh recorded a
-# 9.9s worst run on a quiet machine and widened its GUARD_WINDOW_MS 8000→20000
-# (~2× worst observed) for exactly this fixture class. Guard-deleted failure
-# mode blocks ~300s on the sleeper, so 20s still separates pass from broken by
-# an order of magnitude.
-STDIN_GUARD_WINDOW_MS=20000
+# Timing bound for the abandoned-stdin fixtures (cases 23 and 25). Declared once
+# in tests/lib/timing-bounds.sh with its evidence — the same bound governs
+# test-class-split-invariant.sh, and duplicating it is what let it drift.
+source "$TESTS_DIR/lib/timing-bounds.sh" || { echo "FAIL: could not source tests/lib/timing-bounds.sh"; exit 1; }
+STDIN_GUARD_WINDOW_MS="$GF_HOOK_STDIN_GUARD_MS"
 
 run() {
     local name="$1" input="$2" expected="$3"

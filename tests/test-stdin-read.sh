@@ -13,8 +13,11 @@
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
-LIB="$(cd "$(dirname "$0")" && pwd)/../hooks/lib/stdin-read.sh"
+TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB="$TESTS_DIR/../hooks/lib/stdin-read.sh"
 source "$LIB" || { echo "FAIL: could not source $LIB"; exit 1; }
+# Timing bounds are declared once, with their evidence, in tests/lib/.
+source "$TESTS_DIR/lib/timing-bounds.sh" || { echo "FAIL: could not source tests/lib/timing-bounds.sh"; exit 1; }
 
 PASS=0
 FAIL=0
@@ -71,7 +74,7 @@ fi
 # This avoids mkfifo (unreliable on MSYS) and uses bash process substitution.
 #
 # Use a very short timeout (1 second) so the test completes quickly.
-# Assert: function returns within ~1.5s (timeout + small epsilon for bash overhead).
+# Assert: function returns within GF_LIB_READ_WINDOW_MS (tests/lib/timing-bounds.sh).
 
 START_TIME=$(date +%s%3N)  # milliseconds since epoch
 
@@ -101,14 +104,14 @@ else
     FAIL=$((FAIL+1))
 fi
 
-# Assert: elapsed time is bounded by timeout + epsilon (1000ms + ~500ms overhead)
-# This is a soft check; systems under heavy load may exceed epsilon, so we use
-# a loose bound (2000ms / 2 seconds) to avoid false failures on slow CI.
-if [ "$ELAPSED" -lt 2000 ]; then
-    echo "PASS: abandoned-stdin timeout — returned within ~${ELAPSED}ms (expected <2000ms)"
+# Assert: elapsed time is bounded by the 1s timeout + MSYS epsilon. Bound and
+# evidence live in tests/lib/timing-bounds.sh; it is not a "loose bound to avoid
+# CI flake" — it is 2x the worst run ever observed here.
+if [ "$ELAPSED" -lt "$GF_LIB_READ_WINDOW_MS" ]; then
+    echo "PASS: abandoned-stdin timeout — returned within ~${ELAPSED}ms (expected <${GF_LIB_READ_WINDOW_MS}ms)"
     PASS=$((PASS+1))
 else
-    echo "FAIL: abandoned-stdin timeout — took ${ELAPSED}ms, expected <2000ms (timeout was 1s + epsilon)"
+    echo "FAIL: abandoned-stdin timeout — took ${ELAPSED}ms, expected <${GF_LIB_READ_WINDOW_MS}ms (timeout was 1s + MSYS epsilon)"
     FAIL=$((FAIL+1))
 fi
 

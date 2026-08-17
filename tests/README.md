@@ -38,6 +38,36 @@ Attestation runs use the canonical invocation form (repo-root relative,
 `bash tests/test-<name>.sh`); only an attested runner table is authoritative
 for pass counts.
 
+## Timing bounds — declared once, in `tests/lib/timing-bounds.sh`
+
+A timing bound is **one fact**, and a suite must never carry its own copy of a
+bound another suite also asserts. `tests/lib/timing-bounds.sh` holds every such
+constant with its evidence; suites source it via their already-absolute
+`$TESTS_DIR`/`$SCRIPT_DIR` and alias it locally if they want a suite-flavoured
+name. `tests/lib/` is deliberately outside the `test-*.sh` glob, so it is never
+mistaken for a suite by `for f in tests/test-*.sh`.
+
+Authoring rule (`profiles/claude-plugin/rules/architecture.md`): at least **2×
+the worst observed run** on MSYS/Git-Bash, extracted to a named `*_MS` constant,
+WHY stated. Author generous, tighten on evidence. Every bound currently in that
+file was first authored tight and later breached.
+
+This convention exists because the abandoned-pipe bound lived in two suites at
+once, was widened in one on fresh evidence, and the other went red on the next
+run. A comment saying "keep these in step" is not enforcement.
+
+## Matching non-ASCII output
+
+Assertions that grep for output containing an **astral-plane** character —
+anything above U+FFFF, which is every 4-byte emoji (`🪑 🔴 🟡 📋 🎯`) — must run
+their `grep` under `LC_ALL=C`. Windows `wchar_t` is 16-bit, MSYS's `mbrtowc`
+cannot represent those code points, and GNU grep 3.0's multibyte path then
+rejects the byte sequence outright: the pattern silently never matches even
+though the character is verifiably present in the captured output. 3-byte
+characters (`⚠ ✓ ⚑`) are unaffected, which is what makes the failure look
+arbitrary. Reference implementation: `check_match` in
+`tests/test-workflow-checkpoint.sh`.
+
 ## PostToolUse skip-on-error boundary (characterized, accepted)
 
 Claude Code does not fire PostToolUse hooks when the tool call exits non-zero.

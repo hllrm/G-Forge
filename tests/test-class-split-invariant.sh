@@ -6,6 +6,9 @@
 # `dirname "$0"` after the sandbox cd below.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS_DIR="$(cd "$SCRIPT_DIR/../hooks" && pwd)"
+# Timing bounds are declared once, with their evidence, in tests/lib/ — the same
+# abandoned-pipe bound governs test-check-commit.sh, and duplicating it drifted.
+source "$SCRIPT_DIR/lib/timing-bounds.sh" || { echo "FAIL: could not source tests/lib/timing-bounds.sh"; exit 1; }
 # Assertion: the six non-gating hooks (observe.sh, agent-lifecycle.sh,
 # session-start.sh, pre-compact.sh, workflow-checkpoint.sh, post-commit-cleanup.sh)
 # NEVER exit non-zero, even under garbage/malformed stdin payloads.
@@ -98,10 +101,14 @@ test_hook_exit_code() {
 # test_hook_abandoned_stdin <name> <hook-script> <description>
 # Invoke hook with stdin attached to an open pipe with NO writer and NO EOF
 # (simulates orphaned tool call). Assert: exit 0 + return within guard window.
-# Window = 5s guard + 15s epsilon: MSYS subprocess-spawn overhead in the hook
-# body after the read can add 3-5s (worst observed 9.9s total on Windows);
-# 20s stays 15x under the 300s no-writer fixture, so the bound is still decisive.
-GUARD_WINDOW_MS=20000
+# WHY workflow-checkpoint is reliably the slowest of the six, and why that is a
+# machine signal rather than a regression: subprocess fork count under load, not
+# network. Its version-advisory curl is manifest-gated
+# (hooks/workflow-checkpoint.sh:455), 24h rate-limited (:459), backgrounded with
+# &, --max-time 5, output discarded and never waited on — the harness times a
+# foreground child, so that call cannot enter the measurement at all. Its tail is
+# 491 lines forking git/grep/find/ls children against post-commit-cleanup.sh's 110.
+GUARD_WINDOW_MS="$GF_HOOK_STDIN_GUARD_MS"
 test_hook_abandoned_stdin() {
     local name="$1" script="$2" desc="$3"
     local start_time end_time elapsed

@@ -116,7 +116,7 @@ Each token routes to a SKILL.md that contains the full workflow. Run `/g-forge h
 /g-forge resume
 ```
 
-This re-hydrates you from the durable record: relevant retro, in-force ADRs, journal tail, and the handoff from the last session. Cleans up your context window while keeping you in sync.
+This syncs with origin first (fast-forwarding only when safely possible), then re-hydrates you from the durable record: relevant retro, in-force ADRs, journal tail, and the handoff from the last session. Cleans up your context window while keeping you in sync.
 
 ### Ending a session
 

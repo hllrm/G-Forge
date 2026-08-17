@@ -88,7 +88,8 @@ Both files are updated in the same commit. Disagreement between them is a releas
 5. Single commit: `chore: bump to vX.Y.Z` or `vX.Y.Z — <milestone summary>`
 6. Push immediately — never leave a version bump unpushed
 7. Run `/g-update` on any downstream projects to sync installed files
+8. Tag the release commit `vX.Y.Z` (lightweight) and cut the GitHub release with that version's CHANGELOG section as the body — from v2.4.0 onward, per the *Git tags* note below
 
 *Version never changes mid-milestone.* If scope creeps enough to change the bump type (e.g. patch → minor), update the milestone's `**Version:**` field in `g-docs/ROADMAP.md` and note the reason before continuing.
 
-*Git tags:* not used. The CHANGELOG heading `## [X.Y.Z] — YYYY-MM-DD` is the authoritative version record. If tags are needed in the future, tag the release commit as `vX.Y.Z` (lightweight tag, no GPG).
+*Git tags:* used from **v2.4.0 onward**, for GitHub releases only. Tag the release commit as `vX.Y.Z` (lightweight tag, no GPG) and cut the release with the CHANGELOG section for that version as the body. The CHANGELOG heading `## [X.Y.Z] — YYYY-MM-DD` remains the **authoritative** version record; the tag is a convenience for `git describe` and the GitHub releases page, never a second source of truth. Versions released before v2.4.0 are deliberately un-tagged and un-released — backfilling them would notify watchers with fictional dates.

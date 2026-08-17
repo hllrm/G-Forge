@@ -8,6 +8,17 @@ G-Forge installs a structured engineering *process* into any Claude Code project
 
 ---
 
+## Evidence
+
+G-Forge runs on its own repository, so the records below are the ones it produced about itself. They are linked as-is, including the parts that did not go well.
+
+- **[Benchmark methodology](g-docs/benchmark.md)**: the falsifiable design for testing whether the process actually raises a model's task-success and hygiene rates against the same model run raw, plus the [2026-08-13 pilot](g-docs/benchmark-pilot-2026-08-13.md) that gated it. The pilot verdict was *do not fund n ≥ 20 on this design*; the methodology stands superseded-pending-revision, and no lift figure is claimed anywhere in this README.
+- **[Telemetry metrics](g-docs/telemetry-metrics.md)**: definitions, sources and formulas for the 8 reliability metrics `/g-telemetry` computes (hallucination, review catch, regression, rework, spec deviation, escalation, token efficiency, retry dependency), derived from a project's own retros, forecasts, closed-task archive and git log. Session-local, no remote collection.
+- **[Architectural decision records](g-docs/decisions/)**: 12 numbered ADRs covering the decisions that shaped the current design, each with its context, the alternatives rejected, and its consequences.
+- **[Adversarial inbox](g-docs/inbox/adversarial/)**: verdicts on G-Forge's own pattern reports, written into this repo by external automation running a non-Anthropic model. `/g-patterns` reads them during its resolve phase, screens them as untrusted data rather than instructions, and weighs them against the developer's judgement. They are advisory and never authoritative.
+
+---
+
 ## Where G-Forge is headed
 
 **G-Forge 2.5 is the last feature release.** From here it's maintenance, and that's deliberate.
@@ -60,7 +71,7 @@ Most tools in this space are **agent orchestrators** — they dispatch and revie
 - **Enforced** — gates with *teeth*. The commit gate is a git hook, not a suggestion: nothing merges until a full review pipeline issues MERGE READY. Every comparable workflow enforces review advisorily; G-Forge enforces it infrastructurally.
 - **Context-clean** — reliability held session-wide. Single-use agents, off-context decision deliberation, and a depth gate that resets *before* the window compacts keep the model trustworthy deeper into the work.
 
-The result is the bet: discipline lets a cheaper or smaller model ship at a higher success and hygiene rate than it would raw. Not a smarter model — a better-run one. *(See [g-docs/benchmark.md](g-docs/benchmark.md) for the head-to-head methodology that turns that claim into a number.)*
+The result is the bet: discipline lets a cheaper or smaller model ship at a higher success and hygiene rate than it would raw. Not a smarter model — a better-run one. *(It is a bet, not a measurement: [g-docs/benchmark.md](g-docs/benchmark.md) holds the head-to-head methodology written to test it, and the pilot that sent that methodology back for revision before any number was produced.)*
 
 That means:
 
@@ -113,7 +124,7 @@ Seven shell scripts registered in `.claude/settings.json` keep Claude oriented a
 - **UserPromptSubmit** (`workflow-checkpoint.sh`) — fires on every message. Reports branch, milestone context, active wave, review gate status, and context depth. Claude reads this output and auto-triggers the right skill (`/g-plan` for a new task, `/g-execute` once a plan is approved, `/g-review` when waves finish).
 - **PreToolUse** (`check-commit.sh`) — classifies the staged file set (code / doc / mixed) and blocks `git commit` unless the matching review sentinel exists.
 - **PostToolUse** (`post-commit-cleanup.sh`, `observe.sh`) — clears both sentinels after a successful commit, and runs the **silent observer**, which journals meaningful events (commits, branches, tests, pushes, reverts) to `.claude/journal/YYYY-MM-DD.jsonl`.
-- **SessionStart** (`session-start.sh`, `observe.sh`) — checks local and remote git state (uncommitted changes, stash count, ahead/behind), marks the session open in the journal, and resets the context-depth counters on a genuine open — carrying them across a `compact` restart so auto-compaction can't silently reset the gate.
+- **SessionStart** (`session-start.sh`, `observe.sh`) — checks local and remote git state (uncommitted changes, stash count, ahead/behind), marks the session open in the journal, and resets the context-depth counters on a genuine open — carrying them across a `compact` or `resume` restart so auto-compaction (or a reloaded transcript) can't silently reset the gate.
 - **SubagentStart / SubagentStop** (`agent-lifecycle.sh`) — records every agent dispatch into the same journal.
 - **PreCompact** (`pre-compact.sh`) — writes a handoff snapshot before context compaction so the next session knows exactly where to resume, and records the compaction so the context gate tightens to prevent the next one.
 
@@ -133,7 +144,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 
 - **Claude Code** — desktop app, CLI, or IDE extension. [claude.ai/code](https://claude.ai/code)
 - **Git** — required for commit enforcement hooks
-- **Python 3** — used by the commit gate script (pre-installed on most systems)
+- **`jq`, Python 3, or Node**: the hooks parse their stdin JSON with `jq` when it is present, and fall back to `python3` (and, in `observe.sh`, to `node`). Any one of the three is enough, and Python 3 is pre-installed on most systems
 
 ### Install the plugin
 
@@ -142,7 +153,7 @@ The observer is a passive recorder, not a participant. As you work, it appends a
 `/plugin` is only available in the Claude Code CLI. Open a terminal and run `claude`, then:
 
 ```bash
-/plugin marketplace add onlygian/g-forge
+/plugin marketplace add onlygian/G-Forge
 /plugin install g-forge
 ```
 
@@ -155,7 +166,7 @@ All **19** G-Forge agents, **38** skills, 48 stack profiles, 7 combo profiles, a
 ```bash
 # In a terminal:
 claude
-/plugin marketplace add onlygian/g-forge
+/plugin marketplace add onlygian/G-Forge
 /plugin install g-forge
 ```
 
@@ -181,8 +192,8 @@ For a read-only diagnosis of version alignment at any time (not just before a sy
 For development or one-off use, load directly via the `--plugin-dir` flag:
 
 ```bash
-git clone https://github.com/onlygian/g-forge.git
-claude --plugin-dir ./g-forge
+git clone https://github.com/onlygian/G-Forge.git
+claude --plugin-dir ./G-Forge
 ```
 
 This loads G-Forge for that session only. Re-run with `--plugin-dir` each time, or use the CLI install above for permanent access.
@@ -285,7 +296,7 @@ Full orchestration pattern reference: [g-docs/orchestration-patterns.md](g-docs/
 
 Once `/g-init` is run in a project, seven event hooks plus six shared lib scripts are installed into `.claude/hooks/`, and the native git `pre-commit` commit-gate hook is installed into the git hooks path with a clobber guard that never overwrites an existing user hook (all registered only in the project's `.claude/settings.json` — never the plugin manifest — so they can't double-fire; each also self-guards on `.claude/integration-tier` and stays inert outside a G-Forge project):
 
-**`session-start.sh`** (`SessionStart`) — fires when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Resets the per-session prompt + compaction counters used for context-depth tracking — **except on a `compact` start** (the same session continuing after auto-compaction), where the counters carry across so the gate isn't silently zeroed.
+**`session-start.sh`** (`SessionStart`) — fires when a session opens. Runs `git fetch` in the background while checking local state, then reports: branch, uncommitted changes, stashed work, commits behind/ahead vs remote, and whether a feature branch has drifted behind `origin/main`. Resets the per-session prompt + compaction counters used for context-depth tracking — **except on a `compact` or `resume` start** (the same session continuing, after auto-compaction or with a prior transcript reloaded), where the counters carry across so the gate isn't silently zeroed.
 
 **`workflow-checkpoint.sh`** (`UserPromptSubmit`) — fires on every message. Reports the current branch (warns if on `main`), active milestone context, review gate status, listen mode item count, context depth, and any available plugin update. Claude reads this and auto-triggers `/g-plan`, `/g-execute`, or `/g-review` based on current state.
 
@@ -337,7 +348,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 |-------|-------------|
 | `/g-forge help` | Context-aware state reader — detects current phase and outputs next action + full command reference |
 | `/g-forge status` | Fast structured snapshot: milestone · active plan/wave · review gate · handoff line |
-| `/g-forge resume` | Re-hydrate a fresh session with the right slice of the durable record — selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
+| `/g-forge resume` | Re-hydrate a fresh session with the right slice of the durable record — syncs with origin first (fast-forwarding only when safely possible, and only on session-start runs — a mid-session re-run compares and reports, never pulls), then selectively pulls the relevant retro, in-force ADRs, journal tail, and handoff into a clean window keyed to the first task, then points at the next action (offers the clean-slate ADR verification when one was handed off). The read side of the §A7 reset; auto-nudged on the first prompt of a session with a pending handoff |
 | `/g-forge doctor` | 25-point health check (16 required + 9 advisory): 7 hooks + 6 lib scripts + native pre-commit hook installed and registered in settings.json, no double-firing, G-Forge Rules block, G-RULES.md present and referenced, no stale sentinel, installed-copy drift detection, plugin version lag (Check 23 read-only, points at `/plugins` or `/g-update` by direction), CLAUDE.md injection-rule compliance (Check 24, advisory), and integration-tier guard file (Check 25, advisory) — ✓/✗/⚠/ℹ with fix instructions |
 | `/g-forge kickoff` | Interview → scope challenge → stack deep dive → g-docs/project_brief.md |
 | `/g-forge onboard` | Read existing repo → present findings → interview → optional architecture audit → g-docs/project_brief.md |
@@ -360,7 +371,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `/g-forge optimize [path]` | Full-codebase or targeted performance audit — algorithmic complexity, N+1 queries, re-render waste, resource leaks, caching opportunities. Targeted scope produces an inline report; whole-codebase scope produces a prioritised roadmap milestone |
 | `/g-forge refactor [path\|milestone]` | Guided refactor workflow — identify target, pre-analyse, spec, approve, execute, review gate. Accepts a scope path or an audit milestone file. Checks test coverage before execution and runs the full review gate after |
 | `/g-forge docs [path]` | Documentation audit and generation — scans for missing or stale code docs, README gaps, undocumented env vars, CHANGELOG gaps, and ADR omissions. Targeted scope fixes gaps immediately via doc-writer; whole-codebase scope produces a prioritised documentation debt report |
-| `/g-forge wiki [area]` | Build and maintain the human-facing project wiki in a **committed** `g-wiki/` folder — narrative architecture + per-area pages + how-to, synthesized from the codebase, ROADMAP, ADRs, and brief via doc-writer. Run anytime; offered at `/g-init` and refreshed automatically at the end of every milestone. Distinct from `/g-docs` (code-level doc hygiene) and the git-ignored `g-docs/` operational records |
+| `/g-forge wiki [area]` | Build and maintain the human-facing project wiki in a **committed** `g-wiki/` folder — narrative architecture + per-area pages + how-to, synthesized from the codebase, ROADMAP, ADRs, and brief via doc-writer. Run anytime; offered at `/g-init` and refreshed automatically at the end of every milestone. Distinct from `/g-docs` (code-level doc hygiene) and the committed `g-docs/` operational records (of which only `g-docs/agent-output/` and local `g-docs/plans/` scratch are git-ignored) |
 | `/g-forge adr [title]` | Capture an architectural decision record. **Triages first** — ADR, a one-line brief tech-decisions entry, or nothing — so the corpus stays rare and high-signal. Then either captures pre-deliberated reasoning (asking only about gaps) or interviews from scratch, **offloads the weighing to a throwaway deliberation subagent** (keeps HQ's context clean), and promotes only the finalized draft to `g-docs/decisions/NNN-title.md`. Runs a mandatory **reversibility check + premortem** (premortem depth scales with reversibility) before close, so you have the full picture before building. On a consequential decision it **closes the loop** — runs `/g-retro` and recommends a fresh session whose first task is verifying the ADR against ground truth (reusing the §A7 context-gate reset path). Run when making a significant technical choice |
 | `/g-forge retro` | Synthesize a session retrospective to `g-docs/retros/YYYY-MM-DD-topic.md` from the silent-observer journal — no interview. Reads `.claude/journal/`, git history, and g-docs/todo.md; infers what was done, decisions, patterns, and cold-start context. The developer verifies, they don't recall. |
 | `/g-forge patterns` | Two-phase pattern lifecycle. **Mine** reads `g-docs/retros/` and `g-docs/todo-done.md` for recurring patterns (≥2 frequency), saves an abstracted, principle-level report to `g-docs/patterns/latest.md` (stable path for external automation; renamed to resolution date YYYY-MM-DD.md when resolved), records patterns PENDING — **applies no edits**. **Resolve** runs in a fresh session (entered via `## Active Session` handoff), checks `g-docs/inbox/adversarial/` for external counter-reports (advisory only, human-weighed), then apply/defer/dismiss/withdraw per developer. When an applied fix lands in shipped source, Resolve also appends a `CHANGELOG.md` entry under an existing `## [Unreleased]` heading (never creating the file or the heading, never touching a machine-generated changelog — it reports the gap instead). |

@@ -25,10 +25,10 @@ G-Forge enforcement lives in **`hooks/`** — standalone POSIX bash scripts with
 
 **Plugin hooks** (Claude Code) — registered in `.claude/settings.json`, fire on `PreToolUse`, `SessionStart`, `PostToolUse`, `PreCompact`, `Stop`. Read stdin JSON; deny via JSON object on stdout + `exit 2`. Cover:
 - **`check-commit.sh`** (PreToolUse) — blocks commits missing `.claude/g-forge-approved` sentinel.
-- **`session-start.sh`** (SessionStart) — prints session banner, resets counters, triggers `/g-resume` on pending handoff.
+- **`session-start.sh`** (SessionStart) — prints the session banner, resets the per-session counters, and surfaces an advisory behind/ahead line against `origin/<branch>`.
 - **`observe.sh`** + **`agent-lifecycle.sh`** (PostToolUse) — silent observer: journals commits, agent dispatch, tests to `.claude/journal/YYYY-MM-DD.jsonl`. No chat output.
 - **`pre-compact.sh`** (PreCompact) — snapshots context gate state, tightens thresholds on evidence.
-- **`workflow-checkpoint.sh`** (UserPromptSubmit) — reads branch, milestone, integration tier on every prompt; surfaces in system reminder.
+- **`workflow-checkpoint.sh`** (UserPromptSubmit) — reads branch, milestone, integration tier on every prompt; surfaces in system reminder. Nudges (prints a suggestion, never triggers) `/g-resume` on a pending handoff — and `/g-resume` syncs with origin first, fast-forwarding only when safely possible at session start, before re-hydrating.
 
 **Native git hook** — **`hooks/pre-commit`** (ADR-004). Installs into `.git/hooks/`, fires natively on every `git commit`, never bypassed by Claude Code hook changes. Verifies `git write-tree` hash against the review sentinel; denies on mismatch (edit-after-approval, stale sentinel, or unreviewed content). This is the **authoritative enforcement site** because git has already staged modifications — the hook sees exactly what will commit.
 

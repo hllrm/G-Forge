@@ -150,10 +150,12 @@ if [ "$TIER" != "light" ]; then
     BEHIND=$(git rev-list "HEAD..origin/$BRANCH" --count 2>/dev/null || echo 0)
     AHEAD=$(git rev-list "origin/$BRANCH..HEAD" --count 2>/dev/null || echo 0)
 
+    # Advisory only — /g-resume Step 0 (skills/g-resume/SKILL.md) recomputes against the resolved upstream (@{u}) and owns the pull decision; keep both sites consistent when editing either.
     [ "$BEHIND" -gt 0 ] && echo "  ⚠ $BEHIND commit(s) behind origin/$BRANCH — git pull"
     [ "$AHEAD" -gt 0 ]  && echo "  ↑ $AHEAD commit(s) ahead of origin/$BRANCH (unpushed)"
 
     # Warn when a feature branch has drifted behind origin/main.
+    # Advisory only — /g-resume 0g (Record axis) recomputes this record-drift number against the resolved record branch and owns its interpretation; keep both sites consistent when editing either.
     if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
         MAIN_BEHIND=$(git rev-list "HEAD..origin/main" --count 2>/dev/null || echo 0)
         [ "$MAIN_BEHIND" -gt 0 ] && echo "  ⚠ $MAIN_BEHIND commit(s) behind origin/main — consider rebasing"
