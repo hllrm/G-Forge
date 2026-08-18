@@ -21,13 +21,9 @@ G-Forge runs on its own repository, so the records below are the ones it produce
 
 ## Where G-Forge is headed
 
-**G-Forge 2.5 is the last feature release.** From here it's maintenance, and that's deliberate.
+**G-Forge 2.5 is the last feature release.** Where I want to take this next needs a rework deep enough that I couldn't honestly promise stable releases while it was underway. Quietly destabilising something people rely on is worse than drawing a clean line, so this is the line.
 
-Where I want to take this next needs a rework deep enough that I couldn't honestly promise stable releases or predictable maintenance while it was underway. Quietly destabilising something people rely on is worse than drawing a clean line, so this is the line.
-
-Frozen isn't abandoned. I run G-Forge on my own projects, so its bugs are my bugs and they'll keep getting fixed. That's what `/g-report` (ships in 2.5) is for: when something breaks or gets in your way, it writes a scrubbed report you can send me. Reasonable feature feedback travels the same route.
-
-And 2.5 is the version I'll build the next thing with. That's the real reason for freezing it. You want something stable under your feet while you're building its successor.
+Frozen isn't abandoned. I run G-Forge on my own projects, so its bugs are my bugs and they'll keep getting fixed — that's what `/g-report` (ships in 2.5) is for: when something breaks or gets in your way, it writes a scrubbed report you can send me, and reasonable feature feedback travels the same route. And 2.5 is the version I'll build the next thing with, which is the real reason for freezing it: you want something stable under your feet while you're building its successor.
 
 ### What's next
 
@@ -43,7 +39,7 @@ Each of those is a layer that has to run through everything the system does, and
 
 ### What's coming in 2.5
 
-**Lighter where you feel it most.** The review gate runs before every commit, and today it's one enormous pass that costs a fortune and starts losing the thread by the time it reaches the last thing it checks. 2.5 splits it into small parallel passes with a cheap assembly step at the end. Same verdict, a fraction of the cost, and it stops going vague on long reviews.
+**Lighter where you feel it most.** The review gate runs before every commit, and today it's one enormous pass that costs a fortune and starts losing the thread by the time it reaches the last thing it checks. 2.5 scopes it to what actually changed and splits it into small parallel passes with a cheap assembly step at the end. This one is measured, not promised: on this repo, an unscoped review ran ~3 hours and ~130k tokens before being killed; the same gate scoped ran 11 tool calls, 79k tokens, one round — and still caught a real blocker ([2026-08-17 retro](g-docs/retros/2026-08-17-m50-scope-and-scoped-review.md)).
 
 **Planning that doesn't invent work.** Task breakdown currently splits jobs that belong together and hands each fragment to its own agent. 2.5 fixes the sizing, so you stop paying for coordination you never needed.
 
@@ -52,6 +48,8 @@ Each of those is a layer that has to run through everything the system does, and
 **A way to tell me when it breaks.** `/g-report` fires when something actually goes wrong, or whenever you call it. It asks what you want to report, writes it against an incident template, scrubs your project's specifics out, and hands you a file to send. Bugs and reasonable feature requests travel the same route.
 
 **Gates that stop misfiring.** A passing review could fail to unlock the commit gate on some machines, which reads as G-Forge being broken. Committed reference material a project builds against was getting blocked as though G-Forge owned it. Both fixed. Plan-time risk percentages get recalibrated too, because a number you've learned to ignore is worse than no number at all.
+
+**Instruments that measure what they claim.** G-Forge grades itself with telemetry, risk forecasts and coverage reports — and some of those gauges turned out structurally unable to register the failures they exist to catch (the agent-coverage table couldn't count two of the agents). 2.5 makes each instrument read the live ground truth it reports on, with tests that go red the moment the two drift apart.
 
 **Documentation that can't quietly rot.** The health check now flags anything in your CLAUDE.md that's a hand-typed fact rather than one sourced from a file. That's how those facts go stale without anyone noticing.
 
