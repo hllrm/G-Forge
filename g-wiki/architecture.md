@@ -47,7 +47,7 @@ G-Forge enforcement lives in **`hooks/`** — standalone POSIX bash scripts with
 **`g-docs/`** — Canonical home for all G-Forge-generated project records:
 - `ROADMAP.md` — Milestone plan + `## Active Session` handoff (committed, the single cold-start document for a fresh session).
 - `milestones/M*.md` — Per-milestone scope, tasks, done conditions.
-- `decisions/NNN-*.md` — Architectural Decision Records (12 to date, 001–012) covering the core design choices.
+- `decisions/NNN-*.md` — Architectural Decision Records (13 to date, 001–013) covering the core design choices.
 - `retros/YYYY-MM-DD.md` — Session retrospectives auto-synthesized by `/g-retro` from the silent observer journal.
 - `todo.md` + `todo-done.md` — Tactical task ledger (committed; closed tasks moved to todo-done each pass).
 
@@ -103,5 +103,5 @@ These layers compose with the core enforcement: M29/M33 are **surface and commun
 - [Commit Gate](commit-gate.md) — How the approval sentinel works
 - [README](README.md) — Quick start
 - [g-docs/ROADMAP.md](../g-docs/ROADMAP.md) — Full milestone plan
-- [g-docs/decisions/](../g-docs/decisions/) — all 12 ADRs (001–012); ADR-010 and ADR-012 govern the freeze/fork and the 2.5 scope
+- [g-docs/decisions/](../g-docs/decisions/) — all 13 ADRs (001–013); ADR-010 and ADR-012 govern the freeze/fork and the 2.5 scope
 - [CLAUDE.md](../CLAUDE.md) — Project rules and quick commands
