@@ -29,6 +29,6 @@ Apply at least the top-2 mitigations before approving (both already encoded as d
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
+| 1 | yes | **YES** | Hit twice: code re-review found 4 new Majors minted by the fix wave (leaked scratch file, M1 mechanism reintroduced in its own test, gitignored-pointer README fix, refuted procedure left in ROADMAP), and doc-gate r2 found the W1 fix itself staled CHANGELOG:29. The mitigation (scope round N+1 to round N's sites) is exactly what caught them. |
+| 2 | yes | **NO** | Scoping-by-exclusion held across 4 code rounds + 4 doc rounds: named files, attested baseline off-limits, no whole-repo re-derivation. Convergence 30→9→4→0. |
+| 3 | yes | **NO — but the sleeper class bit anyway** | Parallelism never attempted (serial by design). The 4 sleeper sites stalled the runner through a different mechanism: command-substitution capture waits on pipe EOF, inheriting the 300s sleeper lifetimes (finding M1, probe-verified, fixed with tee-to-temp-file; 1242s → ~709-775s measured). |

@@ -33,8 +33,8 @@ Re-scope before approving. Cut the highest-impact items or move to a follow-up m
 
 | Scenario | Predicted | Actually happened? | Notes |
 |----------|-----------|---------------------|-------|
-| 1 | yes | | |
-| 2 | yes | | |
-| 3 | yes | | |
-| 4 | yes | | |
-| 5 | yes | | |
+| 1 | yes | **YES (M48a)** | Enumeration/count edits minted fresh false claims repeatedly: ordering-basis "two heaviest" claim false at authoring, lens-enumeration sweep missed sites (incl. one the sweep itself dropped — "clarity" at README:408), W1 attribution fix staled its own CHANGELOG entry. Same-turn re-derivation caught each within one round. |
+| 2 | yes | **NO (M48a)** | Zero total discrepancies: 4 attested direct runs (564/18 ×1, 575/19 ×3), HQ-summed table = runner grand total every time. Direct-run rule held; no agent-attested totals accepted. |
+| 3 | yes | **NO (M48a)** | All 9 review dispatches scoped by exclusion; no whole-repo re-derivation. |
+| 4 | yes | **not exercised (M48a)** | Fast timing bounds are M48b scope; not touched this sub. |
+| 5 | yes | **NO for parallelism; adjacent class hit (M48a)** | Parallelism deliberately off, totals identical serial vs runner. The sleeper sites stalled the runner via command-substitution capture instead (M1) — fixed (tee-to-temp-file), and the same mechanism was reintroduced once in the runner's own test before being caught (round-3 N2). Sleeper-reaping rider still open (todo task 7 remainder). |
