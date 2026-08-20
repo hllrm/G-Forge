@@ -243,7 +243,7 @@ G-RULES.md has ten sections, each stored as a separate `@`-referenced file in `.
 | **E — Architecture Gate** | Mandatory plan-first sequence for non-trivial changes; import direction validation; state ownership; hard stops |
 | **F — Design Patterns** | Universal principles and anti-patterns (see below) |
 | **G — Documentation** | What must be documented, currency rule, documentation ownership model |
-| **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
+| **H — Testing Protocol** | Three-tier test model (automated gates / tooling-assisted / human-driven); falsifiability rule for guard/negative tests (scratch-copy probe, provenance marker, Major finding if absent); QA panel integration and currency enforcement; Tier 3 listen-mode protocol |
 | **I — Project Tracking** | File hierarchy, commit gate infrastructure, g-docs/todo.md structure |
 | **J — Memory** | Six-tier memory layer taxonomy |
 
@@ -359,7 +359,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `/g-forge plan` | QA scope prerequisite (compile g-docs/qa-scope/<milestone>.md) → project-manager challenge gate → task-decomposer → wave-planner → approval gate → saves plan to g-docs/plans/ |
 | `/g-forge execute [wave]` | Dispatch parallel agents per wave; hold boundary until each wave completes; resume from a specific wave |
 | `/g-forge review` | test suite → code-lead → full review pipeline → Tier 3 smoke test (listen mode) → MERGE READY or HOLD → auto-closes milestone tasks |
-| `/g-forge doc-review` | Standalone documentation-review gate — own verdict (DOCS READY / DOCS HOLD), distinct from code review. Read-only `doc-reviewer` lens: accuracy-vs-code, currency (docs that contradict the code), completeness (public exports, README sections, env vars, ADR/CHANGELOG coverage), clarity. Gates doc-only and mixed commits; may recommend `/g-docs`, never writes |
+| `/g-forge doc-review` | Standalone documentation-review gate — own verdict (DOCS READY / DOCS HOLD), distinct from code review. Read-only `doc-reviewer` lens: accuracy-vs-code, currency (docs that contradict the code), completeness (public exports, README sections, env vars, ADR/CHANGELOG coverage), clarity, volatile in-flight state. Gates doc-only and mixed commits; may recommend `/g-docs`, never writes |
 | `/g-forge update` | **Staleness preflight** — verifies plugin cache is current (if not, stops with zero writes and directs to `/plugins`); then realigns all G-Forge-managed files (CLAUDE.md rules, G-RULES.md, agents, architecture rules, hooks) to the current version. Self-host mode skips preflight. For read-only version diagnosis, see `/g-doctor` Check 23. |
 | `/g-forge afk` | Autonomous milestone executor — runs all pending waves + review unattended. Requires approved plan. Safety net blocks remote push, recursive delete, and publish commands. Structured cycle-break report on any stop. |
 | `/g-forge listen` | Enter listen mode — collect notes, issues, or observations without acting; triage everything when you say "done" |
@@ -405,7 +405,7 @@ Projects that track `CLAUDE.md` as committed project record (consumer projects, 
 | `code-lead` | Opus | Technical sign-off, merge gate verdict |
 | `test-writer` | Haiku | Unit, integration, and e2e tests from specs; fixed data only |
 | `doc-writer` | Haiku | Inline docs explaining WHY not WHAT |
-| `doc-reviewer` | Opus | Documentation-review gate — accuracy-vs-code, currency, completeness; DOCS READY / DOCS HOLD verdict |
+| `doc-reviewer` | Opus | Documentation-review gate — accuracy-vs-code, currency, completeness, clarity, volatile in-flight state; DOCS READY / DOCS HOLD verdict |
 | `pr-writer` | Haiku | PR descriptions from git diff |
 | `refactor-executor` | Haiku | Spec-exact refactoring, no scope creep |
 | `feature-implementer` | Sonnet | Generic wave implementer — the fallback executor when no stack implementer matches |

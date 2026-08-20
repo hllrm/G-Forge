@@ -3,12 +3,38 @@
 Unit tests for the G-Forge hook scripts in `hooks/`. Pure bash — no test
 framework, no dependencies beyond a POSIX shell and `git`.
 
-| Test | Covers |
-|------|--------|
-| `test-check-commit.sh` | `hooks/check-commit.sh` — the commit gate: blocks `git commit` without the approval sentinel, allows it with one, and stays fail-closed when the only available JSON parser is the broken Windows Microsoft-Store `python3` stub. |
-| `test-observe.sh` | `hooks/observe.sh` — the silent observer: journals meaningful workflow commands with the right kind, skips noise, emits valid JSONL, and survives the same stubbed `python3`. |
+The suite **set** is never hand-typed here — `tests/run-all.sh` derives it from
+the `tests/test-*.sh` glob at runtime, per [ADR-013](../g-docs/decisions/013-derive-in-consumers-keep-counts-in-prose.md)
+rule 1 (executable consumers derive their lists at runtime). This file is
+prose, not a consumer, so per the same ADR's rule 2 it keeps its concrete
+numbers rather than pointing at a directory: **19 suites** — pinned by
+`tests/test-run-all.sh`'s suite-count baseline (`EXPECTED_SUITE_COUNT`), which
+goes red if a suite is added or removed without updating it — carrying
+**575 assertions** (attested 2026-08-20, summed independently from the run's
+`Results:` lines per G-RULES §H; the assertion total is a dated attestation,
+not test-pinned — re-sum after any suite change).
 
 ## Run
+
+```bash
+bash tests/run-all.sh
+```
+
+Derives the suite set from the `tests/test-*.sh` glob (never a hand-typed
+list), then runs each suite serially — deliberately: reordering a serial run
+cannot reduce total wall-clock, only perceived progress, so this is not a gap
+to "fix" with `-j`. Each suite's output streams to a temp file rather than
+being captured into a shell variable (capturing stalled on suites with
+abandoned-stdin fixtures). The runner sums the per-suite `Results:` lines into a grand total. Two anomaly
+axes are surfaced separately in the summary: suites with no parseable
+`Results:` line (excluded from the summed total, since there is nothing to
+sum) and suites that exited non-zero (still summed when they printed a
+parseable `Results:` line, so a green-looking total with a red exit stays
+visible). Any failure on either axis, or any failed assertion, makes the
+runner exit non-zero. `GF_RUNALL_SUITE_DIR` overrides the suite directory for
+test-only use; unset, behavior is unchanged.
+
+Individual suites can still be run directly:
 
 ```bash
 bash tests/test-check-commit.sh

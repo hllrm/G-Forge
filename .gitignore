@@ -58,5 +58,10 @@ g-docs/plans/
 g-docs/agent-output/
 g-docs/superpowers/
 
+# Scratch copies test-run-all.sh writes into tests/ itself (must live there —
+# run-all.sh resolves tests/ from its own location); cleaned up on exit, this
+# is a backstop against an interrupted run leaking one.
+tests/.scratch-*
+
 # G-Proof planning — local-only per ADR-012, carried to the fork by hand
 g-docs/g-proof-roadmap.md

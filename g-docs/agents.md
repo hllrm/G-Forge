@@ -106,7 +106,7 @@ Agents that audit code changes and report findings. None of them fix what they f
 
 ### `doc-reviewer`
 **Tier:** Opus  
-**Role:** Read-only documentation review gate — audits docs through four lenses (accuracy-vs-code, currency, completeness, clarity) and issues a verdict. Reports findings only; never fixes what it finds.  
+**Role:** Read-only documentation review gate — audits docs through five lenses (accuracy-vs-code, currency, completeness, clarity, volatile in-flight state) and issues a verdict. Reports findings only; never fixes what it finds.  
 **Use when:** Documentation needs a pre-merge gate, or you want a structured review of docs against the code they describe (run via `/g-doc-review`).  
 **Give it:** The documentation files (or doc diff) plus the source files they describe.  
 **Returns:** Findings grouped by lens with `file:line` refs, and a DOCS READY / DOCS HOLD verdict.
