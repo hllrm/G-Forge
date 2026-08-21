@@ -10,7 +10,7 @@ prose, not a consumer, so per the same ADR's rule 2 it keeps its concrete
 numbers rather than pointing at a directory: **19 suites** — pinned by
 `tests/test-run-all.sh`'s suite-count baseline (`EXPECTED_SUITE_COUNT`), which
 goes red if a suite is added or removed without updating it — carrying
-**575 assertions** (attested 2026-08-20, summed independently from the run's
+**581 assertions** (attested 2026-08-21, summed independently from the run's
 `Results:` lines per G-RULES §H; the assertion total is a dated attestation,
 not test-pinned — re-sum after any suite change).
 

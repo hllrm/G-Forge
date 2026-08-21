@@ -16,13 +16,14 @@
 # derive-don't-type doctrine ADR-011 applies to CLAUDE.md, pointed at the
 # install list. Adding a lib without updating the docs fails here.
 #
-# Total assertions: 41 = 2 derivation-sanity + (6 libs x 4 doc surfaces)
+# Total assertions: 43 = 2 derivation-sanity + (6 libs x 4 doc surfaces)
 # + 2 g-doctor-derives-from-disk + 6 reverse + 2 set-parity + 4
-# count-coherence + 1 combined-file-count. The count is RUNNER-OBSERVED and
-# must equal the `Results:` line — the finding-#20 cross-check that catches a
-# suite silently dropping cases. It scales with the lib count: adding a lib
-# adds 5 assertions (4 surfaces + 1 reverse), so re-derive this header from a
-# run, never by hand.
+# count-coherence + 1 combined-file-count + 1 commit-gate matcher pin
+# (audit-7 H3) + 1 hooks.json empty-manifest pin (audit-7 H9). The count is
+# RUNNER-OBSERVED and must equal the `Results:` line — the finding-#20
+# cross-check that catches a suite silently dropping cases. It scales with
+# the lib count: adding a lib adds 5 assertions (4 surfaces + 1 reverse), so
+# re-derive this header from a run, never by hand.
 #
 # g-doctor is deliberately NOT a per-lib surface. Its Check 16 was changed to
 # enumerate `hooks/lib/*.sh` from disk rather than from a written list, because
@@ -236,6 +237,39 @@ check_counts "$README"   "README"
 # per-surface lib counts above, and the reason TOTAL_WORD is derived at all.
 assert_grep "$G_INIT" "the $TOTAL_WORD files above" \
     "g-init combined file count reads $TOTAL_FILES/$TOTAL_WORD ($HOOK_COUNT hooks + $LIB_COUNT libs)"
+
+# ── Group E — commit-gate matcher pin (audit-7 H3) ─────────────────────────
+# g-init's Step 7 settings.json template registers the commit gate on BOTH
+# PreToolUse and PostToolUse with matcher "Bash|PowerShell" — losing the
+# |PowerShell alternation on either entry silently drops the commit gate for
+# every Windows consumer, since a Bash-only matcher never fires on a
+# PowerShell tool call. Pinned by content/occurrence-count, not by line
+# number, per ADR-013 — the template is free to move in the file, the string
+# is not free to lose the alternation or drop to a single occurrence.
+# Falsifiability: in a scratch copy of this file, strip "|PowerShell" from
+# one of the two matcher lines and point MATCHER_COUNT's grep at the scratch
+# copy — the count drops to 1 and this assertion goes red. Proven in a
+# scratch copy; skills/g-init/SKILL.md itself is never touched.
+MATCHER_COUNT=$(grep -oF '"matcher": "Bash|PowerShell"' "$G_INIT" | wc -l | tr -d ' ')
+if [ "$MATCHER_COUNT" -eq 2 ]; then
+    ok "g-init Step 7 template: PreToolUse and PostToolUse both carry matcher Bash|PowerShell"
+else
+    bad "g-init Step 7 template: expected 2 occurrences of \"matcher\": \"Bash|PowerShell\", found $MATCHER_COUNT"
+fi
+
+# ── Group F — hooks.json empty-manifest invariant (audit-7 H9) ────────────
+# hooks/hooks.json's own description documents the double-registration bug
+# class this guards: a non-empty "hooks" key here would register hooks
+# GLOBALLY for every session on top of /g-init's per-project registration in
+# .claude/settings.json, double-firing the commit gate. Pinned on the exact
+# empty-object content, not on file size or key presence, so any accidental
+# entry — however small — trips it.
+# Falsifiability: in a scratch copy of hooks/hooks.json, replace "hooks": {}
+# with a non-empty object (e.g. "hooks": {"PreToolUse": []}) and point this
+# assertion at the scratch copy — it goes red. Proven in a scratch copy;
+# hooks/hooks.json itself is never touched.
+assert_grep "$HOOKS/hooks.json" '"hooks": {}' \
+    "hooks/hooks.json hooks key stays an empty object (double-registration guard)"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

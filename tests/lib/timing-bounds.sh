@@ -13,8 +13,9 @@
 #
 # Authoring rule (profiles/claude-plugin/rules/architecture.md, timing note):
 # at least 2x the worst observed run on MSYS/Git-Bash, named *_MS, WHY stated.
-# Author generous, tighten on evidence. Both bounds below were first authored
-# tight, both breached, both are now at 2x worst observed.
+# Author generous, tighten on evidence. The two empirical bounds below were
+# first authored tight, both breached, and both now sit at 2x worst observed;
+# the third constant is provisional and carries its own caveat in place.
 
 # Hook-body-under-abandoned-pipe bound: a hook invoked with stdin attached to an
 # open pipe that has no writer and never sends EOF must return once its 5s stdin
@@ -48,3 +49,16 @@ GF_HOOK_STDIN_GUARD_MS=65000
 # 2x the worst observed (2876ms). Still 50x under the 300s sleeper fixture, so
 # an unbounded read is caught with the same certainty as before.
 GF_LIB_READ_WINDOW_MS=6000
+
+# Fast-stdin-guard override bound: a hook invoked with stdin-timeout override
+# set to ~2s (fast mode, test acceleration) instead of the production 5s
+# guard. Bounds hooks running in override mode after M48c wires the override
+# into test runs.
+#
+# Provisional, unvalidated: this value is authored before any suite consumes
+# it, with no empirical run evidence yet. Placed in the 10000–20000ms range as
+# a reasonable initial estimate accounting for MSYS subprocess overhead (see
+# GF_HOOK_STDIN_GUARD_MS comment above). Must be revalidated against observed
+# runs before any test depends on it. M48c closes with this revalidation; until
+# then, treat this as a working placeholder, not a regression signal.
+GF_FAST_STDIN_GUARD_MS=15000

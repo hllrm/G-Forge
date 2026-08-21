@@ -44,9 +44,29 @@
 # unchanged for callers. Internal (non-trailing) newlines in the payload are
 # preserved exactly, since the read below is NUL-delimited, not
 # newline-delimited.
+#
+# GF_STDIN_TIMEOUT_OVERRIDE — optional env var, consumed only by this
+# function. When set and non-empty, its value replaces the effective
+# timeout BEFORE the normalization below runs, so an invalid override
+# (negative, non-numeric) falls through the exact same normalization/default
+# path as an invalid `seconds` argument — no separate validation branch for
+# the override. An empty override is a no-op, not an invalid-value case: the
+# `-n` guard below skips the assignment entirely, so the `seconds` argument
+# governs exactly as if the override were unset — it never reaches
+# normalization. This exists so test fixtures (M48c)
+# can force a short, deterministic timeout without changing call sites or
+# argument-passing at every hook. Unset or empty GF_STDIN_TIMEOUT_OVERRIDE
+# is a no-op: the function's behavior is then byte-identical to today,
+# driven solely by the `seconds` argument as before. Production hooks do
+# not set this var and are not expected to start doing so — it is a test
+# hook, not a runtime tuning knob.
 gf_read_stdin_timeout() {
     local timeout_secs="$1"
     local payload=""
+
+    if [ -n "${GF_STDIN_TIMEOUT_OVERRIDE:-}" ]; then
+        timeout_secs="$GF_STDIN_TIMEOUT_OVERRIDE"
+    fi
 
     case "$timeout_secs" in
         '' | *[!0-9]*) timeout_secs=5 ;;

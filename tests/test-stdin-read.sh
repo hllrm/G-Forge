@@ -9,7 +9,7 @@
 # unconditionally strips ALL trailing newlines. Internal newlines are preserved
 # since the read is NUL-delimited, not newline-delimited.
 #
-# Total assertions: 10
+# Total assertions: 12
 # Count is the RUNNER-OBSERVED total and must equal the `Results:` line — the
 # finding-#20 cross-check that catches a suite silently dropping cases.
 
@@ -159,6 +159,89 @@ if [ "$INPUT_MISSING" = '{"missing":"test"}' ]; then
     PASS=$((PASS+1))
 else
     echo "FAIL: default-fallback fixture — missing (expected fast EOF to return, got $(printf '%q' "$INPUT_MISSING"))"
+    FAIL=$((FAIL+1))
+fi
+
+# ── Task 6: GF_STDIN_TIMEOUT_OVERRIDE honored — override bounds the read, not the arg ──
+
+# Falsifiability: proven against a disposable scratch copy of the lib with the
+# override branch (stdin-read.sh:67-69) commented out — production
+# hooks/lib/stdin-read.sh was never touched for this. Same fixture (override=1,
+# argument=8, abandoned stdin) took 8162ms on the neutered copy, breaching
+# GF_LIB_READ_WINDOW_MS (6000ms) — i.e. this assertion goes RED when the
+# override mechanism is absent. Transcript in
+# g-docs/agent-output/wave-2-m48b/stdin-read-override-assertions.md.
+
+# Set a short override (1s) but pass a much longer argument (8s). If the
+# override is honored, the abandoned-stdin read returns bounded by the
+# override, not the argument — proving GF_STDIN_TIMEOUT_OVERRIDE wins.
+export GF_STDIN_TIMEOUT_OVERRIDE=1
+
+START_TIME=$(date +%s%3N)
+INPUT=$(gf_read_stdin_timeout 8 < <(sleep 300))
+RC=$?
+END_TIME=$(date +%s%3N)
+ELAPSED=$((END_TIME - START_TIME))
+
+unset GF_STDIN_TIMEOUT_OVERRIDE
+
+if [ "$RC" -eq 0 ] && [ -z "$INPUT" ] && [ "$ELAPSED" -lt "$GF_LIB_READ_WINDOW_MS" ]; then
+    echo "PASS: GF_STDIN_TIMEOUT_OVERRIDE honored — override(1s) bounded the read within ~${ELAPSED}ms despite argument(8s) (expected <${GF_LIB_READ_WINDOW_MS}ms)"
+    PASS=$((PASS+1))
+else
+    echo "FAIL: GF_STDIN_TIMEOUT_OVERRIDE honored — rc=$RC input=$(printf '%q' "$INPUT") took ${ELAPSED}ms, expected rc=0/empty/<${GF_LIB_READ_WINDOW_MS}ms"
+    FAIL=$((FAIL+1))
+fi
+
+# ── Task 7: GF_STDIN_TIMEOUT_OVERRIDE unset/empty — argument still governs ──────
+
+# GF_STDIN_TIMEOUT_OVERRIDE present but empty (the `[ -n ... ]` no-op case, not
+# merely absent — every prior test in this suite already ran with the var
+# fully unset, so this pins the "set but empty" edge explicitly). The
+# argument's own 1s timeout must still bound an abandoned-stdin read, exactly
+# as it did before the override existed.
+#
+# Local bound, not GF_LIB_READ_WINDOW_MS: this assertion exists to catch the
+# regression where the `-n` guard at stdin-read.sh:67 is loosened to treat
+# "set but empty" as "set" — which would make timeout_secs="" fall through
+# normalization to the 5s default instead of staying a no-op. Bounding at
+# GF_LIB_READ_WINDOW_MS (6000ms) cannot distinguish the two: the regressed
+# path still finishes in ~5.2s, under 6000ms, so the assertion would stay
+# green on the exact bug it names. GF_EMPTY_OVERRIDE_WINDOW_MS sits strictly
+# between the correct path's worst observed (2876ms, GF_LIB_READ_WINDOW_MS
+# comment in tests/lib/timing-bounds.sh) and the regression's ~5.2s floor —
+# 1.56x the worst observed - the widest bound the discrimination window
+# allows; the profile's 2x rule cannot be met here without making the
+# assertion inert, and this comment records that trade explicitly. Local to this file
+# (not tests/lib/timing-bounds.sh) because it discriminates one assertion's
+# regression, not a shared fact about the lib.
+#
+# Falsifiability: scratch-red-proven against a disposable copy of the lib
+# whose guard was changed from `[ -n "${GF_STDIN_TIMEOUT_OVERRIDE:-}" ]` to
+# `[ "${GF_STDIN_TIMEOUT_OVERRIDE+x}" = "x" ]` (treats set-but-empty as set)
+# — production hooks/lib/stdin-read.sh was never touched. Same fixture
+# (override="", argument=1, abandoned stdin): neutered copy took 5158ms,
+# breaching a 4500ms bound (RED, `exit 1`); the real fixed lib took 1165ms
+# against the same bound (PASS). Command + output recorded in
+# g-docs/agent-output/fix-r1-m48b/code-fixes.md (fix round r1, M48b HOLD
+# item 2).
+GF_EMPTY_OVERRIDE_WINDOW_MS=4500
+
+export GF_STDIN_TIMEOUT_OVERRIDE=""
+
+START_TIME=$(date +%s%3N)
+INPUT=$(gf_read_stdin_timeout 1 < <(sleep 300))
+RC=$?
+END_TIME=$(date +%s%3N)
+ELAPSED=$((END_TIME - START_TIME))
+
+unset GF_STDIN_TIMEOUT_OVERRIDE
+
+if [ "$RC" -eq 0 ] && [ -z "$INPUT" ] && [ "$ELAPSED" -lt "$GF_EMPTY_OVERRIDE_WINDOW_MS" ]; then
+    echo "PASS: GF_STDIN_TIMEOUT_OVERRIDE empty — argument(1s) still governs, returned within ~${ELAPSED}ms (expected <${GF_EMPTY_OVERRIDE_WINDOW_MS}ms)"
+    PASS=$((PASS+1))
+else
+    echo "FAIL: GF_STDIN_TIMEOUT_OVERRIDE empty — rc=$RC input=$(printf '%q' "$INPUT") took ${ELAPSED}ms, expected rc=0/empty/<${GF_EMPTY_OVERRIDE_WINDOW_MS}ms"
     FAIL=$((FAIL+1))
 fi
 

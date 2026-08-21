@@ -11,7 +11,22 @@
 #   Tests 12-14: Check 21 stray-doc scan, fail-before/pass-after (5 assertions: old fixed 6-name
 #   allowlist misses agent-output/plans strays, new inverted check — canonical names derived from
 #   g-docs/ subdirs — catches them, no false positive on a clean tree)
-# Total: 17 assertions (up from 3)
+# Extended for M48b tasks 5+6 (audit-7 finding F4):
+#   Test 3b: cksum branch derivation (2 assertions) — the cksum fallback in compare_hashes()
+#   now executes a `cksum_hash` function eval'd from the line grepped out of the shipped
+#   skills/g-doctor/SKILL.md hash_file() cascade at runtime, instead of a hand-typed mimic.
+#   Catches the exact drift that had already crept in: the old mimic hand-typed
+#   `awk '{print $1}'` while the shipped snippet reads `awk '{print $1, $2}'`.
+# Extended in fix round r1 (code-lead HOLD, minor m3 — F4 was closed for only
+# 1 of 3 cascade branches): the sha256sum and shasum -a 256 branches of
+# compare_hashes() are now ALSO derived at runtime from SKILL.md
+# (sha256sum_hash / shasum_hash), the same mechanism as cksum_hash — these
+# are the two branches that actually run on a dev machine with either tool
+# installed, so they were the un-derived branches actually being exercised.
+# Each of the three derivations is now preceded by a single-match assertion
+# on its grep (grep -cF … -eq 1) so a SKILL.md shape change (second matching
+# line) fails loud with `exit 1` instead of eval-ing an unexpected snippet.
+# Total: 19 assertions (up from 3)
 
 PASS=0
 FAIL=0
@@ -24,9 +39,47 @@ check() { # name expected actual
     fi
 }
 
+# ── Derive all three hash-cascade branches from the shipped
+# skills/g-doctor/SKILL.md hash_file() cascade at runtime, instead of
+# hand-typing mimics of them here.
+# Falsifiability: this derivation exists because the mimic it replaces had
+# already silently diverged — it hand-typed `awk '{print $1}'` while the
+# shipped snippet (skills/g-doctor/SKILL.md:125) reads `awk '{print $1, $2}'`
+# (checksum AND byte count). Revert this block to hand-typed mimics, or edit
+# any of the three SKILL.md lines, in a scratch copy (never in the
+# production tree) — the field-count / single-match assertions below must go
+# RED.
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SKILL_MD="$REPO_ROOT/skills/g-doctor/SKILL.md"
+
+# Each grep must match exactly one line in SKILL.md — a second match means
+# the block's shape changed underneath this derivation (e.g. a second cascade
+# added, a duplicated example elsewhere in the doc) and eval-ing an
+# unexpected line is worse than failing loud here.
+SHA256SUM_MATCHES=$(grep -cF 'sha256sum "$1"' "$SKILL_MD")
+[ "$SHA256SUM_MATCHES" -eq 1 ] || { echo "FAIL: expected exactly 1 match for sha256sum snippet in $SKILL_MD, got $SHA256SUM_MATCHES"; exit 1; }
+SHASUM_MATCHES=$(grep -cF 'shasum -a 256 "$1"' "$SKILL_MD")
+[ "$SHASUM_MATCHES" -eq 1 ] || { echo "FAIL: expected exactly 1 match for shasum snippet in $SKILL_MD, got $SHASUM_MATCHES"; exit 1; }
+CKSUM_MATCHES=$(grep -cF 'cksum "$1"' "$SKILL_MD")
+[ "$CKSUM_MATCHES" -eq 1 ] || { echo "FAIL: expected exactly 1 match for cksum snippet in $SKILL_MD, got $CKSUM_MATCHES"; exit 1; }
+
+SHA256SUM_LINE=$(grep -F 'sha256sum "$1"' "$SKILL_MD" | sed 's/^[[:space:]]*//')
+[ -n "$SHA256SUM_LINE" ] || { echo "FAIL: could not derive sha256sum snippet from $SKILL_MD"; exit 1; }
+eval "sha256sum_hash() { $SHA256SUM_LINE ; }"
+
+SHASUM_LINE=$(grep -F 'shasum -a 256 "$1"' "$SKILL_MD" | sed 's/^[[:space:]]*//')
+[ -n "$SHASUM_LINE" ] || { echo "FAIL: could not derive shasum snippet from $SKILL_MD"; exit 1; }
+eval "shasum_hash() { $SHASUM_LINE ; }"
+
+CKSUM_LINE=$(grep -F 'cksum "$1"' "$SKILL_MD" | sed 's/^[[:space:]]*//')
+[ -n "$CKSUM_LINE" ] || { echo "FAIL: could not derive cksum snippet from $SKILL_MD"; exit 1; }
+eval "cksum_hash() { $CKSUM_LINE ; }"
+
 # compare_hashes <canonical> <installed> — verifies drift detection
 # Returns "MATCH" if hashes are identical, "MISMATCH" if different, "MISSING" if installed copy absent.
-# Implements the portable cascade: sha256sum → shasum -a 256 → cksum
+# Implements the portable cascade: sha256sum → shasum -a 256 → cksum (all
+# three branches execute their *_hash function, derived above, verbatim from
+# SKILL.md)
 compare_hashes() {
     local canonical="$1" installed="$2"
 
@@ -35,19 +88,18 @@ compare_hashes() {
 
     local canon_hash installed_hash
 
-    # Cascade 1: Try sha256sum (Linux, macOS, modern BSD)
+    # Cascade 1: Try sha256sum (Linux, macOS, modern BSD) — derived from SKILL.md
     if command -v sha256sum >/dev/null 2>&1; then
-        canon_hash=$(sha256sum "$canonical" 2>/dev/null | awk '{print $1}')
-        installed_hash=$(sha256sum "$installed" 2>/dev/null | awk '{print $1}')
-    # Cascade 2: Fallback to shasum -a 256 (macOS, BSD, git-bash)
+        canon_hash=$(sha256sum_hash "$canonical" 2>/dev/null)
+        installed_hash=$(sha256sum_hash "$installed" 2>/dev/null)
+    # Cascade 2: Fallback to shasum -a 256 (macOS, BSD, git-bash) — derived from SKILL.md
     elif command -v shasum >/dev/null 2>&1; then
-        canon_hash=$(shasum -a 256 "$canonical" 2>/dev/null | awk '{print $1}')
-        installed_hash=$(shasum -a 256 "$installed" 2>/dev/null | awk '{print $1}')
-    # Cascade 3: Fallback to cksum (portable, POSIX-only)
+        canon_hash=$(shasum_hash "$canonical" 2>/dev/null)
+        installed_hash=$(shasum_hash "$installed" 2>/dev/null)
+    # Cascade 3: Fallback to cksum (portable, POSIX-only) — derived from SKILL.md, not hand-typed
     elif command -v cksum >/dev/null 2>&1; then
-        # cksum outputs: <checksum> <bytes> <filename>
-        canon_hash=$(cksum "$canonical" 2>/dev/null | awk '{print $1}')
-        installed_hash=$(cksum "$installed" 2>/dev/null | awk '{print $1}')
+        canon_hash=$(cksum_hash "$canonical" 2>/dev/null)
+        installed_hash=$(cksum_hash "$installed" 2>/dev/null)
     else
         # No hash command available
         echo "ERROR"
@@ -161,6 +213,39 @@ RESULT=$(compare_hashes "hooks/missing.sh" ".claude/hooks/missing.sh")
 check "missing installed copy: detected as MISSING" "MISSING" "$RESULT"
 
 cd / && rm -rf "$FIXTURE3"
+
+# Test 3b: CKSUM BRANCH DERIVATION — cksum_hash (derived from SKILL.md) outputs
+# checksum AND byte count, matching the shipped `awk '{print $1, $2}'` snippet.
+# Scenario: sha256sum/shasum are present on most CI boxes, so compare_hashes'
+# cascade never actually reaches the cksum branch in a normal run — that branch
+# would otherwise go untested and the derivation unfalsifiable. This test calls
+# cksum_hash directly (bypassing the cascade) so the derivation is provable on
+# any box. Expected: 2 space-separated fields (checksum, bytes), first field
+# equal to a raw `cksum` call's checksum field.
+#
+# Trace:
+#   - Create f.txt with fixed content
+#   - cksum_hash "f.txt" → runs the eval'd line derived from SKILL.md:125
+#   - Shipped snippet is `cksum "$1" | awk '{print $1, $2}'` → 2 fields
+#   - Field count == 2 (would be 1 if the old hand-typed single-field mimic
+#     were still in effect) ✓
+#   - Field 1 matches a raw cksum call's checksum field ✓
+
+echo "Test 3b: cksum_hash derivation outputs checksum + byte count (2 fields)"
+FIXTURE3B=$(mktemp -d)
+cd "$FIXTURE3B" || { echo "FAIL: could not create fixture"; exit 1; }
+
+printf 'cksum derivation fixture, fixed content\n' > f.txt
+
+CK_OUT=$(cksum_hash "f.txt")
+CK_FIELD_COUNT=$(echo "$CK_OUT" | wc -w | tr -d ' ')
+check "cksum_hash (derived from SKILL.md) outputs 2 fields, matching shipped {print \$1, \$2}" "2" "$CK_FIELD_COUNT"
+
+RAW_FIELD1=$(cksum "f.txt" | cut -d' ' -f1)
+CK_FIELD1=$(echo "$CK_OUT" | cut -d' ' -f1)
+check "cksum_hash field 1 matches raw cksum checksum field" "$RAW_FIELD1" "$CK_FIELD1"
+
+cd / && rm -rf "$FIXTURE3B"
 
 # ────────────────────────────────────────────────────────────────────────────
 # Test 4: G-RULES IDENTICAL CONTENT → hashes equal → MATCH (no drift)
