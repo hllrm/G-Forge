@@ -64,4 +64,4 @@ g-docs/superpowers/
 tests/.scratch-*
 
 # G-Proof planning — local-only per ADR-012, carried to the fork by hand
-g-docs/g-proof-roadmap.md
+# g-docs/g-proof-roadmap.md — un-ignored 2026-08-21 (gaps A9: 42KB single-copy planning doc, known-fatal pattern; developer directive)

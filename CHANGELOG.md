@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Announced
 
-- **G-Forge 2.5 will be the last feature release.** The README now carries the freeze announcement (the approved §3a/§3b/§3c copy from `g-docs/communication-plan-2.5.md`), published ahead of the 2.5.0 release by explicit developer decision (2026-08-10, [ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)). The 2.5 scope: M47 → M48 → M45 → M38 → M40 → M43 → M49 → M41 (M49 folded in 2026-08-14, ADR-012 amendment). Maintenance continues after 2.5; the successor (G-Proof) restarts versioning at 1.0.
+- **G-Forge 2.5 will be the last feature release.** The README now carries the freeze announcement (the approved §3a/§3b/§3c copy from `g-docs/communication-plan-2.5.md`), published ahead of the 2.5.0 release by explicit developer decision (2026-08-10, [ADR-012](g-docs/decisions/012-g-forge-2.5-final-release-scope.md)). The 2.5 scope: M47 → M48 → M51 (Release Reliability, absorbing M45) → M50 → M38 → M40 → M43 → M49 → M41 (M49 folded 2026-08-14; M50 folded 2026-08-17; M51 added 2026-08-20, absorbing M45 — all three ADR-012 amendments). Maintenance continues after 2.5; the successor (G-Proof) restarts versioning at 1.0.
 
 ### Changed
 

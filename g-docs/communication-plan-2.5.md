@@ -137,7 +137,7 @@ The arithmetic below is coincidental, not a mapping: of the eight warnings retur
 
 **Re-verify at publish time (claims that outrun their evidence today):**
 
-- **"Same verdict, a fraction of the cost" (§3c).** M45 treats verdict-equivalence as unproven and keeps the monolith as fallback until an A/B proves it. If the fallback is still live at release, this sentence asserts a property the milestone has not returned.
+- **"Same verdict, a fraction of the cost" (§3c).** M51's panel wiring (inheriting folded-M45's obligation, 2026-08-20 fold) treats verdict-equivalence as unproven until demonstrated on a real changeset — its done condition per the M51 ROADMAP entry. If the fallback is still live at release, this sentence asserts a property the milestone has not returned.
 - **"Risk percentages get recalibrated" (§3c).** The recorded field report offers two fixes: a cheap relabel that changes no number, and genuine calibration from ground truth. Only the second earns the word "recalibrated".
 - **Check 24 description (§3c).** Accurate for BARE-PROSE, imprecise for DECLARED-LOCAL: content inside a local-only block is hand-typed and not file-sourced, and is counted rather than flagged.
 - **§3b vs R0 (§5).** ADR-010 authorizes R0 only and states no rebuild roadmap is published with it. Three named directions are the closest this plan comes to the public commitment the ADR exists to avoid; the "no date, not ready to describe" hedges are what keep it on the right side.
